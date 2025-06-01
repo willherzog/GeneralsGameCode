@@ -50,8 +50,8 @@
 //#pragma MESSAGE("************************************** WARNING, optimization disabled for debugging purposes")
 #endif
 
-#define STOP_ID			10
-#define EVACUATE_ID	11
+#define STOP_ID			14
+#define EVACUATE_ID	15
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
