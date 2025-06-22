@@ -2201,7 +2201,7 @@ GameMessage::Type CommandTranslator::evaluateContextCommand( Drawable *draw,
 		}  // end else if
 #endif
 		// ********************************************************************************************
-		else if ( pos && !draw && TheInGameUI->canSelectedObjectsDoAction( InGameUI::ACTIONTYPE_SET_RALLY_POINT, NULL, InGameUI::SELECTION_ALL, FALSE ))
+		else if ( !draw && TheInGameUI->canSelectedObjectsDoAction( InGameUI::ACTIONTYPE_SET_RALLY_POINT, NULL, InGameUI::SELECTION_ALL, FALSE ))
 		{
 			msgType = GameMessage::MSG_SET_RALLY_POINT;
 
@@ -3704,7 +3704,7 @@ GameMessageDisposition CommandTranslator::translateGameMessage(const GameMessage
 
 				break;
 			}
-			//intentional fall through
+			FALLTHROUGH; //intentional fall through
 		}
 		case GameMessage::MSG_MOUSE_RIGHT_CLICK:
 		{
@@ -3767,7 +3767,7 @@ GameMessageDisposition CommandTranslator::translateGameMessage(const GameMessage
 
 				break;
 			}
-			//intentional fall through
+			FALLTHROUGH; //intentional fall through
 		}
 		case GameMessage::MSG_MOUSE_LEFT_CLICK:
 		{

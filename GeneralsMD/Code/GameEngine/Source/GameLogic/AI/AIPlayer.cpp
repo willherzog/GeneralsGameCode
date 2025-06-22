@@ -2287,7 +2287,7 @@ void AIPlayer::repairStructure(ObjectID structure)
 	if (structureObj==NULL) return;
 	if (structureObj->getBodyModule()==NULL) return;
 	// If the structure is not noticably damaged, don't bother.
-	enum BodyDamageType structureState = structureObj->getBodyModule()->getDamageState(); 
+	BodyDamageType structureState = structureObj->getBodyModule()->getDamageState(); 
 	if (structureState==BODY_PRISTINE) {
 		return; 
 	}
@@ -2301,7 +2301,7 @@ void AIPlayer::repairStructure(ObjectID structure)
 			return;
 		}
 	}
-	if (m_structuresInQueue==MAX_STRUCTURES_TO_REPAIR) {
+	if (m_structuresInQueue>=MAX_STRUCTURES_TO_REPAIR) {
 		DEBUG_LOG(("Structure repair queue is full, ignoring repair request. JBA\n"));
 		return;
 	}
@@ -2346,7 +2346,7 @@ void AIPlayer::updateBridgeRepair(void)
 	// Got a bridge to repair.
 	Object *dozer = NULL;
 	Coord3D bridgePos = *bridgeObj->getPosition();
-	enum BodyDamageType bridgeState = bridgeObj->getBodyModule()->getDamageState(); 
+	BodyDamageType bridgeState = bridgeObj->getBodyModule()->getDamageState(); 
 	if (m_repairDozer==INVALID_ID) {
 		m_dozerIsRepairing = false;
 		// Need a dozer.

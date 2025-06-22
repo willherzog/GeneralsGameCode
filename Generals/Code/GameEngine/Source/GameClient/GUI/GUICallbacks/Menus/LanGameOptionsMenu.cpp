@@ -220,8 +220,8 @@ static void playerTooltip(GameWindow *window,
 		return;
 	}
 	UnicodeString tooltip;
-	tooltip.format(TheGameText->fetch("TOOLTIP:LANPlayer"), player->getName().str(), player->getLogin().str(), player->getHost().str());
-#if defined(_DEBUG) || defined(_INTERNAL)
+	tooltip.format(TheGameText->fetch("TOOLTIP:LANPlayer"), player->getLogin().str(), player->getHost().str());
+#if defined(RTS_DEBUG) || defined(RTS_INTERNAL)
 	UnicodeString ip;
 	ip.format(L" - %d.%d.%d.%d", PRINTF_IP_AS_4_INTS(player->getIP()));
 	tooltip.concat(ip);
@@ -751,7 +751,11 @@ void DeinitLanGameGadgets( void )
 	listboxChatWindowLanGame = NULL;
 	textEntryChat = NULL;
 	textEntryMapDisplay = NULL;
-	windowMap = NULL;
+	if (windowMap)
+	{
+		windowMap->winSetUserData(NULL);
+		windowMap = NULL;
+	}
 	for (Int i = 0; i < MAX_SLOTS; i++)
 	{
 		comboBoxPlayer[i] = NULL;
@@ -1035,6 +1039,9 @@ WindowMsgHandledType LanGameOptionsMenuSystem( GameWindow *window, UnsignedInt m
 		//-------------------------------------------------------------------------------------------------
 		case GWM_DESTROY:
 			{
+				if (windowMap)
+					windowMap->winSetUserData(NULL);
+
 				break;
 			} // case GWM_DESTROY:
 		//-------------------------------------------------------------------------------------------------

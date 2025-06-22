@@ -163,9 +163,9 @@ StatDumpClass::StatDumpClass( const char *fname )
 		}
 		pEnd--;
 	}
-	AsciiString fullPath;
-	fullPath.format( "%s\\%s", buffer, fname );
-	m_fp = fopen( fullPath.str(), "wt" );
+	// TheSuperHackers @fix Caball009 03/06/2025 Don't use AsciiString here anymore because its memory allocator may not have been initialized yet.
+	const std::string fullPath = std::string(buffer) + "\\" + fname;
+	m_fp = fopen(fullPath.c_str(), "wt");
 }
 
 //=============================================================================
@@ -2662,6 +2662,7 @@ void W3DDisplay::drawImage( const Image *image, Int startX, Int startY,
 			m_2DRender->Enable_Additive(false);
 			m_2DRender->Enable_Alpha(false);
 			doAlphaReset = TRUE;
+			break;
 		default:
 			break;
 	}
@@ -2919,75 +2920,77 @@ void W3DDisplay::setShroudLevel( Int x, Int y, CellShroudStatus setting )
 //=============================================================================
 ///Utility function to dump data into a .BMP file
 static void CreateBMPFile(LPTSTR pszFile, char *image, Int width, Int height)
-{ 
-     HANDLE hf;                 // file handle 
-    BITMAPFILEHEADER hdr;       // bitmap file-header 
-    PBITMAPINFOHEADER pbih;     // bitmap info-header 
-    LPBYTE lpBits;              // memory pointer 
-    DWORD dwTotal;              // total count of bytes 
-    DWORD cb;                   // incremental count of bytes 
-    BYTE *hp;                   // byte pointer 
-    DWORD dwTmp; 
+{
+	HANDLE hf;                  // file handle 
+	BITMAPFILEHEADER hdr;       // bitmap file-header 
+	PBITMAPINFOHEADER pbih;     // bitmap info-header 
+	LPBYTE lpBits;              // memory pointer 
+	DWORD dwTotal;              // total count of bytes 
+	DWORD cb;                   // incremental count of bytes 
+	BYTE *hp;                   // byte pointer 
+	DWORD dwTmp;
 
-    PBITMAPINFO pbmi; 
+	PBITMAPINFO pbmi;
 
-    pbmi = (PBITMAPINFO) LocalAlloc(LPTR,sizeof(BITMAPINFOHEADER));
-    pbmi->bmiHeader.biSize = sizeof(BITMAPINFOHEADER); 
-    pbmi->bmiHeader.biWidth = width; 
-    pbmi->bmiHeader.biHeight = height; 
-    pbmi->bmiHeader.biPlanes = 1; 
-    pbmi->bmiHeader.biBitCount = 24;
-    pbmi->bmiHeader.biCompression = BI_RGB;
-    pbmi->bmiHeader.biSizeImage = (pbmi->bmiHeader.biWidth + 7) /8 * pbmi->bmiHeader.biHeight * 24;
-    pbmi->bmiHeader.biClrImportant = 0; 
-
-
-    pbih = (PBITMAPINFOHEADER) pbmi; 
-    lpBits = (LPBYTE) image;
-
-    // Create the .BMP file. 
-    hf = CreateFile(pszFile, 
-                   GENERIC_READ | GENERIC_WRITE, 
-                   (DWORD) 0, 
-                    NULL, 
-                   CREATE_ALWAYS, 
-                   FILE_ATTRIBUTE_NORMAL, 
-                   (HANDLE) NULL); 
-    if (hf == INVALID_HANDLE_VALUE) 
-		return;
-    hdr.bfType = 0x4d42;        // 0x42 = "B" 0x4d = "M" 
-    // Compute the size of the entire file. 
-    hdr.bfSize = (DWORD) (sizeof(BITMAPFILEHEADER) + 
-                 pbih->biSize + pbih->biClrUsed 
-                 * sizeof(RGBQUAD) + pbih->biSizeImage); 
-    hdr.bfReserved1 = 0; 
-    hdr.bfReserved2 = 0; 
-
-    // Compute the offset to the array of color indices. 
-    hdr.bfOffBits = (DWORD) sizeof(BITMAPFILEHEADER) + 
-                    pbih->biSize + pbih->biClrUsed 
-                    * sizeof (RGBQUAD); 
-
-    // Copy the BITMAPFILEHEADER into the .BMP file. 
-    if (!WriteFile(hf, (LPVOID) &hdr, sizeof(BITMAPFILEHEADER), 
-        (LPDWORD) &dwTmp,  NULL)) 
+	pbmi = (PBITMAPINFO) LocalAlloc(LPTR,sizeof(BITMAPINFOHEADER));
+	if (pbmi == NULL)
 		return;
 
-    // Copy the BITMAPINFOHEADER and RGBQUAD array into the file. 
-    if (!WriteFile(hf, (LPVOID) pbih, sizeof(BITMAPINFOHEADER) + pbih->biClrUsed * sizeof (RGBQUAD),(LPDWORD) &dwTmp, NULL)) 
-		return;
+	pbmi->bmiHeader.biSize = sizeof(BITMAPINFOHEADER); 
+	pbmi->bmiHeader.biWidth = width; 
+	pbmi->bmiHeader.biHeight = height; 
+	pbmi->bmiHeader.biPlanes = 1; 
+	pbmi->bmiHeader.biBitCount = 24;
+	pbmi->bmiHeader.biCompression = BI_RGB;
+	pbmi->bmiHeader.biSizeImage = (pbmi->bmiHeader.biWidth + 7) /8 * pbmi->bmiHeader.biHeight * 24;
+	pbmi->bmiHeader.biClrImportant = 0; 
 
-    // Copy the array of color indices into the .BMP file. 
-    dwTotal = cb = pbih->biSizeImage; 
-    hp = lpBits; 
-    if (!WriteFile(hf, (LPSTR) hp, (int) cb, (LPDWORD) &dwTmp,NULL)) 
-		return;
+	pbih = (PBITMAPINFOHEADER) pbmi; 
+	lpBits = (LPBYTE) image;
 
-    // Close the .BMP file. 
-     if (!CloseHandle(hf))
-		 return;
+	// Create the .BMP file. 
+	hf = CreateFile(pszFile, 
+		GENERIC_READ | GENERIC_WRITE, 
+		(DWORD) 0, 
+		NULL, 
+		CREATE_ALWAYS, 
+		FILE_ATTRIBUTE_NORMAL, 
+		(HANDLE) NULL); 
 
-    // Free memory. 
+	if (hf != INVALID_HANDLE_VALUE) 
+	{
+		hdr.bfType = 0x4d42;        // 0x42 = "B" 0x4d = "M" 
+		// Compute the size of the entire file. 
+		hdr.bfSize = (DWORD) (sizeof(BITMAPFILEHEADER) + 
+									pbih->biSize + pbih->biClrUsed 
+									* sizeof(RGBQUAD) + pbih->biSizeImage); 
+		hdr.bfReserved1 = 0; 
+		hdr.bfReserved2 = 0; 
+
+		// Compute the offset to the array of color indices. 
+		hdr.bfOffBits = (DWORD) sizeof(BITMAPFILEHEADER) + 
+										pbih->biSize + pbih->biClrUsed 
+										* sizeof (RGBQUAD); 
+
+		// Copy the BITMAPFILEHEADER into the .BMP file. 
+		if (WriteFile(hf, (LPVOID) &hdr, sizeof(BITMAPFILEHEADER), 
+				(LPDWORD) &dwTmp,  NULL))
+		{
+			// Copy the BITMAPINFOHEADER and RGBQUAD array into the file. 
+			if (WriteFile(hf, (LPVOID) pbih, sizeof(BITMAPINFOHEADER) + pbih->biClrUsed * sizeof (RGBQUAD),(LPDWORD) &dwTmp, NULL)) 
+			{
+				// Copy the array of color indices into the .BMP file. 
+				dwTotal = cb = pbih->biSizeImage; 
+				hp = lpBits; 
+				WriteFile(hf, (LPSTR) hp, (int) cb, (LPDWORD) &dwTmp, NULL);
+			}
+		}
+
+		// Close the .BMP file. 
+		CloseHandle(hf);
+	}
+
+	// Free memory.
 	LocalFree( (HLOCAL) pbmi);
 }
 
@@ -3157,7 +3160,7 @@ void dumpMeshAssets(MeshClass *mesh)
 					{
 						if ((texture=model->Peek_Texture(i,pass,stage)) != NULL)
 						{
-							fprintf(AssetDumpFile,"\t%s\n",texture->Get_Texture_Name());
+							fprintf(AssetDumpFile,"\t%s\n",texture->Get_Texture_Name().str());
 						}
 					}
 				}
@@ -3165,7 +3168,7 @@ void dumpMeshAssets(MeshClass *mesh)
 				{
 					if ((texture=model->Peek_Single_Texture(pass,stage)) != NULL)
 					{
-						fprintf(AssetDumpFile,"\t%s\n",texture->Get_Texture_Name());
+						fprintf(AssetDumpFile,"\t%s\n",texture->Get_Texture_Name().str());
 					}
 				}
 			}
