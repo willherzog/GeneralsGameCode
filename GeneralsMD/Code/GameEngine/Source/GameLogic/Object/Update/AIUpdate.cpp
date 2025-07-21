@@ -4742,7 +4742,6 @@ void AIUpdateInterface::evaluateMoraleBonus( void )
 		//if ( draw && !us->isKindOf( KINDOF_PORTABLE_STRUCTURE ) )
 		//	draw->setTerrainDecal(TERRAIN_DECAL_NONE);
 
-		// horde
 		if( horde )
 		{
 			us->setWeaponBonusCondition( WEAPONBONUSCONDITION_HORDE );
@@ -4751,13 +4750,12 @@ void AIUpdateInterface::evaluateMoraleBonus( void )
 		else
 			us->clearWeaponBonusCondition( WEAPONBONUSCONDITION_HORDE );
 
-		// nationalism
 		if( horde && nationalism )
     {
 			us->setWeaponBonusCondition( WEAPONBONUSCONDITION_NATIONALISM );
-      // fanaticism
+
       if ( fanaticism )
-        us->setWeaponBonusCondition( WEAPONBONUSCONDITION_FANATICISM );// FOR THE NEW GC INFANTRY GENERAL
+        us->setWeaponBonusCondition( WEAPONBONUSCONDITION_FANATICISM );
       else 
         us->clearWeaponBonusCondition( WEAPONBONUSCONDITION_FANATICISM );
     }
