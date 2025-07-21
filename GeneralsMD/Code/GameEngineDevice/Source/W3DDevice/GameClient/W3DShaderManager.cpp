@@ -73,13 +73,7 @@
 #include "d3dx8tex.h"
 #include "dx8caps.h"
 #include "Common/GameLOD.h"
-#include "benchmark.h"
 
-#ifdef RTS_INTERNAL
-// for occasional debugging...
-//#pragma optimize("", off)
-//#pragma MESSAGE("************************************** WARNING, optimization disabled for debugging purposes")
-#endif
 
 // Turn this on to turn off pixel shaders. jba[4/3/2003]
 #define do_not_DISABLE_PIXEL_SHADERS 1
@@ -1218,7 +1212,7 @@ Int ShroudTextureShader::set(Int stage)
 
 	if (stage == 0)
 	{
-#if defined(RTS_DEBUG) || defined(RTS_INTERNAL)
+#if defined(RTS_DEBUG)
 	if (TheGlobalData && TheGlobalData->m_fogOfWarOn)
 		DX8Wrapper::Set_Shader(ShaderClass::_PresetAlphaSpriteShader);
 	else
@@ -2675,7 +2669,7 @@ void W3DShaderManager::init(void)
 		}
 	}
 
-	DEBUG_LOG(("ShaderManager ChipsetID %d\n", res));
+	DEBUG_LOG(("ShaderManager ChipsetID %d", res));
 }
 
 // W3DShaderManager::shutdown =======================================================
@@ -3114,7 +3108,11 @@ Bool W3DShaderManager::testMinimumRequirements(ChipsetType *videoChipType, CpuTy
 
 	if (intBenchIndex && floatBenchIndex && memBenchIndex)
 	{
-		RunBenchmark(0, NULL, floatBenchIndex, intBenchIndex, memBenchIndex);
+		// TheSuperHackers @tweak Aliendroid1 19/06/2025 Legacy benchmarking code was removed. 
+		// Since modern hardware always meets the minimum requirements, we preset the benchmark "results" to a high value. 
+		*intBenchIndex = 10.0f;
+		*floatBenchIndex = 10.0f;
+		*memBenchIndex = 10.0f;
 	}
 
 	return TRUE;

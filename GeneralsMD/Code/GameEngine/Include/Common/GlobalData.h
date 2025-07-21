@@ -39,7 +39,6 @@
 #include "Common/SubsystemInterface.h"
 #include "GameClient/Color.h"
 #include "Common/STLTypedefs.h"
-#include "Common/GameCommon.h"
 #include "Common/Money.h"
 
 // FORWARD DECLARATIONS ///////////////////////////////////////////////////////////////////////////
@@ -76,7 +75,7 @@ class CommandLineData
 /** Global data container class
   *	Defines all global game data used by the system
 	* @todo Change this entire system. Otherwise this will end up a huge class containing tons of variables,
-	* and will cause re-compilation dependancies throughout the codebase. 
+	* and will cause re-compilation dependencies throughout the code base. 
   * OOPS -- TOO LATE! :) */
 //-------------------------------------------------------------------------------------------------
 class GlobalData : public SubsystemInterface
@@ -409,6 +408,10 @@ public:
 	Bool m_saveCameraInReplay;
 	Bool m_useCameraInReplay;
 
+	// TheSuperHackers @feature Mauller 21/06/2025 allow the system time and game time font size to be set, a size of zero disables them
+	Int m_systemTimeFontSize;
+	Int m_gameTimeFontSize;
+
 	Real m_shakeSubtleIntensity;			///< Intensity for shaking a camera with SHAKE_SUBTLE
 	Real m_shakeNormalIntensity;			///< Intensity for shaking a camera with SHAKE_NORMAL
 	Real m_shakeStrongIntensity;			///< Intensity for shaking a camera with SHAKE_STRONG
@@ -476,18 +479,19 @@ public:
 	Real				m_keyboardCameraRotateSpeed;    ///< How fast the camera rotates when rotated via keyboard controls.
   Int					m_playStats;									///< Int whether we want to log play stats or not, if <= 0 then we don't log
 
-#if defined(RTS_DEBUG) || defined(RTS_INTERNAL) || defined(_ALLOW_DEBUG_CHEATS_IN_RELEASE)
+#if defined(RTS_DEBUG) || defined(_ALLOW_DEBUG_CHEATS_IN_RELEASE)
 	Bool m_specialPowerUsesDelay ;
 #endif
   Bool m_TiVOFastMode;            ///< When true, the client speeds up the framerate... set by HOTKEY!
-  
 
+#if defined(RTS_DEBUG) || ENABLE_CONFIGURABLE_SHROUD
+	Bool m_shroudOn;
+#endif
 
-#if defined(RTS_DEBUG) || defined(RTS_INTERNAL)
+#if defined(RTS_DEBUG)
 	Bool m_wireframe;
 	Bool m_stateMachineDebug;
 	Bool m_useCameraConstraints;
-	Bool m_shroudOn;
 	Bool m_fogOfWarOn;
 	Bool m_jabberOn;
 	Bool m_munkeeOn;
@@ -552,6 +556,8 @@ public:
   const AsciiString &getPath_UserData() const { return m_userDataDir; }
 
 private:
+
+	static UnsignedInt generateExeCRC();
 
 	static const FieldParse s_GlobalDataFieldParseTable[];
 

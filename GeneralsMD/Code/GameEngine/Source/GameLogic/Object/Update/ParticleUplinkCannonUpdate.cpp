@@ -57,11 +57,6 @@
 #include "GameLogic/Module/PhysicsUpdate.h"
 #include "GameLogic/Module/ActiveBody.h"
 
-#ifdef RTS_INTERNAL
-// for occasional debugging...
-//#pragma optimize("", off)
-//#pragma MESSAGE("************************************** WARNING, optimization disabled for debugging purposes")
-#endif
 
 
 //-------------------------------------------------------------------------------------------------
@@ -287,6 +282,9 @@ Bool ParticleUplinkCannonUpdate::initiateIntentToDoSpecialPower(const SpecialPow
 		m_startAttackFrame = TheGameLogic->getFrame();
 		m_laserStatus = LASERSTATUS_NONE;
 		m_manualTargetMode = TRUE;
+#if !RETAIL_COMPATIBLE_CRC
+		m_scriptedWaypointMode = FALSE;
+#endif
 		m_initialTargetPosition.set( targetPos );
 		m_overrideTargetDestination.set( targetPos );
 		m_currentTargetPosition.set( targetPos );
@@ -306,6 +304,9 @@ Bool ParticleUplinkCannonUpdate::initiateIntentToDoSpecialPower(const SpecialPow
 			pos.set( targetObj->getPosition() );
 		}
    	m_startAttackFrame = max( now, (UnsignedInt)1 );
+#if !RETAIL_COMPATIBLE_CRC
+		m_manualTargetMode = FALSE;
+#endif
 		m_scriptedWaypointMode = TRUE;
    	m_laserStatus = LASERSTATUS_NONE;
 		setLogicalStatus( STATUS_READY_TO_FIRE );
@@ -338,6 +339,10 @@ Bool ParticleUplinkCannonUpdate::initiateIntentToDoSpecialPower(const SpecialPow
 		{
 			pos.set( targetObj->getPosition() );
 		}
+#if !RETAIL_COMPATIBLE_CRC
+		m_manualTargetMode = FALSE;
+		m_scriptedWaypointMode = FALSE;
+#endif
    	m_initialTargetPosition.set( &pos );
    	m_startAttackFrame = max( now, (UnsignedInt)1 );
    	m_laserStatus = LASERSTATUS_NONE;
@@ -593,8 +598,17 @@ UpdateSleepTime ParticleUplinkCannonUpdate::update()
 							Int linkCount = way->getNumLinks();
 							Int which = GameLogicRandomValue( 0, linkCount-1 );
 							way = way->getLink( which );
-							m_nextDestWaypointID = way->getID();
-							m_overrideTargetDestination.set( way->getLocation() );
+
+							// TheSuperHackers @bugfix Caball009 27/06/2025 Check if the last way point has been reached before attempting to access the next way point.
+							if ( way )
+							{
+								m_nextDestWaypointID = way->getID();
+								m_overrideTargetDestination.set(way->getLocation());
+							}
+							else
+							{
+								m_nextDestWaypointID = INVALID_WAYPOINT_ID;
+							}
 						}
 					}
 				}
@@ -644,7 +658,7 @@ UpdateSleepTime ParticleUplinkCannonUpdate::update()
 			scorchRadius = logicalLaserRadius * data->m_scorchMarkScalar;
 #if defined(RETAIL_COMPATIBLE_CRC)
 			DEBUG_ASSERTCRASH(logicalLaserRadius == visualLaserRadius,
-				("ParticleUplinkCannonUpdate's laser radius does not match LaserUpdate's laser radius - will cause mismatch in VS6 retail compatible builds\n"));
+				("ParticleUplinkCannonUpdate's laser radius does not match LaserUpdate's laser radius - will cause mismatch in VS6 retail compatible builds"));
 #endif
 
 			//Create scorch marks periodically
@@ -1534,7 +1548,7 @@ void ParticleUplinkCannonUpdate::loadPostProcess( void )
 		}
 		else
 		{
-			DEBUG_CRASH(( "ParticleUplinkCannonUpdate::loadPostProcess - Unable to find drawable for m_orbitToTargetBeamID\n" ));
+			DEBUG_CRASH(( "ParticleUplinkCannonUpdate::loadPostProcess - Unable to find drawable for m_orbitToTargetBeamID" ));
 		}
 	}
 #endif

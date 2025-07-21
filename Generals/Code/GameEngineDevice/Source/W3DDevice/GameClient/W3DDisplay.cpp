@@ -108,14 +108,12 @@ static void drawFramerateBar(void);
 
 #include "WinMain.h"
 
-#ifdef RTS_INTERNAL
-// for occasional debugging...
-//#pragma optimize("", off)
-//#pragma MESSAGE("************************************** WARNING, optimization disabled for debugging purposes")
-#endif
 
 // DEFINE AND ENUMS ///////////////////////////////////////////////////////////
-#define W3D_DISPLAY_DEFAULT_BIT_DEPTH 32
+#define DEFAULT_DISPLAY_BIT_DEPTH 32
+#define MIN_DISPLAY_BIT_DEPTH 16
+#define MIN_DISPLAY_RESOLUTION_X 800
+#define MIN_DISPLAY_RESOLUTION_Y 600
 
 #define no_SAMPLE_DYNAMIC_LIGHT	1
 #ifdef SAMPLE_DYNAMIC_LIGHT
@@ -279,7 +277,7 @@ void StatDumpClass::dumpStats()
 
 	fprintf( m_fp, "\n" );
 
-#if defined(RTS_DEBUG) || defined(RTS_INTERNAL)
+#if defined(RTS_DEBUG)
 	TheAudio->audioDebugDisplay( NULL, NULL, m_fp );
 	fprintf( m_fp, "\n" );
 #endif
@@ -351,7 +349,7 @@ W3DDisplay::W3DDisplay()
 	m_2DScene = NULL;
 	m_3DInterfaceScene = NULL;
 	m_averageFPS = TheGlobalData->m_framesPerSecondLimit;
-#if defined(RTS_DEBUG) || defined(RTS_INTERNAL)
+#if defined(RTS_DEBUG)
 	m_timerAtCumuFPSStart = 0;
 #endif
 	for (i=0; i<LightEnvironmentClass::MAX_LIGHTS; i++)
@@ -429,6 +427,14 @@ W3DDisplay::~W3DDisplay()
 
 }  // end ~W3DDisplay
 
+// TheSuperHackers @tweak valeronm 20/03/2025 No longer filters resolutions by a 4:3 aspect ratio.
+inline Bool isResolutionSupported(const ResolutionDescClass &res)
+{
+	static const Int minBitDepth = 24;
+
+	return res.Width >= MIN_DISPLAY_RESOLUTION_X && res.BitDepth >= minBitDepth;
+}
+
 /*Return number of screen modes supported by the current device*/
 Int W3DDisplay::getDisplayModeCount(void)
 {
@@ -452,8 +458,8 @@ Int W3DDisplay::getDisplayModeCount(void)
 	for (int res = 0; res < resolutions.Count ();  res ++)
 	{
 		// Is this the resolution we are looking for?
-		if (resolutions[res].BitDepth >= 24 && resolutions[res].Width >= 800 && (fabs((Real)resolutions[res].Width/(Real)resolutions[res].Height - 1.3333f)) < 0.01f)	//only accept 4:3 aspect ratio modes.
-		{	
+		if (isResolutionSupported(resolutions[res]))
+		{
 			numResolutions++;
 		}
 	}
@@ -470,7 +476,7 @@ void W3DDisplay::getDisplayModeDescription(Int modeIndex, Int *xres, Int *yres, 
 	for (int res = 0; res < resolutions.Count ();  res ++)
 	{
 		// Is this the resolution we are looking for?
-		if (resolutions[res].BitDepth >= 24 && resolutions[res].Width >= 800 && (fabs((Real)resolutions[res].Width/(Real)resolutions[res].Height - 1.3333f)) < 0.01f)	//only accept 4:3 aspect ratio modes.
+		if (isResolutionSupported(resolutions[res]))
 		{	
 			if (numResolutions == modeIndex)
 			{	//found the mode
@@ -604,7 +610,7 @@ void W3DDisplay::init( void )
 
 		// create our 3D scene
 		m_3DScene =NEW_REF( RTS3DScene, () );
-	#if defined(RTS_DEBUG) || defined(RTS_INTERNAL)
+	#if defined(RTS_DEBUG)
 		if( TheGlobalData->m_wireframe )
 			m_3DScene->Set_Polygon_Mode( SceneClass::LINE );
 	#endif
@@ -668,38 +674,73 @@ void W3DDisplay::init( void )
 		m_2DRender = NEW Render2DClass;
 		DEBUG_ASSERTCRASH( m_2DRender, ("Cannot create Render2DClass") );
 
-		// set our default width and height and bit depth
-		/// @todo we should set this according to options read from a file
-		setWidth( TheGlobalData->m_xResolution );
-		setHeight( TheGlobalData->m_yResolution );
-		setBitDepth( W3D_DISPLAY_DEFAULT_BIT_DEPTH );
-
-		if( WW3D::Set_Render_Device( 0, 
-																 getWidth(), 
-																 getHeight(), 
-																 getBitDepth(), 
-																 getWindowed(), 
-																 true ) != WW3D_ERROR_OK ) 
+		WW3DErrorType renderDeviceError;
+		Int attempt = 0;
+		do
 		{
-			// Getting the device at the default bit depth (32) didn't work, so try
-			// getting a 16 bit display.  (Voodoo 1-3 only supported 16 bit.) jba.
-			setBitDepth( 16 );
-			if( WW3D::Set_Render_Device( 0, 
-																	 getWidth(), 
-																	 getHeight(), 
-																	 getBitDepth(), 
-																	 getWindowed(), 
-																	 true ) != WW3D_ERROR_OK ) 
+			switch (attempt)
 			{
-
-				WW3D::Shutdown();
-				WWMath::Shutdown();
-				throw ERROR_INVALID_D3D;	//failed to initialize.  User probably doesn't have DX 8.1
-				DEBUG_ASSERTCRASH( 0, ("Unable to set render device\n") );
-				return;
+			case 0:
+			{
+				// set our default width and height and bit depth
+				setWidth( TheGlobalData->m_xResolution );
+				setHeight( TheGlobalData->m_yResolution );
+				setBitDepth( DEFAULT_DISPLAY_BIT_DEPTH );
+				break;
+			}
+			case 1:
+			{
+				// Getting the device at the default bit depth (32) didn't work, so try
+				// getting a 16 bit display.  (Voodoo 1-3 only supported 16 bit.) jba.
+				setBitDepth( MIN_DISPLAY_BIT_DEPTH );
+				break;
+			}
+			case 2:
+			{
+				// TheSuperHackers @bugfix xezon 11/06/2025 Now tries a safe default resolution
+				// if the custom resolution did not succeed. This is unlikely to happen but is possible
+				// if the user writes an unsupported resolution in the Option Preferences or if the
+				// graphics adapter does not support the minimum display resolution to begin with.
+				Int xres = MIN_DISPLAY_RESOLUTION_X;
+				Int yres = MIN_DISPLAY_RESOLUTION_Y;
+				Int bitDepth = DEFAULT_DISPLAY_BIT_DEPTH;
+				Int displayModeCount = getDisplayModeCount();
+				Int displayModeIndex = 0;
+				for (; displayModeIndex < displayModeCount; ++displayModeIndex)
+				{
+					getDisplayModeDescription(displayModeIndex, &xres, &yres, &bitDepth);
+					if (xres * yres >= MIN_DISPLAY_RESOLUTION_X * MIN_DISPLAY_RESOLUTION_Y)
+						break; // Is good enough. Use it.
+				}
+				TheWritableGlobalData->m_xResolution = xres;
+				TheWritableGlobalData->m_yResolution = yres;
+				setWidth( xres );
+				setHeight( yres );
+				setBitDepth( bitDepth );
+				break;
+			}
 			}
 
-		}  // end if
+			renderDeviceError = WW3D::Set_Render_Device(
+				0, 
+				getWidth(), 
+				getHeight(), 
+				getBitDepth(), 
+				getWindowed(), 
+				true );
+
+			++attempt;
+		}
+		while (attempt < 3 && renderDeviceError != WW3D_ERROR_OK);
+
+		if (renderDeviceError != WW3D_ERROR_OK)
+		{
+			WW3D::Shutdown();
+			WWMath::Shutdown();
+			throw ERROR_INVALID_D3D;	//failed to initialize.  User probably doesn't have DX 8.1
+			DEBUG_ASSERTCRASH( 0, ("Unable to set render device") );
+			return;
+		}
 
 		//Check if level was never set and default to setting most suitable for system.
 		if (TheGameLODManager->getStaticLODLevel() == STATIC_GAME_LOD_UNKNOWN)
@@ -814,7 +855,7 @@ void W3DDisplay::updateAverageFPS(void)
 	Int64 freq64 = getPerformanceCounterFrequency();
 	Int64 time64 = getPerformanceCounter();
 
-#if defined(RTS_DEBUG) || defined(RTS_INTERNAL)
+#if defined(RTS_DEBUG)
 	if (TheGameLogic->getFrame() == START_CUMU_FRAME)
 	{
 		m_timerAtCumuFPSStart = time64;
@@ -832,8 +873,8 @@ void W3DDisplay::updateAverageFPS(void)
 		if (historyOffset >= FPS_HISTORY_SIZE)
 			historyOffset = 0;
 
-		double currentFPS = 1.0/elapsedSeconds; 
-		fpsHistory[historyOffset++] = currentFPS;
+		m_currentFPS = 1.0/elapsedSeconds; 
+		fpsHistory[historyOffset++] = m_currentFPS;
 		numSamples++;
 		if (numSamples > FPS_HISTORY_SIZE)
 			numSamples = FPS_HISTORY_SIZE;
@@ -856,7 +897,7 @@ void W3DDisplay::updateAverageFPS(void)
 	lastUpdateTime64 = time64;
 }
 
-#if defined(RTS_DEBUG) || defined(RTS_INTERNAL)	//debug hack to view object under mouse stats
+#if defined(RTS_DEBUG)	//debug hack to view object under mouse stats
 ICoord2D TheMousePos;
 #endif
 
@@ -950,7 +991,7 @@ void W3DDisplay::gatherDebugStats( void )
 		double ms = 1000.0f/fps;
 
 
-#if defined(RTS_DEBUG) || defined(RTS_INTERNAL)
+#if defined(RTS_DEBUG)
 		double cumuTime = ((double)(time64 - m_timerAtCumuFPSStart) / (double)(freq64));
 		if (cumuTime < 0.0) cumuTime = 0.0;
 		Int numFrames = (Int)TheGameLogic->getFrame() - (Int)START_CUMU_FRAME;
@@ -1246,7 +1287,7 @@ void W3DDisplay::gatherDebugStats( void )
 		}
 
 		Object *object = NULL;
-#if defined(RTS_DEBUG) || defined(RTS_INTERNAL)	//debug hack to view object under mouse stats
+#if defined(RTS_DEBUG)	//debug hack to view object under mouse stats
 		Drawable *draw = 	TheTacticalView->pickDrawable(&TheMousePos, FALSE, (PickType)0xffffffff );
 #else
 		Drawable *draw = TheGameClient->findDrawableByID( TheInGameUI->getMousedOverDrawableID() );
@@ -1355,7 +1396,7 @@ void W3DDisplay::gatherDebugStats( void )
 												draw->getPosition()->z );
 
 			// (gth) compute some stats about the rendering cost of this drawable
-#if defined(RTS_DEBUG) || defined(RTS_INTERNAL)	
+#if defined(RTS_DEBUG)	
 			RenderCost rcost;
 			for (DrawModule** dm = draw->getDrawModules(); *dm; ++dm)
 			{
@@ -1559,6 +1600,11 @@ Real W3DDisplay::getAverageFPS()
 	return m_averageFPS;
 }
 
+Real W3DDisplay::getCurrentFPS()
+{
+	return m_currentFPS;
+}
+
 Int W3DDisplay::getLastFrameDrawCalls()
 {
 	return Debug_Statistics::Get_Draw_Calls();
@@ -1612,7 +1658,7 @@ AGAIN:
 
 	// compute debug statistics for display later
 	if ( m_debugDisplayCallback == StatDebugDisplay 
-#if defined(RTS_DEBUG) || defined(RTS_INTERNAL)
+#if defined(RTS_DEBUG)
 				|| TheGlobalData->m_benchmarkTimer > 0
 #endif
 			)
@@ -1846,7 +1892,7 @@ AGAIN:
 					drawCurrentDebugDisplay();
 				}
 
-#if defined(RTS_DEBUG) || defined(RTS_INTERNAL)
+#if defined(RTS_DEBUG)
 				if (TheGlobalData->m_benchmarkTimer > 0)
 				{
 					drawFPSStats();
@@ -1854,7 +1900,7 @@ AGAIN:
 #endif
 
 
-#if defined(RTS_DEBUG) || defined(RTS_INTERNAL)
+#if defined(RTS_DEBUG)
 				if (TheGlobalData->m_debugShowGraphicalFramerate)
 				{
 					drawFramerateBar();
@@ -1873,7 +1919,7 @@ AGAIN:
 				if (couldRender)
 				{
 					couldRender = false;
-					DEBUG_LOG(("Could not do WW3D::Begin_Render()!  Are we ALT-Tabbed out?\n"));
+					DEBUG_LOG(("Could not do WW3D::Begin_Render()!  Are we ALT-Tabbed out?"));
 				}
 			}
 		}
@@ -2999,7 +3045,7 @@ void W3DDisplay::toggleMovieCapture(void)
 }
 
 
-#if defined(RTS_DEBUG) || defined(RTS_INTERNAL)
+#if defined(RTS_DEBUG)
 
 static FILE *AssetDumpFile=NULL;
 
@@ -3152,7 +3198,7 @@ void W3DDisplay::doSmartAssetPurgeAndPreload(const char* usageFileName)
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
-#if defined(RTS_DEBUG) || defined(RTS_INTERNAL)
+#if defined(RTS_DEBUG)
 void W3DDisplay::dumpAssetUsage(const char* mapname)
 {
 	if (!m_assetManager || !mapname || !*mapname)

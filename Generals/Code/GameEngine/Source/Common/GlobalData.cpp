@@ -488,7 +488,7 @@ GlobalData* GlobalData::m_theOriginal = NULL;
 	{ "KeyboardCameraRotateSpeed", INI::parseReal, NULL, offsetof( GlobalData, m_keyboardCameraRotateSpeed ) },
 	{ "PlayStats",									INI::parseInt,				NULL,			offsetof( GlobalData, m_playStats ) },
 
-#if defined(RTS_DEBUG) || defined(RTS_INTERNAL)
+#if defined(RTS_DEBUG)
 	{ "DisableCameraFade",			INI::parseBool,				NULL,			offsetof( GlobalData, m_disableCameraFade ) },
 	{ "DisableScriptedInputDisabling",			INI::parseBool,		NULL,			offsetof( GlobalData, m_disableScriptedInputDisabling ) },
 	{ "DisableMilitaryCaption",			INI::parseBool,				NULL,			offsetof( GlobalData, m_disableMilitaryCaption ) },
@@ -545,11 +545,14 @@ GlobalData::GlobalData()
 
   m_TiVOFastMode = FALSE;
 
-#if defined(RTS_DEBUG) || defined(RTS_INTERNAL)
+#if defined(RTS_DEBUG) || ENABLE_CONFIGURABLE_SHROUD
+	m_shroudOn = TRUE;
+#endif
+
+#if defined(RTS_DEBUG)
 	m_wireframe = 0;
 	m_stateMachineDebug = FALSE;
 	m_useCameraConstraints = TRUE;
-	m_shroudOn = TRUE;
 	m_fogOfWarOn = FALSE;
 	m_jabberOn = FALSE;
 	m_munkeeOn = FALSE;
@@ -919,6 +922,8 @@ GlobalData::GlobalData()
 	m_saveCameraInReplay = FALSE;
 	m_useCameraInReplay = FALSE;
 
+	m_systemTimeFontSize = 8;
+	m_gameTimeFontSize = 8;
 
 	m_debugShowGraphicalFramerate = FALSE;
 
@@ -987,73 +992,6 @@ GlobalData::GlobalData()
 	m_iniCRC = 0;
 	m_exeCRC = 0;
 	
-	// lets CRC the executable!  Whee!
-	const Int blockSize = 65536;
-	CRC exeCRC;
-	File *fp;
-	// TheSuperHackers @tweak SkyAero/xezon 27/05/2025
-	// Simulate the EXE's CRC value to force Network and Replay compatibility with another build.
-#if (defined(_MSC_VER) && _MSC_VER < 1300) && RETAIL_COMPATIBLE_CRC
-
-#define GENERALS_108_CD_EXE_CRC    0x93d1eab4u
-#define GENERALS_108_STEAM_EXE_CRC 0x8d6e4dd7u
-#define GENERALS_108_EAAPP_EXE_CRC 0xb07fbd50u
-
-	exeCRC.set(GENERALS_108_CD_EXE_CRC);
-	DEBUG_LOG(("Fake EXE CRC is 0x%8.8X\n", exeCRC.get()));
-
-#else
-	{
-		Char buffer[ _MAX_PATH ];
-		GetModuleFileName( NULL, buffer, sizeof( buffer ) );
-		fp = TheFileSystem->openFile(buffer, File::READ | File::BINARY);
-		if (fp != NULL) {
-			unsigned char crcBlock[blockSize];
-			Int amtRead = 0;
-			while ( (amtRead=fp->read(crcBlock, blockSize)) > 0 )
-			{
-				exeCRC.computeCRC(crcBlock, amtRead);
-			}
-			DEBUG_LOG(("EXE CRC is 0x%8.8X\n", exeCRC.get()));
-			fp->close();
-			fp = NULL;
-		}
-	}
-#endif
-
-	UnsignedInt version = 0;
-	if (TheVersion)
-	{
-		version = TheVersion->getVersionNumber();
-		exeCRC.computeCRC( &version, sizeof(UnsignedInt) );
-	}
-	// Add in MP scripts to the EXE CRC, since the game will go out of sync if they change
-	fp = TheFileSystem->openFile("Data\\Scripts\\SkirmishScripts.scb", File::READ | File::BINARY);
-	if (fp != NULL) {
-		unsigned char crcBlock[blockSize];
-		Int amtRead = 0;
-		while ( (amtRead=fp->read(crcBlock, blockSize)) > 0 )
-		{
-			exeCRC.computeCRC(crcBlock, amtRead);
-		}
-		fp->close();
-		fp = NULL;
-	}
-	fp = TheFileSystem->openFile("Data\\Scripts\\MultiplayerScripts.scb", File::READ | File::BINARY);
-	if (fp != NULL) {
-		unsigned char crcBlock[blockSize];
-		Int amtRead = 0;
-		while ( (amtRead=fp->read(crcBlock, blockSize)) > 0 )
-		{
-			exeCRC.computeCRC(crcBlock, amtRead);
-		}
-		fp->close();
-		fp = NULL;
-	}
-
-	m_exeCRC = exeCRC.get();
-	DEBUG_LOG(("EXE+Version(%d.%d)+SCB CRC is 0x%8.8X\n", version >> 16, version & 0xffff, m_exeCRC));
-	
 	m_movementPenaltyDamageState = BODY_REALLYDAMAGED;
 	
 	m_shouldUpdateTGAToDDS = FALSE;
@@ -1081,7 +1019,7 @@ AsciiString GlobalData::getPath_UserData() const
 //-------------------------------------------------------------------------------------------------
 GlobalData::~GlobalData( void )
 {
-	DEBUG_ASSERTCRASH( TheWritableGlobalData->m_next == NULL, ("~GlobalData: theOriginal is not original\n") );
+	DEBUG_ASSERTCRASH( TheWritableGlobalData->m_next == NULL, ("~GlobalData: theOriginal is not original") );
 
 	if (m_weaponBonusSet)
 		deleteInstance(m_weaponBonusSet);
@@ -1124,7 +1062,7 @@ GlobalData *GlobalData::newOverride( void )
 	GlobalData *override = NEW GlobalData;
 
 	// copy the data from the latest override (TheWritableGlobalData) to the newly created instance
-	DEBUG_ASSERTCRASH( TheWritableGlobalData, ("GlobalData::newOverride() - no existing data\n") );
+	DEBUG_ASSERTCRASH( TheWritableGlobalData, ("GlobalData::newOverride() - no existing data") );
 	*override = *TheWritableGlobalData;
 
 	//
@@ -1144,7 +1082,7 @@ GlobalData *GlobalData::newOverride( void )
 //-------------------------------------------------------------------------------------------------
 void GlobalData::init( void )
 {
-	// nothing
+	m_exeCRC = generateExeCRC();
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -1177,8 +1115,8 @@ void GlobalData::reset( void )
 	// we now have the one single global data in TheWritableGlobalData singleton, lets sanity check
 	// some of all that
 	//
-	DEBUG_ASSERTCRASH( TheWritableGlobalData->m_next == NULL, ("ResetGlobalData: theOriginal is not original\n") );
-	DEBUG_ASSERTCRASH( TheWritableGlobalData == GlobalData::m_theOriginal, ("ResetGlobalData: oops\n") );
+	DEBUG_ASSERTCRASH( TheWritableGlobalData->m_next == NULL, ("ResetGlobalData: theOriginal is not original") );
+	DEBUG_ASSERTCRASH( TheWritableGlobalData == GlobalData::m_theOriginal, ("ResetGlobalData: oops") );
 
 }  // end ResetGlobalData
 
@@ -1235,6 +1173,9 @@ void GlobalData::parseGameDataDefinition( INI* ini )
 	
 	TheWritableGlobalData->m_saveCameraInReplay = optionPref.saveCameraInReplays();
 	TheWritableGlobalData->m_useCameraInReplay = optionPref.useCameraInReplays();
+
+	TheWritableGlobalData->m_systemTimeFontSize = optionPref.getSystemTimeFontSize();
+	TheWritableGlobalData->m_gameTimeFontSize = optionPref.getGameTimeFontSize();
 	
 	Int val=optionPref.getGammaValue();
 	//generate a value between 0.6 and 2.0.
@@ -1256,3 +1197,79 @@ void GlobalData::parseGameDataDefinition( INI* ini )
 	TheWritableGlobalData->m_yResolution = yres;
 }
 
+
+UnsignedInt GlobalData::generateExeCRC()
+{
+	DEBUG_ASSERTCRASH(TheFileSystem != NULL, ("TheFileSystem is NULL"));
+
+	// lets CRC the executable!  Whee!
+	const Int blockSize = 65536;
+	CRC exeCRC;
+	File *fp;
+	// TheSuperHackers @tweak SkyAero/xezon 27/05/2025
+	// Simulate the EXE's CRC value to force Network and Replay compatibility with another build.
+#if (defined(_MSC_VER) && _MSC_VER < 1300) && RETAIL_COMPATIBLE_CRC
+
+#define GENERALS_108_CD_EXE_CRC    0x93d1eab4u
+#define GENERALS_108_STEAM_EXE_CRC 0x8d6e4dd7u
+#define GENERALS_108_EAAPP_EXE_CRC 0xb07fbd50u
+
+	exeCRC.set(GENERALS_108_CD_EXE_CRC);
+	DEBUG_LOG(("Fake EXE CRC is 0x%8.8X", exeCRC.get()));
+
+#else
+	{
+		Char buffer[ _MAX_PATH ];
+		GetModuleFileName( NULL, buffer, sizeof( buffer ) );
+		fp = TheFileSystem->openFile(buffer, File::READ | File::BINARY);
+		if (fp != NULL) {
+			unsigned char crcBlock[blockSize];
+			Int amtRead = 0;
+			while ( (amtRead=fp->read(crcBlock, blockSize)) > 0 )
+			{
+				exeCRC.computeCRC(crcBlock, amtRead);
+			}
+			DEBUG_LOG(("EXE CRC is 0x%8.8X", exeCRC.get()));
+			fp->close();
+			fp = NULL;
+		}
+		else {
+			DEBUG_CRASH(("Executable file has failed to open"));
+		}
+	}
+#endif
+
+	UnsignedInt version = 0;
+	if (TheVersion)
+	{
+		version = TheVersion->getVersionNumber();
+		exeCRC.computeCRC( &version, sizeof(UnsignedInt) );
+	}
+	// Add in MP scripts to the EXE CRC, since the game will go out of sync if they change
+	fp = TheFileSystem->openFile("Data\\Scripts\\SkirmishScripts.scb", File::READ | File::BINARY);
+	if (fp != NULL) {
+		unsigned char crcBlock[blockSize];
+		Int amtRead = 0;
+		while ( (amtRead=fp->read(crcBlock, blockSize)) > 0 )
+		{
+			exeCRC.computeCRC(crcBlock, amtRead);
+		}
+		fp->close();
+		fp = NULL;
+	}
+	fp = TheFileSystem->openFile("Data\\Scripts\\MultiplayerScripts.scb", File::READ | File::BINARY);
+	if (fp != NULL) {
+		unsigned char crcBlock[blockSize];
+		Int amtRead = 0;
+		while ( (amtRead=fp->read(crcBlock, blockSize)) > 0 )
+		{
+			exeCRC.computeCRC(crcBlock, amtRead);
+		}
+		fp->close();
+		fp = NULL;
+	}
+
+	DEBUG_LOG(("EXE+Version(%d.%d)+SCB CRC is 0x%8.8X", version >> 16, version & 0xffff, exeCRC.get()));
+
+	return exeCRC.get();
+}
