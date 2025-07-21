@@ -1876,7 +1876,7 @@ void FullFadeTransition::draw( void )
 	if(alpha > 255)
 		alpha = 255;
 	TheDisplay->drawFillRect(m_pos.x, m_pos.y, m_size.x, m_size.y , GameMakeColor(0,0,0,alpha));
-	TheDisplay->drawOpenRect(m_pos.x, m_pos.y, m_size.x, m_size.y , 1.0f, GameMakeColor(60,60,180,alpha));
+	TheDisplay->drawOpenRect(m_pos.x, m_pos.y, m_size.x, m_size.y , 1.0f, GameMakeColor(255,190,0,alpha));
 }
 	
 void FullFadeTransition::skip( void )

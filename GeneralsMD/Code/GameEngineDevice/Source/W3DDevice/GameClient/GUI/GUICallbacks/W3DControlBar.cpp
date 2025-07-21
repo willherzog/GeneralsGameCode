@@ -460,7 +460,7 @@ void W3DPowerDrawA( GameWindow *window, WinInstanceData *instData )
 
 void W3DCommandBarGridDraw( GameWindow *window, WinInstanceData *instData )
 {
-	if( BitIsSet(window->winGetStatus(), WIN_STATUS_IMAGE ))
+	if( BitIsSet(window->winGetStatus(), WIN_STATUS_IMAGE) )
 	{
 		W3DGameWinDefaultDraw( window, instData );
 		return;
@@ -474,14 +474,23 @@ void W3DCommandBarGridDraw( GameWindow *window, WinInstanceData *instData )
 	window->winSetEnabledBorderColor(0, color);
 	W3DGameWinDefaultDraw( window, instData );
 
-	TheDisplay->drawLine(pos.x, pos.y + size.y * .33, pos.x + size.x, pos.y+ size.y*.33, 1,color);
-	TheDisplay->drawLine(pos.x, pos.y + size.y * .66, pos.x + size.x, pos.y+ size.y*.66, 1,color);
-	TheDisplay->drawLine(pos.x + size.x * .33, pos.y, pos.x + size.x *.33, pos.y +size.y, 1,color);
-	TheDisplay->drawLine(pos.x + size.x  * .66, pos.y, pos.x + size.x *.66, pos.y + size.y, 1,color);
+	Int posX = pos.x, posY = pos.y, sizeX = size.x, sizeY = size.y, linePos, lineWidth = 1;
 
-	
+	// X line @ 1/3
+	linePos = ceil((posY + sizeY) / 3);
+	TheDisplay->drawLine(posX, linePos, posX + sizeX, linePos, lineWidth, color);
 
+	// X line @ 2/3
+	linePos = ceil(((posY + sizeY) / 3) * 2);
+	TheDisplay->drawLine(posX, linePos, posX + sizeX, linePos, lineWidth, color);
 
+	// Y line @ 1/3
+	linePos = ceil((posX + sizeX) / 3);
+	TheDisplay->drawLine(linePos, posY, linePos, posY + sizeY, lineWidth, color);
+
+	// Y line @ 2/3
+	linePos = ceil(((posX + sizeX) / 3) * 2);
+	TheDisplay->drawLine(linePos, posY, linePos, posY + sizeY, lineWidth, color);
 }
 
 void W3DCommandBarGenExpDraw( GameWindow *window, WinInstanceData *instData )
