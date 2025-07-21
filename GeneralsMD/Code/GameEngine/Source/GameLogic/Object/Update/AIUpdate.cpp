@@ -4728,9 +4728,8 @@ void AIUpdateInterface::evaluateMoraleBonus( void )
 
 #ifdef ALLOW_DEMORALIZE
 	// if we are are not demoralized we can have horde and nationalism effects
-	if( demoralized == FALSE )
+	if( demoralized == FALSE ) {
 #endif
-	{
 
 #ifdef ALLOW_DEMORALIZE
 		// demoralized
@@ -4742,32 +4741,25 @@ void AIUpdateInterface::evaluateMoraleBonus( void )
 		//if ( draw && !us->isKindOf( KINDOF_PORTABLE_STRUCTURE ) )
 		//	draw->setTerrainDecal(TERRAIN_DECAL_NONE);
 
-		if( horde )
-		{
+		if( horde ) {
 			us->setWeaponBonusCondition( WEAPONBONUSCONDITION_HORDE );
-
-		}  // end if
-		else
+		} else {
 			us->clearWeaponBonusCondition( WEAPONBONUSCONDITION_HORDE );
+		}
 
-		if( horde && nationalism )
-    {
+		if( horde && nationalism ) {
 			us->setWeaponBonusCondition( WEAPONBONUSCONDITION_NATIONALISM );
 
-      if ( fanaticism )
+      if( fanaticism ) {
         us->setWeaponBonusCondition( WEAPONBONUSCONDITION_FANATICISM );
-      else 
+			} else {
         us->clearWeaponBonusCondition( WEAPONBONUSCONDITION_FANATICISM );
-    }
-		else
+			}
+    } else {
 			us->clearWeaponBonusCondition( WEAPONBONUSCONDITION_NATIONALISM );
-
-
-
-	}  // end if
+		}
 #ifdef ALLOW_DEMORALIZE
-	else
-	{
+	} else {
 
 		// demoralized
 		us->setWeaponBonusCondition( WEAPONBONUSCONDITION_DEMORALIZED );
@@ -4784,7 +4776,7 @@ void AIUpdateInterface::evaluateMoraleBonus( void )
 		us->clearWeaponBonusCondition( WEAPONBONUSCONDITION_NATIONALISM );
     us->clearWeaponBonusCondition( WEAPONBONUSCONDITION_FANATICISM );
 
-	}  // end else
+	}
 #endif
 
 /*
