@@ -4752,7 +4752,7 @@ void AIUpdateInterface::evaluateMoraleBonus( void )
 			us->clearWeaponBonusCondition( WEAPONBONUSCONDITION_HORDE );
 
 		// nationalism
-		if( nationalism )
+		if( horde && nationalism )
     {
 			us->setWeaponBonusCondition( WEAPONBONUSCONDITION_NATIONALISM );
       // fanaticism
