@@ -466,7 +466,7 @@ void W3DCommandBarGridDraw( GameWindow *window, WinInstanceData *instData )
 	TheDisplay->drawLine(pos.x, linePos, pos.x + size.x, linePos, lineWidth, color);
 
 	// X line @ 2/3
-	linePos = ceil(pos.y + oneThirdSizeY + oneThirdSizeY));
+	linePos = ceil(pos.y + oneThirdSizeY + oneThirdSizeY);
 	TheDisplay->drawLine(pos.x, linePos, pos.x + size.x, linePos, lineWidth, color);
 
 	// Y line @ 1/3
