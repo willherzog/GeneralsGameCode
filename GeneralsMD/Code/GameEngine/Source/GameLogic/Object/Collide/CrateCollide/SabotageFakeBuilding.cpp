@@ -23,13 +23,13 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-//	
-// FILE: SabotageFakeBuildingCrateCollide.cpp 
+//
+// FILE: SabotageFakeBuildingCrateCollide.cpp
 // Author: Kris Morness, July 2003
 // Desc:   A crate (actually a saboteur - mobile crate) that destroys a fake building.
-//	
+//
 ///////////////////////////////////////////////////////////////////////////////////////////////////
- 
+
 
 
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
@@ -62,13 +62,13 @@
 //-------------------------------------------------------------------------------------------------
 SabotageFakeBuildingCrateCollide::SabotageFakeBuildingCrateCollide( Thing *thing, const ModuleData* moduleData ) : CrateCollide( thing, moduleData )
 {
-} 
+}
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 SabotageFakeBuildingCrateCollide::~SabotageFakeBuildingCrateCollide( void )
 {
-}  
+}
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -89,6 +89,12 @@ Bool SabotageFakeBuildingCrateCollide::isValidToExecute( const Object *other ) c
 	if( !other->isKindOf( KINDOF_FS_FAKE ) )
 	{
 		//We can only sabotage fake structures.
+		return FALSE;
+	}
+
+	if (other->getStatusBits().testForAny(MAKE_OBJECT_STATUS_MASK2(OBJECT_STATUS_UNDER_CONSTRUCTION, OBJECT_STATUS_SOLD)))
+	{
+		// TheSuperHackers @bugfix Stubbjax 03/08/2025 Can't enter something being sold or under construction.
 		return FALSE;
 	}
 
@@ -138,7 +144,7 @@ Bool SabotageFakeBuildingCrateCollide::executeCrateBehavior( Object *other )
 		damageInfo.in.m_amount = other->getBodyModule()->getMaxHealth();
 		other->attemptDamage( &damageInfo );
 	}
-	
+
 	return TRUE;
 }
 

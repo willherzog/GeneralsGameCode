@@ -59,7 +59,7 @@
 
 FirewallHelperClass *TheFirewallHelper = NULL;
 
-FirewallHelperClass * createFirewallHelper() 
+FirewallHelperClass * createFirewallHelper()
 {
 	return NEW FirewallHelperClass();
 }
@@ -109,7 +109,7 @@ FirewallHelperClass::FirewallHelperClass(void)
 	{
 		m_manglers[i] = 0;
 	}
-	
+
 	m_currentState = DETECTIONSTATE_IDLE;
 
 	m_sourcePortPool = 4096 + ((timeGetTime() / 1000) % 1000); // do this to make sure we don't use the same source
@@ -291,7 +291,7 @@ UnsignedShort FirewallHelperClass::getNextTemporarySourcePort(Int skip)
 			closeSpareSocket(return_port);
 			return(return_port);
 		} else {
-			DEBUG_LOG(("FirewallHelperClass::getNextTemporarySourcePort - failed to open socket on port %d"));
+			DEBUG_LOG(("FirewallHelperClass::getNextTemporarySourcePort - failed to open socket on port %d", return_port));
 		}
 	}
 
@@ -997,7 +997,7 @@ Bool FirewallHelperClass::detectionTest3WaitForResponsesUpdate() {
 			*/
 			m_sourcePortAllocationDelta = m_lastSourcePortAllocationDelta;
 		}
-		DEBUG_LOG(("FirewallHelperClass::detectionTest3WaitForResponsesUpdate - didn't get enough responses, using %d as the source port allocation delta, finished test"));
+		DEBUG_LOG(("FirewallHelperClass::detectionTest3WaitForResponsesUpdate - didn't get enough responses, using %d as the source port allocation delta, finished test", m_sourcePortAllocationDelta));
 		m_currentState = DETECTIONSTATE_DONE;
 		return TRUE;
 	}
@@ -1179,7 +1179,7 @@ Bool FirewallHelperClass::detectionTest4Stage2Update() {
 	}
 
 	m_currentState = DETECTIONSTATE_TEST5;
-	
+
 	return detectionTest5Update();
 }
 

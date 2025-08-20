@@ -41,7 +41,7 @@ class Object;
 
 class ExperienceTracker : public MemoryPoolObject, public Snapshot
 {
-	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(ExperienceTracker, "ExperienceTrackerPool" )	
+	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(ExperienceTracker, "ExperienceTrackerPool" )
 public:
 	ExperienceTracker(Object *parent);
 
@@ -52,7 +52,7 @@ public:
 	Bool isAcceptingExperiencePoints() const;														///< Either I am trainable, or I have a Sink set up
 
 	void setVeterancyLevel( VeterancyLevel newLevel, Bool provideFeedback = TRUE );						///< Set Level to this
-	void setMinVeterancyLevel( VeterancyLevel newLevel );					///< Set Level to AT LEAST this... if we are already >= this level, do nothing.
+	void setMinVeterancyLevel( VeterancyLevel newLevel, Bool provideFeedback = TRUE );					///< Set Level to AT LEAST this... if we are already >= this level, do nothing.
 	void addExperiencePoints( Int experienceGain, Bool canScaleForBonus = TRUE );	///< Gain this many exp.
 	Bool gainExpForLevel(Int levelsToGain, Bool canScaleForBonus = TRUE );			  ///< Gain enough exp to gain a level. return false if can't gain a level.
 	Bool canGainExpForLevel(Int levelsToGain) const;															///< return same value as gainExpForLevel, but don't change anything

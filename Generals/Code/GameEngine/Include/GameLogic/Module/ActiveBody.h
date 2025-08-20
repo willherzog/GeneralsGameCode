@@ -48,7 +48,7 @@ class ParticleSystemTemplate;
 //-------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-class ActiveBodyModuleData : public BodyModuleData 
+class ActiveBodyModuleData : public BodyModuleData
 {
 public:
 	Real m_maxHealth;
@@ -79,7 +79,7 @@ public:
 	virtual Real getHealth() const;													///< get current health
 	virtual BodyDamageType getDamageState() const;
 	virtual void setDamageState( BodyDamageType newState );	///< control damage state directly.  Will adjust hitpoints.
-	virtual void setAflame( Bool setting );///< This is a major change like a damage state.  
+	virtual void setAflame( Bool setting );///< This is a major change like a damage state.
 
 	virtual const DamageInfo *getLastDamageInfo() const { return &m_lastDamageInfo; }	///< return info on last damage dealt to this object
 	virtual UnsignedInt getLastDamageTimestamp() const { return m_lastDamageTimestamp; }	///< return frame of last damage dealt
@@ -87,7 +87,7 @@ public:
 	virtual ObjectID getClearableLastAttacker() const { return (m_lastDamageCleared ? INVALID_ID : m_lastDamageInfo.in.m_sourceID); }
 	virtual void clearLastAttacker() { m_lastDamageCleared = true; }
 
-	void onVeterancyLevelChanged( VeterancyLevel oldLevel, VeterancyLevel newLevel );
+	void onVeterancyLevelChanged( VeterancyLevel oldLevel, VeterancyLevel newLevel, Bool provideFeedback = TRUE );
 
 	virtual void setArmorSetFlag(ArmorSetType ast) { m_curArmorSetFlags.set(ast, 1); }
 	virtual void clearArmorSetFlag(ArmorSetType ast) { m_curArmorSetFlags.set(ast, 0); }
@@ -117,7 +117,7 @@ protected:
 	void validateArmorAndDamageFX() const;
 	void doDamageFX( const DamageInfo *damageInfo );
 
-	void createParticleSystems( const AsciiString &boneBaseName, 
+	void createParticleSystems( const AsciiString &boneBaseName,
 															const ParticleSystemTemplate *systemTemplate,
 															Int maxSystems );
 	void deleteAllParticleSystems( void );

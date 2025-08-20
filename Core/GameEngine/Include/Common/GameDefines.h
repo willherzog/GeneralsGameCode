@@ -53,3 +53,22 @@
 #ifndef USE_BUFFERED_IO
 #define USE_BUFFERED_IO (1)
 #endif
+
+// Enable cache for local file existence. Reduces amount of disk accesses for better performance,
+// but decreases file existence correctness and runtime stability, if a cached file is deleted on runtime.
+#ifndef ENABLE_FILESYSTEM_EXISTENCE_CACHE
+#define ENABLE_FILESYSTEM_EXISTENCE_CACHE (1)
+#endif
+
+// Enable obsolete code. This mainly refers to code that existed in Generals but was removed in GeneralsMD.
+// Disable and remove this when Generals and GeneralsMD are merged.
+#if RTS_GENERALS
+#ifndef USE_OBSOLETE_GENERALS_CODE
+#define USE_OBSOLETE_GENERALS_CODE (1)
+#endif
+#endif
+
+#define MIN_DISPLAY_BIT_DEPTH       16
+#define DEFAULT_DISPLAY_BIT_DEPTH   32
+#define DEFAULT_DISPLAY_WIDTH      800 // The standard resolution this game was designed for
+#define DEFAULT_DISPLAY_HEIGHT     600 // The standard resolution this game was designed for

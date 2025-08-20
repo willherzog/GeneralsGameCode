@@ -56,9 +56,9 @@ public:
 	virtual Real getHealth() const;													///< get current health
 	virtual BodyDamageType getDamageState() const;
 	virtual void setDamageState( BodyDamageType newState );	///< control damage state directly.  Will adjust hitpoints.
-	virtual void setAflame( Bool setting ){}///< This is a major change like a damage state.  
+	virtual void setAflame( Bool setting ){}///< This is a major change like a damage state.
 
-	void onVeterancyLevelChanged( VeterancyLevel oldLevel, VeterancyLevel newLevel ) { /* nothing */ }
+	void onVeterancyLevelChanged( VeterancyLevel oldLevel, VeterancyLevel newLevel, Bool provideFeedback ) { /* nothing */ }
 
 	virtual void setArmorSetFlag(ArmorSetType ast) { /* nothing */ }
 	virtual void clearArmorSetFlag(ArmorSetType ast) { /* nothing */ }

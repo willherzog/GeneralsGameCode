@@ -56,7 +56,7 @@ Win32BIGFile::~Win32BIGFile()
 // Win32BIGFile::openFile
 //============================================================================
 
-File* Win32BIGFile::openFile( const Char *filename, Int access ) 
+File* Win32BIGFile::openFile( const Char *filename, Int access )
 {
 	const ArchivedFileInfo *fileInfo = getArchivedFileInfo(AsciiString(filename));
 
@@ -65,10 +65,10 @@ File* Win32BIGFile::openFile( const Char *filename, Int access )
 	}
 
 	RAMFile *ramFile = NULL;
-	
-	if (BitIsSet(access, File::STREAMING)) 
+
+	if (BitIsSet(access, File::STREAMING))
 		ramFile = newInstance( StreamingArchiveFile );
-	else 
+	else
 		ramFile = newInstance( RAMFile );
 
 	ramFile->deleteOnClose();
@@ -86,7 +86,8 @@ File* Win32BIGFile::openFile( const Char *filename, Int access )
 	// whoever is opening this file wants write access, so copy the file to the local disk
 	// and return that file pointer.
 
-	File *localFile = TheLocalFileSystem->openFile(filename, access);
+	CONSTEXPR size_t bufferSize = 0;
+	File *localFile = TheLocalFileSystem->openFile(filename, access, bufferSize);
 	if (localFile != NULL) {
 		ramFile->copyDataToFile(localFile);
 	}
@@ -146,7 +147,7 @@ void Win32BIGFile::close( void )
 // Win32BIGFile::getFileInfo
 //============================================================================
 
-Bool Win32BIGFile::getFileInfo(const AsciiString& filename, FileInfo *fileInfo) const 
+Bool Win32BIGFile::getFileInfo(const AsciiString& filename, FileInfo *fileInfo) const
 {
 	const ArchivedFileInfo *tempFileInfo = getArchivedFileInfo(filename);
 

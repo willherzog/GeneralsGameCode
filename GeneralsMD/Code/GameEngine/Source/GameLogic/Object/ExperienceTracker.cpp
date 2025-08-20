@@ -82,7 +82,7 @@ void ExperienceTracker::setExperienceSink( ObjectID sink )
 
 //-------------------------------------------------------------------------------------------------
 // Set Level to AT LEAST this... if we are already >= this level, do nothing.
-void ExperienceTracker::setMinVeterancyLevel( VeterancyLevel newLevel )
+void ExperienceTracker::setMinVeterancyLevel( VeterancyLevel newLevel, Bool provideFeedback )
 {
 	// This does not check for IsTrainable, because this function is for explicit setting,
 	// so the setter is assumed to know what they are doing.  The game function
@@ -93,7 +93,7 @@ void ExperienceTracker::setMinVeterancyLevel( VeterancyLevel newLevel )
 		m_currentLevel = newLevel;
 		m_currentExperience = m_parent->getTemplate()->getExperienceRequired(m_currentLevel); //Minimum for this level
 		if (m_parent)
-			m_parent->onVeterancyLevelChanged( oldLevel, newLevel );
+			m_parent->onVeterancyLevelChanged( oldLevel, newLevel, provideFeedback );
 	}
 }
 
@@ -167,8 +167,8 @@ void ExperienceTracker::addExperiencePoints( Int experienceGain, Bool canScaleFo
 	m_currentExperience += amountToGain;
 
 	Int levelIndex = 0;
-	while( ( (levelIndex + 1) < LEVEL_COUNT) 
-		&&  m_currentExperience >= m_parent->getTemplate()->getExperienceRequired(levelIndex + 1) 
+	while( ( (levelIndex + 1) < LEVEL_COUNT)
+		&&  m_currentExperience >= m_parent->getTemplate()->getExperienceRequired(levelIndex + 1)
 		)
 	{
 		// If there is a higher level to qualify for, and I qualify for it, advance the index
@@ -207,7 +207,7 @@ void ExperienceTracker::setExperienceAndLevel( Int experienceIn, Bool provideFee
 	m_currentExperience = experienceIn;
 
 	Int levelIndex = 0;
-	while( ( (levelIndex + 1) < LEVEL_COUNT) 
+	while( ( (levelIndex + 1) < LEVEL_COUNT)
 		&&  m_currentExperience >= m_parent->getTemplate()->getExperienceRequired(levelIndex + 1)
 		)
 	{
@@ -235,7 +235,7 @@ void ExperienceTracker::crc( Xfer *xfer )
 //-----------------------------------------------------------------------------
 /** Xfer method
 	* Version Info:
-	* 1: Initial version 
+	* 1: Initial version
 	*/
 // ----------------------------------------------------------------------------
 void ExperienceTracker::xfer( Xfer *xfer )

@@ -23,13 +23,13 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-//	
-// FILE: SabotageSuperweaponCrateCollide.cpp 
+//
+// FILE: SabotageSuperweaponCrateCollide.cpp
 // Author: Kris Morness, June 2003
 // Desc:   A crate (actually a saboteur - mobile crate) that resets the timer on the target supply dropzone.
-//	
+//
 ///////////////////////////////////////////////////////////////////////////////////////////////////
- 
+
 
 
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
@@ -67,13 +67,13 @@
 //-------------------------------------------------------------------------------------------------
 SabotageSuperweaponCrateCollide::SabotageSuperweaponCrateCollide( Thing *thing, const ModuleData* moduleData ) : CrateCollide( thing, moduleData )
 {
-} 
+}
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 SabotageSuperweaponCrateCollide::~SabotageSuperweaponCrateCollide( void )
 {
-}  
+}
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -94,6 +94,12 @@ Bool SabotageSuperweaponCrateCollide::isValidToExecute( const Object *other ) co
 	if( !other->isKindOf( KINDOF_FS_SUPERWEAPON ) && !other->isKindOf( KINDOF_FS_STRATEGY_CENTER ) )
 	{
 		//We can only sabotage superweapon structures.
+		return FALSE;
+	}
+
+	if (other->getStatusBits().testForAny(MAKE_OBJECT_STATUS_MASK2(OBJECT_STATUS_UNDER_CONSTRUCTION, OBJECT_STATUS_SOLD)))
+	{
+		// TheSuperHackers @bugfix Stubbjax 03/08/2025 Can't enter something being sold or under construction.
 		return FALSE;
 	}
 

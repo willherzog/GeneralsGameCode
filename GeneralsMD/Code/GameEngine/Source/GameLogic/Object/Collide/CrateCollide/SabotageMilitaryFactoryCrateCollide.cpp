@@ -23,13 +23,13 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-//	
-// FILE: SabotageMilitaryFactoryCrateCollide.cpp 
+//
+// FILE: SabotageMilitaryFactoryCrateCollide.cpp
 // Author: Kris Morness, June 2003
 // Desc:   A crate (actually a saboteur - mobile crate) that steals cash from the target supply center.
-//	
+//
 ///////////////////////////////////////////////////////////////////////////////////////////////////
- 
+
 
 
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
@@ -66,13 +66,13 @@
 //-------------------------------------------------------------------------------------------------
 SabotageMilitaryFactoryCrateCollide::SabotageMilitaryFactoryCrateCollide( Thing *thing, const ModuleData* moduleData ) : CrateCollide( thing, moduleData )
 {
-} 
+}
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 SabotageMilitaryFactoryCrateCollide::~SabotageMilitaryFactoryCrateCollide( void )
 {
-}  
+}
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -99,6 +99,12 @@ Bool SabotageMilitaryFactoryCrateCollide::isValidToExecute( const Object *other 
 	if( !other->isKindOf( KINDOF_FS_BARRACKS ) && !other->isKindOf( KINDOF_FS_WARFACTORY ) && !other->isKindOf( KINDOF_FS_AIRFIELD ) )
 	{
 		//We can only sabotage military factory buildings.
+		return FALSE;
+	}
+
+	if (other->getStatusBits().testForAny(MAKE_OBJECT_STATUS_MASK2(OBJECT_STATUS_UNDER_CONSTRUCTION, OBJECT_STATUS_SOLD)))
+	{
+		// TheSuperHackers @bugfix Stubbjax 03/08/2025 Can't enter something being sold or under construction.
 		return FALSE;
 	}
 
@@ -138,7 +144,7 @@ Bool SabotageMilitaryFactoryCrateCollide::executeCrateBehavior( Object *other )
 
 	UnsignedInt frame = TheGameLogic->getFrame() + getSabotageMilitaryFactoryCrateCollideModuleData()->m_sabotageFrames;
 	other->setDisabledUntil( DISABLED_HACKED, frame );
-		
+
 	return TRUE;
 }
 

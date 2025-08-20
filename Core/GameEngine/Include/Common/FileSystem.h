@@ -23,12 +23,12 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 //----------------------------------------------------------------------------=
-//                                                                          
-//                       Westwood Studios Pacific.                          
-//                                                                          
-//                       Confidential Information					                  
-//                Copyright(C) 2001 - All Rights Reserved                  
-//                                                                          
+//
+//                       Westwood Studios Pacific.
+//
+//                       Confidential Information
+//                Copyright(C) 2001 - All Rights Reserved
+//
 //----------------------------------------------------------------------------
 //
 // Project:    GameEngine
@@ -37,7 +37,7 @@
 //
 // File name:  FileSystem.h
 //
-// Created:    
+// Created:
 //
 //----------------------------------------------------------------------------
 
@@ -47,16 +47,16 @@
 #define __FILESYSTEM_H
 
 //----------------------------------------------------------------------------
-//           Includes                                                      
+//           Includes
 //----------------------------------------------------------------------------
 
+#include "Common/file.h"
 #include "Common/STLTypedefs.h"
 #include "Common/SubsystemInterface.h"
 
 //----------------------------------------------------------------------------
 //           Forward References
 //----------------------------------------------------------------------------
-class File;
 
 //----------------------------------------------------------------------------
 //           Type Defines
@@ -110,8 +110,8 @@ struct FileInfo {
 //===============================
 /**
   * FileSystem is an interface class for creating specific FileSystem objects.
-  * 
-	* A FileSystem object's implemenation decides what derivative of File object needs to be 
+  *
+	* A FileSystem object's implemenation decides what derivative of File object needs to be
 	* created when FileSystem::Open() gets called.
 	*/
 //===============================
@@ -121,7 +121,7 @@ class FileSystem : public SubsystemInterface
 {
   FileSystem(const FileSystem&);
   FileSystem& operator=(const FileSystem&);
-  
+
 public:
 	FileSystem();
 	virtual	~FileSystem();
@@ -130,7 +130,7 @@ public:
 	void reset();
 	void update();
 
-	File* openFile( const Char *filename, Int access = 0 );		///< opens a File interface to the specified file
+	File* openFile( const Char *filename, Int access = File::NONE, size_t bufferSize = File::BUFFERSIZE );		///< opens a File interface to the specified file
 	Bool doesFileExist(const Char *filename) const;								///< returns TRUE if the file exists.  filename should have no directory.
 	void getFileListInDirectory(const AsciiString& directory, const AsciiString& searchName, FilenameList &filenameList, Bool searchSubdirectories) const; ///< search the given directory for files matching the searchName (egs. *.ini, *.rep).  Possibly search subdirectories.
 	Bool getFileInfo(const AsciiString& filename, FileInfo *fileInfo) const; ///< fills in the FileInfo struct for the file given. returns TRUE if successful.
@@ -142,8 +142,11 @@ public:
 	void unloadMusicFilesFromCD();
 	AsciiString normalizePath(const AsciiString& path) const;	///< normalizes a file path. The path can refer to a directory. File path must be absolute, but does not need to exist. Returns an empty string on failure.
 	static Bool isPathInDirectory(const AsciiString& testPath, const AsciiString& basePath);	///< determines if a file path is within a base path. Both paths must be absolute, but do not need to exist.
+
 protected:
-  mutable std::map<unsigned,bool> m_fileExist;
+#if ENABLE_FILESYSTEM_EXISTENCE_CACHE
+	mutable std::map<unsigned,bool> m_fileExist;
+#endif
 };
 
 extern FileSystem*	TheFileSystem;
@@ -151,7 +154,7 @@ extern FileSystem*	TheFileSystem;
 
 
 //----------------------------------------------------------------------------
-//           Inlining                                                       
+//           Inlining
 //----------------------------------------------------------------------------
 
 

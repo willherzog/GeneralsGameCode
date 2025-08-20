@@ -23,13 +23,13 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-//	
-// FILE: SabotagePowerPlantCrateCollide.cpp 
+//
+// FILE: SabotagePowerPlantCrateCollide.cpp
 // Author: Kris Morness, June 2003
 // Desc:   A crate (actually a saboteur - mobile crate) that makes the target powerplant lose power
-//	
+//
 ///////////////////////////////////////////////////////////////////////////////////////////////////
- 
+
 
 
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
@@ -62,13 +62,13 @@
 //-------------------------------------------------------------------------------------------------
 SabotagePowerPlantCrateCollide::SabotagePowerPlantCrateCollide( Thing *thing, const ModuleData* moduleData ) : CrateCollide( thing, moduleData )
 {
-} 
+}
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 SabotagePowerPlantCrateCollide::~SabotagePowerPlantCrateCollide( void )
 {
-}  
+}
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -89,6 +89,12 @@ Bool SabotagePowerPlantCrateCollide::isValidToExecute( const Object *other ) con
 	if( !other->isKindOf( KINDOF_FS_POWER ) )
 	{
 		//We can only sabotage power plants.
+		return FALSE;
+	}
+
+	if (other->getStatusBits().testForAny(MAKE_OBJECT_STATUS_MASK2(OBJECT_STATUS_UNDER_CONSTRUCTION, OBJECT_STATUS_SOLD)))
+	{
+		// TheSuperHackers @bugfix Stubbjax 03/08/2025 Can't enter something being sold or under construction.
 		return FALSE;
 	}
 
@@ -140,7 +146,7 @@ Bool SabotagePowerPlantCrateCollide::executeCrateBehavior( Object *other )
 
 		//Note: Player::update() will check to turn it back on again once the timer expires.
 	}
-	
+
 	return TRUE;
 }
 
