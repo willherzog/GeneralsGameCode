@@ -1228,7 +1228,7 @@ void GlobalData::parseCustomDefinition()
 {
 	{
 		// TheSuperHackers @feature xezon 03/08/2025 Force full viewport for 'Control Bar Pro' Addons like GenTool did it.
-		File* file = TheFileSystem->openFile("GenTool/fullviewport.dat", File::READ | File::BINARY);
+		File* file = TheFileSystem->openFile("fullviewport.dat", File::READ | File::BINARY);
 		if (file != NULL)
 		{
 			Char value = '0';
