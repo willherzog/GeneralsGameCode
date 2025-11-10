@@ -1794,11 +1794,16 @@ void Object::reactToTransformChange(const Matrix3D* oldMtx, const Coord3D* oldPo
 //-------------------------------------------------------------------------------------------------
 ObjectShroudStatus Object::getShroudedStatus(Int playerIndex) const
 {
-	if (getTemplate()->isKindOf( KINDOF_ALWAYS_VISIBLE ))
-		return OBJECTSHROUD_CLEAR;
+	if (m_partitionData) {
+	  ObjectShroudStatus ss = m_partitionData->getShroudedStatus(playerIndex);
 
-	if (m_partitionData)
-		return m_partitionData->getShroudedStatus(playerIndex);
+		// If object has KindOf ALWAYS_VISIBLE *and is not shrouded*, ignore FoW
+		if (ss < OBJECTSHROUD_SHROUDED && getTemplate()->isKindOf( KINDOF_ALWAYS_VISIBLE )) {
+			return OBJECTSHROUD_CLEAR;
+		}
+
+		return ss;
+	}
 
 	// This can happen for objects removed from the partition system (e.g.,
 	// for soldiers that are garrisoned inside a building).

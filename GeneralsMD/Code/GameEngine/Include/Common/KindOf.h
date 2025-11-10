@@ -102,7 +102,7 @@ enum KindOfType CPP_11(: Int)
 	KINDOF_CAPTURABLE,							///< is "capturable" even if not an enemy (should generally be used only for structures, eg, Tech bldgs)
 	KINDOF_CLEARED_BY_BUILD,				///< is auto-cleared from the map when built over via construction
 	KINDOF_SMALL_MISSILE,						///< Missile object: ONLY USED FOR ANTI-MISSILE TARGETTING PURPOSES! Keep using PROJECTILE!
-	KINDOF_ALWAYS_VISIBLE,					///< is never obscured by fog of war or shroud.  mostly for UI feedback objects.
+	KINDOF_ALWAYS_VISIBLE,					///< is never obscured by fog of war (but still obscured by shroud)
 	KINDOF_UNATTACKABLE,						///< You cannot target this thing, it probably doesn't really exist
 	KINDOF_MINE,										///< a landmine. (possibly also extend to Col. Burton timed charges?)
 	KINDOF_CLEANUP_HAZARD,					///< radiation and bio-poison are samples of area conditions that can be cleaned up (or avoided)
