@@ -111,6 +111,7 @@ public:
 	MissionList m_missions;
 	AsciiString m_finalMovieName;
 	Bool m_isChallengeCampaign;
+	Bool m_campaignUsesIntroBriefings;
 	AsciiString m_playerFactionName;
 };
 

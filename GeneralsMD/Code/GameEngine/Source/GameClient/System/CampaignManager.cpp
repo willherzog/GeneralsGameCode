@@ -75,7 +75,8 @@ const FieldParse CampaignManager::m_campaignFieldParseTable[] =
 	{ "FirstMission",				INI::parseAsciiString,							NULL,	offsetof( Campaign, m_firstMission )  },
 	{ "CampaignNameLabel",	INI::parseAsciiString,							NULL, offsetof( Campaign, m_campaignNameLabel ) },
 	{ "FinalVictoryMovie",	INI::parseAsciiString,							NULL, offsetof( Campaign, m_finalMovieName ) },
-	{ "IsChallengeCampaign",			INI::parseBool,				NULL, offsetof( Campaign, m_isChallengeCampaign ) },
+	{ "IsChallengeCampaign",	INI::parseBool,							NULL, offsetof( Campaign, m_isChallengeCampaign ) },
+	{ "CampaignUsesIntroBriefings",	INI::parseBool,				NULL, offsetof( Campaign, m_campaignUsesIntroBriefings ) },
 	{ "PlayerFaction",		INI::parseAsciiString,					NULL, offsetof( Campaign, m_playerFactionName ) },
 
 	{ NULL,										NULL,													NULL, 0 }  // keep this last
@@ -114,7 +115,8 @@ void INI::parseCampaignDefinition( INI *ini )
 
 //-----------------------------------------------------------------------------
 Campaign::Campaign( void ):
-	m_isChallengeCampaign(FALSE)
+	m_isChallengeCampaign(FALSE),
+	m_campaignUsesIntroBriefings(FALSE)
 {
 	m_missions.clear();
 	m_firstMission.clear();

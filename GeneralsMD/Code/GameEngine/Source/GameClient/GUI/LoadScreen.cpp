@@ -501,23 +501,31 @@ void SinglePlayerLoadScreen::init( GameInfo *game )
 		return;
 	}
 
+	Campaign *currentCampaign = TheCampaignManager->getCurrentCampaign();
+
 	// format the progress bar: USA to blue, GLA to green, China to red
 	// and set the background image
-	AsciiString campaignName = TheCampaignManager->getCurrentCampaign()->m_name;
+	AsciiString campaignFactionName = currentCampaign->m_playerFactionName;
 	GameWindow *backgroundWin = TheWindowManager->winGetWindowFromId( m_loadScreen,TheNameKeyGenerator->nameToKey( AsciiString( "SinglePlayerLoadScreen.wnd:ParentSinglePlayerLoadScreen" ) ));
-	if (campaignName.compareNoCase("USA") == 0)
+	if (campaignFactionName.compareNoCase("FactionAmerica") == 0)
 	{
-		backgroundWin->winSetEnabledImage( 0, TheMappedImageCollection->findImageByName("MissionLoad_USA") );
+		if (!currentCampaign->m_campaignUsesIntroBriefings) {
+			backgroundWin->winSetEnabledImage( 0, TheMappedImageCollection->findImageByName("MissionLoad_USA") );
+		}
 		m_progressBar->winSetEnabledImage( 6, TheMappedImageCollection->findImageByName("LoadingBar_ProgressCenter2") );
 	}
-	else if (campaignName.compareNoCase("GLA") == 0)
+	else if (campaignFactionName.compareNoCase("FactionGLA") == 0)
 	{
-		backgroundWin->winSetEnabledImage( 0, TheMappedImageCollection->findImageByName("MissionLoad_GLA") );
+		if (!currentCampaign->m_campaignUsesIntroBriefings) {
+			backgroundWin->winSetEnabledImage( 0, TheMappedImageCollection->findImageByName("MissionLoad_GLA") );
+		}
 		m_progressBar->winSetEnabledImage( 6, TheMappedImageCollection->findImageByName("LoadingBar_ProgressCenter3") );
 	}
-	else if (campaignName.compareNoCase("China") == 0)
+	else if (campaignFactionName.compareNoCase("FactionChina") == 0)
 	{
-		backgroundWin->winSetEnabledImage( 0, TheMappedImageCollection->findImageByName("MissionLoad_China") );
+		if (!currentCampaign->m_campaignUsesIntroBriefings) {
+			backgroundWin->winSetEnabledImage( 0, TheMappedImageCollection->findImageByName("MissionLoad_China") );
+		}
 		m_progressBar->winSetEnabledImage( 6, TheMappedImageCollection->findImageByName("LoadingBar_ProgressCenter1") );
 	}
 	// else leave the default background screen
@@ -538,19 +546,22 @@ void SinglePlayerLoadScreen::init( GameInfo *game )
 			}
 
 			if (!TheGameEngine->isActive())
-			{/*	//we are alt-tabbed out, so just increment the frame
-				m_videoStream->frameNext();
-				m_videoStream->frameDecompress();*/
-
-				//Changing for MissionDisk, just skip to end.
-				break;
+			{ //we are alt-tabbed out, so just increment the frame
+				if (currentCampaign->m_campaignUsesIntroBriefings) {
+					m_videoStream->frameNext();
+					m_videoStream->frameDecompress();
+					continue;
+				} else {
+					break;
+				}
 			}
 
 			m_videoStream->frameDecompress();
 			m_videoStream->frameRender(m_videoBuffer);
 
-// PULLED FROM THE MISSION DISK
-//			moveWindows( m_videoStream->frameIndex());
+			if (currentCampaign->m_campaignUsesIntroBriefings) {
+				moveWindows( m_videoStream->frameIndex());
+			}
 
 			m_videoStream->frameNext();
 
@@ -575,15 +586,40 @@ void SinglePlayerLoadScreen::init( GameInfo *game )
 			TheDisplay->draw();
 		}
 
-		// let the background image show through
-		m_videoStream->close();
-		m_videoStream = NULL;
-		m_loadScreen->winGetInstanceData()->setVideoBuffer( NULL );
-		TheDisplay->draw();
+		if (!currentCampaign->m_campaignUsesIntroBriefings) {
+			// let the background image show through
+			m_videoStream->close();
+			m_videoStream = NULL;
+			m_loadScreen->winGetInstanceData()->setVideoBuffer( NULL );
+			TheDisplay->draw();
+		}
 	}
 	else
 	{
 		// if we're min spec'ed don't play a movie
+
+		if (currentCampaign->m_campaignUsesIntroBriefings) {
+			m_videoStream->frameGoto(m_videoStream->frameCount()); // zero based
+			while(!m_videoStream->isFrameReady())
+				Sleep(1);
+			m_videoStream->frameDecompress();
+			m_videoStream->frameRender(m_videoBuffer);
+			if(m_videoBuffer)
+					m_loadScreen->winGetInstanceData()->setVideoBuffer(m_videoBuffer);
+
+			m_objectiveWin->winHide(FALSE);
+			for(i = 0; i < MAX_DISPLAYED_UNITS; ++i)
+				m_unitDesc[i]->winHide(FALSE);
+			m_location->winHide(FALSE);
+
+			// Audio was choppy so, I chopped it out!
+			TheAudio->friend_forcePlayAudioEventRTS(&TheCampaignManager->getCurrentMission()->m_briefingVoice);
+
+			for(Int i = 0; i < MAX_OBJECTIVE_LINES; ++i)
+			{
+				GadgetStaticTextSetText(m_objectiveLines[i], m_unicodeObjectiveLines[i]);
+			}
+		}
 
 		Int delay = mission->m_voiceLength * 1000;
 		Int begin = timeGetTime();
