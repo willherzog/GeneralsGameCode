@@ -1818,7 +1818,7 @@ void GameLogic::startNewGame( Bool loadingSaveGame )
 
 	if (TheRecorder && TheRecorder->isMultiplayer()) {
 		useTrees = TRUE; // Always use trees in multiplayer, cause we want it to sync properly. jba.
-		forceFluffToProp = TRUE; // Always do client side fluff - faster, and syncs properly. jba.
+		//forceFluffToProp = TRUE; // Always do client side fluff - faster, and syncs properly. jba.
 	}
 
 	progressCount = LOAD_PROGRESS_LOOP_ALL_THE_FREAKN_OBJECTS;
