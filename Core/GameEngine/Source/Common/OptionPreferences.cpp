@@ -780,7 +780,7 @@ Int OptionPreferences::getNetworkLatencyFontSize()
 {
 	OptionPreferences::const_iterator it = find("NetworkLatencyFontSize");
 	if (it == end())
-		return 8;
+		return 0;
 
 	Int fontSize = atoi(it->second.str());
 	if (fontSize < 0)
@@ -794,7 +794,7 @@ Int OptionPreferences::getRenderFpsFontSize()
 {
 	OptionPreferences::const_iterator it = find("RenderFpsFontSize");
 	if (it == end())
-		return 8;
+		return 0;
 
 	Int fontSize = atoi(it->second.str());
 	if (fontSize < 0)
