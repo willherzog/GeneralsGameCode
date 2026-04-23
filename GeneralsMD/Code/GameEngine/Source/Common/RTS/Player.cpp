@@ -2744,9 +2744,9 @@ Bool Player::setRankLevel(Int newLevel)
 		// notify of rank-change first
 		TheControlBar->onPlayerRankChanged(this);
 
-		// then of SPP change, if any
-		if (oldSPP != m_sciencePurchasePoints)
-			TheControlBar->onPlayerSciencePurchasePointsChanged(this);
+		// then of SPP change, if any [This is redundant (both methods do exactly the same thing) - WH]
+		// if (oldSPP != m_sciencePurchasePoints)
+		//	TheControlBar->onPlayerSciencePurchasePointsChanged(this);
 	}
 
 	return true;
