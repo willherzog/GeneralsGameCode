@@ -2693,7 +2693,7 @@ Bool Player::setRankLevel(Int newLevel)
 
 	//DEBUG_LOG(("Set Rank Level %d -> %d",m_rankLevel,newLevel));
 
-	Int oldSPP = m_sciencePurchasePoints;
+	// Int oldSPP = m_sciencePurchasePoints;
 
 	if (newLevel < m_rankLevel)
 	{
