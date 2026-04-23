@@ -843,7 +843,7 @@ GlobalData::GlobalData()
 
 	m_particleEdit = FALSE;
 
-	m_viewportHeightScale = 0.80f; // Default value for the original Control Bar.
+	m_viewportHeightScale = 0.90f; // Default value for the original Control Bar.
 
 	m_cameraPitch = 0.0f;
 	m_cameraYaw = 0.0f;
