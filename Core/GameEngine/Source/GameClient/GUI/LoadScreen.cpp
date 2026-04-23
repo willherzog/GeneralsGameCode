@@ -490,6 +490,7 @@ void SinglePlayerLoadScreen::init( GameInfo *game )
 		return;
 	}
 
+#if !RTS_GENERALS
 	Campaign *currentCampaign = TheCampaignManager->getCurrentCampaign();
 
 	// format the progress bar: USA to blue, GLA to green, China to red
@@ -518,6 +519,7 @@ void SinglePlayerLoadScreen::init( GameInfo *game )
 		m_progressBar->winSetEnabledImage( 6, TheMappedImageCollection->findImageByName("LoadingBar_ProgressCenter1") );
 	}
 	// else leave the default background screen
+#endif
 
 
 	if(TheGameLODManager && TheGameLODManager->didMemPass())
@@ -549,6 +551,15 @@ void SinglePlayerLoadScreen::init( GameInfo *game )
 				continue;
 			}
 
+#if RTS_GENERALS
+			if (!TheGameEngine->isActive())
+			{ //we are alt-tabbed out, so just increment the frame
+				m_videoStream->frameNext();
+				m_videoStream->frameDecompress();
+				continue;
+			}
+#endif
+#if !RTS_GENERALS
 			if (!TheGameEngine->isActive())
 			{ //we are alt-tabbed out, so just increment the frame
 				if (currentCampaign->m_campaignUsesIntroBriefings) {
@@ -559,13 +570,19 @@ void SinglePlayerLoadScreen::init( GameInfo *game )
 					break;
 				}
 			}
+#endif
 
 			m_videoStream->frameDecompress();
 			m_videoStream->frameRender(m_videoBuffer);
 
+#if RTS_GENERALS
+			moveWindows( m_videoStream->frameIndex());
+#endif
+#if !RTS_GENERALS
 			if (currentCampaign->m_campaignUsesIntroBriefings) {
 				moveWindows( m_videoStream->frameIndex());
 			}
+#endif
 
 			m_videoStream->frameNext();
 
@@ -590,6 +607,7 @@ void SinglePlayerLoadScreen::init( GameInfo *game )
 			TheDisplay->draw();
 		}
 
+#if !RTS_GENERALS
 		if (!currentCampaign->m_campaignUsesIntroBriefings) {
 			// let the background image show through
 			m_videoStream->close();
@@ -597,6 +615,7 @@ void SinglePlayerLoadScreen::init( GameInfo *game )
 			m_loadScreen->winGetInstanceData()->setVideoBuffer( NULL );
 			TheDisplay->draw();
 		}
+#endif
 	}
 	else
 	{
