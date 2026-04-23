@@ -1242,11 +1242,7 @@ void GlobalData::parseGameDataDefinition( INI* ini )
 
 void GlobalData::parseCustomDefinition()
 {
-	if (addon::HasFullviewportDat())
-	{
-		// TheSuperHackers @tweak xezon 03/08/2025 Force full viewport for 'Control Bar Pro' Addons like GenTool did it.
-		m_viewportHeightScale = 1.0f;
-	}
+	// Nah
 }
 
 UnsignedInt GlobalData::generateExeCRC()
