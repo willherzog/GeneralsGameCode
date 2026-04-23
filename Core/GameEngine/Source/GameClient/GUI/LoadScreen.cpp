@@ -558,8 +558,7 @@ void SinglePlayerLoadScreen::init( GameInfo *game )
 				m_videoStream->frameDecompress();
 				continue;
 			}
-#endif
-#if !RTS_GENERALS
+#else
 			if (!TheGameEngine->isActive())
 			{ //we are alt-tabbed out, so just increment the frame
 				if (currentCampaign->m_campaignUsesIntroBriefings) {
@@ -577,8 +576,7 @@ void SinglePlayerLoadScreen::init( GameInfo *game )
 
 #if RTS_GENERALS
 			moveWindows( m_videoStream->frameIndex());
-#endif
-#if !RTS_GENERALS
+#else
 			if (currentCampaign->m_campaignUsesIntroBriefings) {
 				moveWindows( m_videoStream->frameIndex());
 			}
@@ -645,7 +643,9 @@ void SinglePlayerLoadScreen::init( GameInfo *game )
 		// if we're min spec'ed don't play a movie
 #endif
 
+#if !RTS_GENERALS
 		if (currentCampaign->m_campaignUsesIntroBriefings) {
+#endif
 			m_videoStream->frameGoto(m_videoStream->frameCount()); // zero based
 			while(!m_videoStream->isFrameReady())
 				Sleep(1);
@@ -666,7 +666,9 @@ void SinglePlayerLoadScreen::init( GameInfo *game )
 			{
 				GadgetStaticTextSetText(m_objectiveLines[i], m_unicodeObjectiveLines[i]);
 			}
+#if !RTS_GENERALS
 		}
+#endif
 
 		Int delay = mission->m_voiceLength * 1000;
 		Int begin = timeGetTime();
