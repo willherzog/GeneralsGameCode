@@ -954,8 +954,8 @@ GlobalData::GlobalData()
 	m_useCameraInReplay = FALSE;
 	m_enablePlayerObserver = FALSE;
 
-	m_networkLatencyFontSize = 8;
-	m_renderFpsFontSize = 8;
+	m_networkLatencyFontSize = 0;
+	m_renderFpsFontSize = 0;
 	m_systemTimeFontSize = 8;
 	m_gameTimeFontSize = 8;
 	m_playerInfoListFontSize = 8;
