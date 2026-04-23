@@ -33,14 +33,10 @@
  *---------------------------------------------------------------------------------------------*
  * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-#if _MSC_VER >= 1000
+
 #pragma once
-#endif // _MSC_VER >= 1000
 
-#ifndef B64PIPE_H
-#define B64PIPE_H
-
-#include	"PIPE.H"
+#include "PIPE.h"
 
 /*
 **	This class performs Base64 encoding/decoding to the data that is piped through. Note that
@@ -56,8 +52,8 @@ class Base64Pipe : public Pipe
 
 		Base64Pipe(CodeControl control) : Control(control), Counter(0) {}
 
-		virtual int Flush(void);
-		virtual int Put(void const * source, int slen);
+		virtual int Flush() override;
+		virtual int Put(void const * source, int slen) override;
 
 	private:
 
@@ -89,5 +85,3 @@ class Base64Pipe : public Pipe
 		Base64Pipe(Base64Pipe & rvalue);
 		Base64Pipe & operator = (Base64Pipe const & pipe);
 };
-
-#endif

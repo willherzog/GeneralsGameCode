@@ -51,7 +51,6 @@ SphereGeneralPropPageClass::SphereGeneralPropPageClass (SphereRenderObjClass *sp
 	//}}AFX_DATA_INIT
 
 	Initialize ();
-	return ;
 }
 
 
@@ -62,7 +61,6 @@ SphereGeneralPropPageClass::SphereGeneralPropPageClass (SphereRenderObjClass *sp
 /////////////////////////////////////////////////////////////
 SphereGeneralPropPageClass::~SphereGeneralPropPageClass()
 {
-	return ;
 }
 
 void
@@ -72,7 +70,6 @@ SphereGeneralPropPageClass::DoDataExchange(CDataExchange* pDX)
 	//{{AFX_DATA_MAP(SphereGeneralPropPageClass)
 	DDX_Control(pDX, IDC_LIFETIME_SPIN, m_LifetimeSpin);
 	//}}AFX_DATA_MAP
-	return ;
 }
 
 
@@ -93,15 +90,15 @@ END_MESSAGE_MAP()
 //
 /////////////////////////////////////////////////////////////
 void
-SphereGeneralPropPageClass::Initialize (void)
+SphereGeneralPropPageClass::Initialize ()
 {
-	if (m_RenderObj != NULL) {
+	if (m_RenderObj != nullptr) {
 
 		//
 		// Get the object's texture
 		//
 		TextureClass *texture = m_RenderObj->Peek_Texture ();
-		if (texture != NULL) {
+		if (texture != nullptr) {
 			m_TextureFilename = texture->Get_Texture_Name();
 		}
 
@@ -112,8 +109,6 @@ SphereGeneralPropPageClass::Initialize (void)
 		m_Name		= m_RenderObj->Get_Name ();
 		m_Shader		= m_RenderObj->Get_Shader ();
 	}
-
-	return ;
 }
 
 
@@ -144,8 +139,6 @@ SphereGeneralPropPageClass::Add_Shader_To_Combo
 			SendDlgItemMessage (IDC_SHADER_COMBO, CB_SETCURSEL, (WPARAM)index);
 		}
 	}
-
-	return ;
 }
 
 
@@ -155,7 +148,7 @@ SphereGeneralPropPageClass::Add_Shader_To_Combo
 //
 /////////////////////////////////////////////////////////////
 BOOL
-SphereGeneralPropPageClass::OnInitDialog (void)
+SphereGeneralPropPageClass::OnInitDialog ()
 {
 	// Allow the base class to process this message
 	CPropertyPage::OnInitDialog ();
@@ -191,7 +184,7 @@ SphereGeneralPropPageClass::OnInitDialog (void)
 //
 /////////////////////////////////////////////////////////////
 BOOL
-SphereGeneralPropPageClass::OnApply (void)
+SphereGeneralPropPageClass::OnApply ()
 {
 	// Get the data from the dialog controls
 	GetDlgItemText (IDC_NAME_EDIT, m_Name);
@@ -204,7 +197,7 @@ SphereGeneralPropPageClass::OnApply (void)
 	int index = SendDlgItemMessage (IDC_SHADER_COMBO, CB_GETCURSEL);
 	if (index != CB_ERR) {
 		ShaderClass *shader = (ShaderClass *)SendDlgItemMessage (IDC_SHADER_COMBO, CB_GETITEMDATA, (WPARAM)index);
-		if (shader != NULL) {
+		if (shader != nullptr) {
 			m_Shader = (*shader);
 		}
 	}
@@ -219,7 +212,7 @@ SphereGeneralPropPageClass::OnApply (void)
 		//
 		//	Create a texture and pass it onto the object
 		//
-		TextureClass *texture = NULL;
+		TextureClass *texture = nullptr;
 		if (m_TextureFilename.GetLength () > 0) {
 			texture = WW3DAssetManager::Get_Instance ()->Get_Texture (::Get_Filename_From_Path (m_TextureFilename));
 		}
@@ -251,11 +244,11 @@ SphereGeneralPropPageClass::OnApply (void)
 //
 /////////////////////////////////////////////////////////////
 void
-SphereGeneralPropPageClass::OnBrowseButton (void)
+SphereGeneralPropPageClass::OnBrowseButton ()
 {
 	CFileDialog dialog (	TRUE,
 								".tga",
-								NULL,
+								nullptr,
 								OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT | OFN_EXPLORER,
 								"Textures files (*.tga)|*.tga||",
 								::AfxGetMainWnd ());
@@ -265,8 +258,6 @@ SphereGeneralPropPageClass::OnBrowseButton (void)
 		SetDlgItemText (IDC_FILENAME_EDIT, dialog.GetPathName ());
 		SetModified ();
 	}
-
-	return ;
 }
 
 
@@ -276,10 +267,9 @@ SphereGeneralPropPageClass::OnBrowseButton (void)
 //
 /////////////////////////////////////////////////////////////
 void
-SphereGeneralPropPageClass::OnChangeFilenameEdit (void)
+SphereGeneralPropPageClass::OnChangeFilenameEdit ()
 {
 	SetModified ();
-	return ;
 }
 
 
@@ -289,10 +279,9 @@ SphereGeneralPropPageClass::OnChangeFilenameEdit (void)
 //
 /////////////////////////////////////////////////////////////
 void
-SphereGeneralPropPageClass::OnChangeNameEdit (void)
+SphereGeneralPropPageClass::OnChangeNameEdit ()
 {
 	SetModified ();
-	return ;
 }
 
 
@@ -313,7 +302,7 @@ SphereGeneralPropPageClass::OnNotify
 	//	Update the spinner control if necessary
 	//
 	NMHDR *header = (NMHDR *)lParam;
-	if ((header != NULL) && (header->code == UDN_DELTAPOS)) {
+	if ((header != nullptr) && (header->code == UDN_DELTAPOS)) {
 		LPNMUPDOWN updown = (LPNMUPDOWN)lParam;
 		::Update_Spinner_Buddy (header->hwndFrom, updown->iDelta);
 	}
@@ -329,10 +318,9 @@ SphereGeneralPropPageClass::OnNotify
 //
 /////////////////////////////////////////////////////////////
 void
-SphereGeneralPropPageClass::OnChangeLifetimeEdit (void)
+SphereGeneralPropPageClass::OnChangeLifetimeEdit ()
 {
 	SetModified ();
-	return ;
 }
 
 
@@ -342,10 +330,9 @@ SphereGeneralPropPageClass::OnChangeLifetimeEdit (void)
 //
 /////////////////////////////////////////////////////////////
 void
-SphereGeneralPropPageClass::OnSelchangeShaderCombo (void)
+SphereGeneralPropPageClass::OnSelchangeShaderCombo ()
 {
 	SetModified ();
-	return ;
 }
 
 

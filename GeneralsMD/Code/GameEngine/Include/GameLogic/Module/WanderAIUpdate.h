@@ -28,9 +28,6 @@
 
 #pragma once
 
-#ifndef _WANDER_AI_UPDATE_H_
-#define _WANDER_AI_UPDATE_H_
-
 #include "GameLogic/Module/AIUpdate.h"
 
 //-------------------------------------------------------------------------------------------------
@@ -50,7 +47,7 @@ class WanderAIUpdate : public AIUpdateInterface
 		for an example.)
 	*/
 
-	virtual UpdateSleepTime update();
+	virtual UpdateSleepTime update() override;
 
 public:
 
@@ -60,9 +57,6 @@ public:
 
 protected:
 
-	virtual AIStateMachine* makeStateMachine();
+	virtual AIStateMachine* makeStateMachine() override;
 
 };
-
-#endif
-

@@ -32,6 +32,7 @@
 #include "Common/AudioAffect.h"
 #include "Common/BuildAssistant.h"
 #include "Common/CRCDebug.h"
+#include "Common/FramePacer.h"
 #include "Common/Radar.h"
 #include "Common/PlayerTemplate.h"
 #include "Common/Team.h"
@@ -46,7 +47,6 @@
 #include "Common/FileSystem.h"
 #include "Common/ArchiveFileSystem.h"
 #include "Common/LocalFileSystem.h"
-#include "Common/CDManager.h"
 #include "Common/GlobalData.h"
 #include "Common/PerfTimer.h"
 #include "Common/RandomValue.h"
@@ -64,7 +64,7 @@
 #include "Common/SpecialPower.h"
 #include "Common/TerrainTypes.h"
 #include "Common/Upgrade.h"
-#include "Common/UserPreferences.h"
+#include "Common/OptionPreferences.h"
 #include "Common/Xfer.h"
 #include "Common/XferCRC.h"
 #include "Common/GameLOD.h"
@@ -84,7 +84,6 @@
 #include "GameLogic/SidesList.h"
 
 #include "GameClient/ClientInstance.h"
-#include "GameClient/Display.h"
 #include "GameClient/FXList.h"
 #include "GameClient/GameClient.h"
 #include "GameClient/Keyboard.h"
@@ -121,16 +120,16 @@ public:
 	DeepCRCSanityCheck() {}
 	virtual ~DeepCRCSanityCheck() {}
 
-	virtual void init(void) {}
-	virtual void reset(void);
-	virtual void update(void) {}
+	virtual void init() {}
+	virtual void reset();
+	virtual void update() {}
 
 protected:
 };
 
-DeepCRCSanityCheck *TheDeepCRCSanityCheck = NULL;
+DeepCRCSanityCheck *TheDeepCRCSanityCheck = nullptr;
 
-void DeepCRCSanityCheck::reset(void)
+void DeepCRCSanityCheck::reset()
 {
 	static Int timesThrough = 0;
 	static UnsignedInt lastCRC = 0;
@@ -151,18 +150,23 @@ void DeepCRCSanityCheck::reset(void)
 
 //-------------------------------------------------------------------------------------------------
 /// The GameEngine singleton instance
-GameEngine *TheGameEngine = NULL;
+GameEngine *TheGameEngine = nullptr;
 
 //-------------------------------------------------------------------------------------------------
-SubsystemInterfaceList* TheSubsystemList = NULL;
+SubsystemInterfaceList* TheSubsystemList = nullptr;
 
 //-------------------------------------------------------------------------------------------------
 template<class SUBSYSTEM>
-void initSubsystem(SUBSYSTEM*& sysref, AsciiString name, SUBSYSTEM* sys, Xfer *pXfer,  const char* path1 = NULL,
-									 const char* path2 = NULL, const char* dirpath = NULL)
+void initSubsystem(
+	SUBSYSTEM*& sysref,
+	AsciiString name,
+	SUBSYSTEM* sys,
+	Xfer *pXfer,
+	const char* path1 = nullptr,
+	const char* path2 = nullptr)
 {
 	sysref = sys;
-	TheSubsystemList->initSubsystem(sys, path1, path2, dirpath, pXfer, name);
+	TheSubsystemList->initSubsystem(sys, path1, path2, pXfer, name);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -177,8 +181,8 @@ static void updateWindowTitle()
 {
 	// TheSuperHackers @tweak Now prints product and version information in the Window title.
 
-	DEBUG_ASSERTCRASH(TheVersion != NULL, ("TheVersion is NULL"));
-	DEBUG_ASSERTCRASH(TheGameText != NULL, ("TheGameText is NULL"));
+	DEBUG_ASSERTCRASH(TheVersion != nullptr, ("TheVersion is null"));
+	DEBUG_ASSERTCRASH(TheGameText != nullptr, ("TheGameText is null"));
 
 	UnicodeString title;
 
@@ -242,23 +246,14 @@ static void updateWindowTitle()
 }
 
 //-------------------------------------------------------------------------------------------------
-Int GameEngine::getFramesPerSecondLimit( void )
+GameEngine::GameEngine()
 {
-	return m_maxFPS;
-}
-
-//-------------------------------------------------------------------------------------------------
-GameEngine::GameEngine( void )
-{
-	// Set the time slice size to 1 ms.
-	timeBeginPeriod(1);
-
 	// initialize to non garbage values
-	m_maxFPS = 0;
+	m_logicTimeAccumulator = 0.0f;
 	m_quitting = FALSE;
 	m_isActive = FALSE;
 
-	_Module.Init(NULL, ApplicationHInstance, NULL);
+	_Module.Init(nullptr, ApplicationHInstance, nullptr);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -268,10 +263,10 @@ GameEngine::~GameEngine()
 	//preloadTextureNamesGlobalHack.clear();
 
 	delete TheMapCache;
-	TheMapCache = NULL;
+	TheMapCache = nullptr;
 
 //	delete TheShell;
-//	TheShell = NULL;
+//	TheShell = nullptr;
 
 	TheGameResultsQueue->endThreads();
 
@@ -281,19 +276,19 @@ GameEngine::~GameEngine()
 
 	TheSubsystemList->shutdownAll();
 	delete TheSubsystemList;
-	TheSubsystemList = NULL;
+	TheSubsystemList = nullptr;
 
 	delete TheNetwork;
-	TheNetwork = NULL;
+	TheNetwork = nullptr;
 
 	delete TheCommandList;
-	TheCommandList = NULL;
+	TheCommandList = nullptr;
 
 	delete TheNameKeyGenerator;
-	TheNameKeyGenerator = NULL;
+	TheNameKeyGenerator = nullptr;
 
 	delete TheFileSystem;
-	TheFileSystem = NULL;
+	TheFileSystem = nullptr;
 
 	Drawable::killStaticImages();
 
@@ -302,15 +297,45 @@ GameEngine::~GameEngine()
 #ifdef PERF_TIMERS
 	PerfGather::termPerfDump();
 #endif
-
-	// Restore the previous time slice for Windows.
-	timeEndPeriod(1);
 }
 
-void GameEngine::setFramesPerSecondLimit( Int fps )
+//-------------------------------------------------------------------------------------------------
+Bool GameEngine::isTimeFrozen()
 {
-	DEBUG_LOG(("GameEngine::setFramesPerSecondLimit() - setting max fps to %d (TheGlobalData->m_useFpsLimit == %d)", fps, TheGlobalData->m_useFpsLimit));
-	m_maxFPS = fps;
+	// TheSuperHackers @fix The time can no longer be frozen in Network games. It would disconnect the player.
+	if (TheNetwork != nullptr)
+		return false;
+
+	if (TheTacticalView != nullptr)
+	{
+		if (TheTacticalView->isTimeFrozen() && !TheTacticalView->isCameraMovementFinished())
+			return true;
+	}
+
+	if (TheScriptEngine != nullptr)
+	{
+		if (TheScriptEngine->isTimeFrozenDebug() || TheScriptEngine->isTimeFrozenScript())
+			return true;
+	}
+
+	return false;
+}
+
+//-------------------------------------------------------------------------------------------------
+Bool GameEngine::isGameHalted()
+{
+	if (TheNetwork != nullptr)
+	{
+		if (TheNetwork->isStalling())
+			return true;
+	}
+	else
+	{
+		if (TheGameLogic != nullptr && TheGameLogic->isGamePaused())
+			return true;
+	}
+
+	return false;
 }
 
 /** -----------------------------------------------------------------------------------------------
@@ -336,8 +361,6 @@ void GameEngine::init()
 			DEBUG_LOG(("================================================================================"));
 		}
 
-		m_maxFPS = DEFAULT_MAX_FPS;
-
 		TheSubsystemList = MSGNEW("GameEngineSubsystem") SubsystemInterfaceList;
 
 		TheSubsystemList->addSubsystem(this);
@@ -359,18 +382,18 @@ void GameEngine::init()
 		XferCRC xferCRC;
 		xferCRC.open("lightCRC");
 
-		initSubsystem(TheLocalFileSystem, "TheLocalFileSystem", createLocalFileSystem(), NULL);
-		initSubsystem(TheArchiveFileSystem, "TheArchiveFileSystem", createArchiveFileSystem(), NULL); // this MUST come after TheLocalFileSystem creation
+		initSubsystem(TheLocalFileSystem, "TheLocalFileSystem", createLocalFileSystem(), nullptr);
+		initSubsystem(TheArchiveFileSystem, "TheArchiveFileSystem", createArchiveFileSystem(), nullptr); // this MUST come after TheLocalFileSystem creation
 
 		DEBUG_ASSERTCRASH(TheWritableGlobalData,("TheWritableGlobalData expected to be created"));
-		initSubsystem(TheWritableGlobalData, "TheWritableGlobalData", TheWritableGlobalData, &xferCRC, "Data\\INI\\Default\\GameData.ini", "Data\\INI\\GameData.ini");
+		initSubsystem(TheWritableGlobalData, "TheWritableGlobalData", TheWritableGlobalData, &xferCRC, "Data\\INI\\Default\\GameData", "Data\\INI\\GameData");
 		TheWritableGlobalData->parseCustomDefinition();
 
 
 
 	#if defined(RTS_DEBUG)
 		// If we're in Debug, load the Debug settings as well.
-		ini.load( AsciiString( "Data\\INI\\GameDataDebug.ini" ), INI_LOAD_OVERWRITE, NULL );
+		ini.loadFileDirectory( "Data\\INI\\GameDataDebug", INI_LOAD_OVERWRITE, nullptr );
 	#endif
 
 		// special-case: parse command-line parameters after loading global data
@@ -397,68 +420,86 @@ void GameEngine::init()
 	#endif
 
 		// read the water settings from INI (must do prior to initing GameClient, apparently)
-		ini.load( AsciiString( "Data\\INI\\Default\\Water.ini" ), INI_LOAD_OVERWRITE, &xferCRC );
-		ini.load( AsciiString( "Data\\INI\\Water.ini" ), INI_LOAD_OVERWRITE, &xferCRC );
+		ini.loadFileDirectory( "Data\\INI\\Default\\Water", INI_LOAD_OVERWRITE, &xferCRC );
+		ini.loadFileDirectory( "Data\\INI\\Water", INI_LOAD_OVERWRITE, &xferCRC );
 
 #ifdef DEBUG_CRC
-		initSubsystem(TheDeepCRCSanityCheck, "TheDeepCRCSanityCheck", MSGNEW("GameEngineSubystem") DeepCRCSanityCheck, NULL, NULL, NULL, NULL);
+		initSubsystem(TheDeepCRCSanityCheck, "TheDeepCRCSanityCheck", MSGNEW("GameEngineSubystem") DeepCRCSanityCheck, nullptr);
 #endif // DEBUG_CRC
-		initSubsystem(TheGameText, "TheGameText", CreateGameTextInterface(), NULL);
+		initSubsystem(TheGameText, "TheGameText", CreateGameTextInterface(), nullptr);
 		updateWindowTitle();
-		initSubsystem(TheScienceStore,"TheScienceStore", MSGNEW("GameEngineSubsystem") ScienceStore(), &xferCRC, "Data\\INI\\Default\\Science.ini", "Data\\INI\\Science.ini");
-		initSubsystem(TheMultiplayerSettings,"TheMultiplayerSettings", MSGNEW("GameEngineSubsystem") MultiplayerSettings(), &xferCRC, "Data\\INI\\Default\\Multiplayer.ini", "Data\\INI\\Multiplayer.ini");
-		initSubsystem(TheTerrainTypes,"TheTerrainTypes", MSGNEW("GameEngineSubsystem") TerrainTypeCollection(), &xferCRC, "Data\\INI\\Default\\Terrain.ini", "Data\\INI\\Terrain.ini");
-		initSubsystem(TheTerrainRoads,"TheTerrainRoads", MSGNEW("GameEngineSubsystem") TerrainRoadCollection(), &xferCRC, "Data\\INI\\Default\\Roads.ini", "Data\\INI\\Roads.ini");
-		initSubsystem(TheGlobalLanguageData,"TheGlobalLanguageData",MSGNEW("GameEngineSubsystem") GlobalLanguage, NULL); // must be before the game text
-		initSubsystem(TheCDManager,"TheCDManager", CreateCDManager(), NULL);
-		initSubsystem(TheAudio,"TheAudio", TheGlobalData->m_headless ? NEW AudioManagerDummy : createAudioManager(), NULL);
-		if (!TheAudio->isMusicAlreadyLoaded())
-			setQuitting(TRUE);
-		initSubsystem(TheFunctionLexicon,"TheFunctionLexicon", createFunctionLexicon(), NULL);
-		initSubsystem(TheModuleFactory,"TheModuleFactory", createModuleFactory(), NULL);
-		initSubsystem(TheMessageStream,"TheMessageStream", createMessageStream(), NULL);
-		initSubsystem(TheSidesList,"TheSidesList", MSGNEW("GameEngineSubsystem") SidesList(), NULL);
-		initSubsystem(TheCaveSystem,"TheCaveSystem", MSGNEW("GameEngineSubsystem") CaveSystem(), NULL);
-		initSubsystem(TheRankInfoStore,"TheRankInfoStore", MSGNEW("GameEngineSubsystem") RankInfoStore(), &xferCRC, NULL, "Data\\INI\\Rank.ini");
-		initSubsystem(ThePlayerTemplateStore,"ThePlayerTemplateStore", MSGNEW("GameEngineSubsystem") PlayerTemplateStore(), &xferCRC, "Data\\INI\\Default\\PlayerTemplate.ini", "Data\\INI\\PlayerTemplate.ini");
-		initSubsystem(TheParticleSystemManager,"TheParticleSystemManager", createParticleSystemManager(), NULL);
-		initSubsystem(TheFXListStore,"TheFXListStore", MSGNEW("GameEngineSubsystem") FXListStore(), &xferCRC, "Data\\INI\\Default\\FXList.ini", "Data\\INI\\FXList.ini");
-		initSubsystem(TheWeaponStore,"TheWeaponStore", MSGNEW("GameEngineSubsystem") WeaponStore(), &xferCRC, NULL, "Data\\INI\\Weapon.ini");
-		initSubsystem(TheObjectCreationListStore,"TheObjectCreationListStore", MSGNEW("GameEngineSubsystem") ObjectCreationListStore(), &xferCRC, "Data\\INI\\Default\\ObjectCreationList.ini", "Data\\INI\\ObjectCreationList.ini");
-		initSubsystem(TheLocomotorStore,"TheLocomotorStore", MSGNEW("GameEngineSubsystem") LocomotorStore(), &xferCRC, NULL, "Data\\INI\\Locomotor.ini");
-		initSubsystem(TheSpecialPowerStore,"TheSpecialPowerStore", MSGNEW("GameEngineSubsystem") SpecialPowerStore(), &xferCRC, "Data\\INI\\Default\\SpecialPower.ini", "Data\\INI\\SpecialPower.ini");
-		initSubsystem(TheDamageFXStore,"TheDamageFXStore", MSGNEW("GameEngineSubsystem") DamageFXStore(), &xferCRC, NULL, "Data\\INI\\DamageFX.ini");
-		initSubsystem(TheArmorStore,"TheArmorStore", MSGNEW("GameEngineSubsystem") ArmorStore(), &xferCRC, NULL, "Data\\INI\\Armor.ini");
-		initSubsystem(TheBuildAssistant,"TheBuildAssistant", MSGNEW("GameEngineSubsystem") BuildAssistant, NULL);
-		initSubsystem(TheThingFactory,"TheThingFactory", createThingFactory(), &xferCRC, "Data\\INI\\Default\\Object.ini", NULL, "Data\\INI\\Object");
-		initSubsystem(TheUpgradeCenter,"TheUpgradeCenter", MSGNEW("GameEngineSubsystem") UpgradeCenter, &xferCRC, "Data\\INI\\Default\\Upgrade.ini", "Data\\INI\\Upgrade.ini");
-		initSubsystem(TheGameClient,"TheGameClient", createGameClient(), NULL);
-		initSubsystem(TheAI,"TheAI", MSGNEW("GameEngineSubsystem") AI(), &xferCRC,  "Data\\INI\\Default\\AIData.ini", "Data\\INI\\AIData.ini");
-		initSubsystem(TheGameLogic,"TheGameLogic", createGameLogic(), NULL);
-		initSubsystem(TheTeamFactory,"TheTeamFactory", MSGNEW("GameEngineSubsystem") TeamFactory(), NULL);
-		initSubsystem(TheCrateSystem,"TheCrateSystem", MSGNEW("GameEngineSubsystem") CrateSystem(), &xferCRC, "Data\\INI\\Default\\Crate.ini", "Data\\INI\\Crate.ini");
-		initSubsystem(ThePlayerList,"ThePlayerList", MSGNEW("GameEngineSubsystem") PlayerList(), NULL);
-		initSubsystem(TheRecorder,"TheRecorder", createRecorder(), NULL);
-		initSubsystem(TheRadar,"TheRadar", TheGlobalData->m_headless ? NEW RadarDummy : createRadar(), NULL);
-		initSubsystem(TheVictoryConditions,"TheVictoryConditions", createVictoryConditions(), NULL);
 
-		AsciiString fname;
-		fname.format("Data\\%s\\CommandMap.ini", GetRegistryLanguage().str());
-		initSubsystem(TheMetaMap,"TheMetaMap", MSGNEW("GameEngineSubsystem") MetaMap(), NULL, fname.str(), "Data\\INI\\CommandMap.ini");
-
-		TheMetaMap->generateMetaMap();
-
-#if defined(RTS_DEBUG)
-		ini.load("Data\\INI\\CommandMapDebug.ini", INI_LOAD_MULTIFILE, NULL);
+#if RETAIL_COMPATIBLE_CRC
+		if (xferCRC.getCRC() == 0x2E876341)
+			TheNameKeyGenerator->verifyNameKeyID(1);
 #endif
 
-		initSubsystem(TheActionManager,"TheActionManager", MSGNEW("GameEngineSubsystem") ActionManager(), NULL);
-		//initSubsystem((CComObject<WebBrowser> *)TheWebBrowser,"(CComObject<WebBrowser> *)TheWebBrowser", (CComObject<WebBrowser> *)createWebBrowser(), NULL);
-		initSubsystem(TheGameStateMap,"TheGameStateMap", MSGNEW("GameEngineSubsystem") GameStateMap, NULL, NULL, NULL );
-		initSubsystem(TheGameState,"TheGameState", MSGNEW("GameEngineSubsystem") GameState, NULL, NULL, NULL );
+		initSubsystem(TheScienceStore,"TheScienceStore", MSGNEW("GameEngineSubsystem") ScienceStore(), &xferCRC, "Data\\INI\\Default\\Science", "Data\\INI\\Science");
+		initSubsystem(TheMultiplayerSettings,"TheMultiplayerSettings", MSGNEW("GameEngineSubsystem") MultiplayerSettings(), &xferCRC, "Data\\INI\\Default\\Multiplayer", "Data\\INI\\Multiplayer");
+		initSubsystem(TheTerrainTypes,"TheTerrainTypes", MSGNEW("GameEngineSubsystem") TerrainTypeCollection(), &xferCRC, "Data\\INI\\Default\\Terrain", "Data\\INI\\Terrain");
+		initSubsystem(TheTerrainRoads,"TheTerrainRoads", MSGNEW("GameEngineSubsystem") TerrainRoadCollection(), &xferCRC, "Data\\INI\\Default\\Roads", "Data\\INI\\Roads");
+		initSubsystem(TheGlobalLanguageData,"TheGlobalLanguageData",MSGNEW("GameEngineSubsystem") GlobalLanguage, nullptr); // must be before the game text
+		TheGlobalLanguageData->parseCustomDefinition();
+		initSubsystem(TheAudio,"TheAudio", createAudioManager(TheGlobalData->m_headless), nullptr);
+		if (!TheAudio->isMusicAlreadyLoaded())
+			setQuitting(TRUE);
+
+#if RTS_ZEROHOUR && RETAIL_COMPATIBLE_CRC
+		TheNameKeyGenerator->syncNameKeyID();
+#endif
+
+		initSubsystem(TheFunctionLexicon,"TheFunctionLexicon", createFunctionLexicon(), nullptr);
+		initSubsystem(TheModuleFactory,"TheModuleFactory", createModuleFactory(), nullptr);
+		initSubsystem(TheMessageStream,"TheMessageStream", createMessageStream(), nullptr);
+		initSubsystem(TheSidesList,"TheSidesList", MSGNEW("GameEngineSubsystem") SidesList(), nullptr);
+		initSubsystem(TheCaveSystem,"TheCaveSystem", MSGNEW("GameEngineSubsystem") CaveSystem(), nullptr);
+		initSubsystem(TheRankInfoStore,"TheRankInfoStore", MSGNEW("GameEngineSubsystem") RankInfoStore(), &xferCRC, nullptr, "Data\\INI\\Rank");
+		initSubsystem(ThePlayerTemplateStore,"ThePlayerTemplateStore", MSGNEW("GameEngineSubsystem") PlayerTemplateStore(), &xferCRC, "Data\\INI\\Default\\PlayerTemplate", "Data\\INI\\PlayerTemplate");
+		initSubsystem(TheParticleSystemManager,"TheParticleSystemManager", createParticleSystemManager(TheGlobalData->m_headless), nullptr);
+		initSubsystem(TheFXListStore,"TheFXListStore", MSGNEW("GameEngineSubsystem") FXListStore(), &xferCRC, "Data\\INI\\Default\\FXList", "Data\\INI\\FXList");
+		initSubsystem(TheWeaponStore,"TheWeaponStore", MSGNEW("GameEngineSubsystem") WeaponStore(), &xferCRC, nullptr, "Data\\INI\\Weapon");
+		initSubsystem(TheObjectCreationListStore,"TheObjectCreationListStore", MSGNEW("GameEngineSubsystem") ObjectCreationListStore(), &xferCRC, "Data\\INI\\Default\\ObjectCreationList", "Data\\INI\\ObjectCreationList");
+		initSubsystem(TheLocomotorStore,"TheLocomotorStore", MSGNEW("GameEngineSubsystem") LocomotorStore(), &xferCRC, nullptr, "Data\\INI\\Locomotor");
+		initSubsystem(TheSpecialPowerStore,"TheSpecialPowerStore", MSGNEW("GameEngineSubsystem") SpecialPowerStore(), &xferCRC, "Data\\INI\\Default\\SpecialPower", "Data\\INI\\SpecialPower");
+		initSubsystem(TheDamageFXStore,"TheDamageFXStore", MSGNEW("GameEngineSubsystem") DamageFXStore(), &xferCRC, nullptr, "Data\\INI\\DamageFX");
+		initSubsystem(TheArmorStore,"TheArmorStore", MSGNEW("GameEngineSubsystem") ArmorStore(), &xferCRC, nullptr, "Data\\INI\\Armor");
+		initSubsystem(TheBuildAssistant,"TheBuildAssistant", MSGNEW("GameEngineSubsystem") BuildAssistant, nullptr);
+		initSubsystem(TheThingFactory,"TheThingFactory", createThingFactory(), &xferCRC, "Data\\INI\\Default\\Object", "Data\\INI\\Object");
+
+#if RETAIL_COMPATIBLE_CRC
+		if (xferCRC.getCRC() == 0xD9A74E13)
+			TheNameKeyGenerator->verifyNameKeyID(1586);
+#endif
+
+		initSubsystem(TheUpgradeCenter,"TheUpgradeCenter", MSGNEW("GameEngineSubsystem") UpgradeCenter, &xferCRC, "Data\\INI\\Default\\Upgrade", "Data\\INI\\Upgrade");
+		initSubsystem(TheGameClient,"TheGameClient", createGameClient(), nullptr);
+		initSubsystem(TheAI,"TheAI", MSGNEW("GameEngineSubsystem") AI(), &xferCRC,  "Data\\INI\\Default\\AIData", "Data\\INI\\AIData");
+		initSubsystem(TheGameLogic,"TheGameLogic", createGameLogic(), nullptr);
+		initSubsystem(TheTeamFactory,"TheTeamFactory", MSGNEW("GameEngineSubsystem") TeamFactory(), nullptr);
+		initSubsystem(TheCrateSystem,"TheCrateSystem", MSGNEW("GameEngineSubsystem") CrateSystem(), &xferCRC, "Data\\INI\\Default\\Crate", "Data\\INI\\Crate");
+		initSubsystem(ThePlayerList,"ThePlayerList", MSGNEW("GameEngineSubsystem") PlayerList(), nullptr);
+		initSubsystem(TheRecorder,"TheRecorder", createRecorder(), nullptr);
+		initSubsystem(TheRadar,"TheRadar", createRadar(TheGlobalData->m_headless), nullptr);
+		initSubsystem(TheVictoryConditions,"TheVictoryConditions", createVictoryConditions(), nullptr);
+
+		AsciiString fname;
+		fname.format("Data\\%s\\CommandMap", GetRegistryLanguage().str());
+		initSubsystem(TheMetaMap,"TheMetaMap", MSGNEW("GameEngineSubsystem") MetaMap(), nullptr, fname.str(), "Data\\INI\\CommandMap");
+
+#if defined(RTS_DEBUG)
+		ini.loadFileDirectory("Data\\INI\\CommandMapDebug", INI_LOAD_MULTIFILE, nullptr);
+#endif
+
+		TheMetaMap->generateMetaMap();
+		TheMetaMap->verifyMetaMap();
+
+		initSubsystem(TheActionManager,"TheActionManager", MSGNEW("GameEngineSubsystem") ActionManager(), nullptr);
+		//initSubsystem((CComObject<WebBrowser> *)TheWebBrowser,"(CComObject<WebBrowser> *)TheWebBrowser", (CComObject<WebBrowser> *)createWebBrowser(), nullptr);
+		initSubsystem(TheGameStateMap,"TheGameStateMap", MSGNEW("GameEngineSubsystem") GameStateMap, nullptr );
+		initSubsystem(TheGameState,"TheGameState", MSGNEW("GameEngineSubsystem") GameState, nullptr );
 
 		// Create the interface for sending game results
-		initSubsystem(TheGameResultsQueue,"TheGameResultsQueue", GameResultsInterface::createNewGameResultsInterface(), NULL, NULL, NULL, NULL);
+		initSubsystem(TheGameResultsQueue,"TheGameResultsQueue", GameResultsInterface::createNewGameResultsInterface(), nullptr);
 
 		xferCRC.close();
 		TheWritableGlobalData->m_iniCRC = xferCRC.getCRC();
@@ -466,15 +507,15 @@ void GameEngine::init()
 
 		TheSubsystemList->postProcessLoadAll();
 
-		setFramesPerSecondLimit(TheGlobalData->m_framesPerSecondLimit);
+		TheFramePacer->setFramesPerSecondLimit(TheGlobalData->m_framesPerSecondLimit);
 
 		TheAudio->setOn(TheGlobalData->m_audioOn && TheGlobalData->m_musicOn, AudioAffect_Music);
 		TheAudio->setOn(TheGlobalData->m_audioOn && TheGlobalData->m_soundsOn, AudioAffect_Sound);
 		TheAudio->setOn(TheGlobalData->m_audioOn && TheGlobalData->m_sounds3DOn, AudioAffect_Sound3D);
 		TheAudio->setOn(TheGlobalData->m_audioOn && TheGlobalData->m_speechOn, AudioAffect_Speech);
 
-		// We're not in a network game yet, so set the network singleton to NULL.
-		TheNetwork = NULL;
+		// We're not in a network game yet, so set the network singleton to nullptr.
+		TheNetwork = nullptr;
 
 		//Create a default ini file for options if it doesn't already exist.
 		//OptionPreferences prefs( TRUE );
@@ -492,12 +533,12 @@ void GameEngine::init()
 		if (TheGlobalData->m_buildMapCache)
 		{
 			// just quit, since the map cache has already updated
-			//populateMapListbox(NULL, true, true);
+			//populateMapListbox(nullptr, true, true);
 			m_quitting = TRUE;
 		}
 
 		// load the initial shell screen
-		//TheShell->push( AsciiString("Menus/MainMenu.wnd") );
+		//TheShell->push( "Menus/MainMenu.wnd" );
 
 		// This allows us to run a map from the command line
 		if (TheGlobalData->m_initialFile.isEmpty() == FALSE)
@@ -539,8 +580,6 @@ void GameEngine::init()
 		if(!TheGlobalData->m_playIntro)
 			TheWritableGlobalData->m_afterIntro = TRUE;
 
-		initDisabledMasks();
-
 	}
 	catch (ErrorCode ec)
 	{
@@ -565,17 +604,15 @@ void GameEngine::init()
 	if(!TheGlobalData->m_playIntro)
 		TheWritableGlobalData->m_afterIntro = TRUE;
 
-	initDisabledMasks();
-
 	resetSubsystems();
 
 	HideControlBar();
-}  // end init
+}
 
 /** -----------------------------------------------------------------------------------------------
 	* Reset all necessary parts of the game engine to be ready to accept new game data
 	*/
-void GameEngine::reset( void )
+void GameEngine::reset()
 {
 
 	WindowLayout *background = TheWindowManager->winCreateLayout("Menus/BlankWindow.wnd");
@@ -591,21 +628,20 @@ void GameEngine::reset( void )
 
 	if (deleteNetwork)
 	{
-		DEBUG_ASSERTCRASH(TheNetwork, ("Deleting NULL TheNetwork!"));
-		if (TheNetwork)
-			delete TheNetwork;
-		TheNetwork = NULL;
+		DEBUG_ASSERTCRASH(TheNetwork, ("Deleting null TheNetwork!"));
+		delete TheNetwork;
+		TheNetwork = nullptr;
 	}
 	if(background)
 	{
 		background->destroyWindows();
 		deleteInstance(background);
-		background = NULL;
+		background = nullptr;
 	}
 }
 
 /// -----------------------------------------------------------------------------------------------
-void GameEngine::resetSubsystems( void )
+void GameEngine::resetSubsystems()
 {
 	// TheSuperHackers @fix xezon 09/06/2025 Reset GameLogic first to purge all world objects early.
 	// This avoids potentially catastrophic issues when objects and subsystems have cross dependencies.
@@ -615,20 +651,86 @@ void GameEngine::resetSubsystems( void )
 }
 
 /// -----------------------------------------------------------------------------------------------
+Bool GameEngine::canUpdateGameLogic()
+{
+	// Must be first.
+	TheGameLogic->preUpdate();
+
+	TheFramePacer->setTimeFrozen(isTimeFrozen());
+	TheFramePacer->setGameHalted(isGameHalted());
+
+	if (TheNetwork != nullptr)
+	{
+		return canUpdateNetworkGameLogic();
+	}
+	else
+	{
+		return canUpdateRegularGameLogic();
+	}
+}
+
+/// -----------------------------------------------------------------------------------------------
+Bool GameEngine::canUpdateNetworkGameLogic()
+{
+	DEBUG_ASSERTCRASH(TheNetwork != nullptr, ("TheNetwork is null"));
+
+	if (TheNetwork->isFrameDataReady())
+	{
+		// Important: The Network is definitely no longer stalling.
+		TheFramePacer->setGameHalted(false);
+
+		return true;
+	}
+
+	return false;
+}
+
+/// -----------------------------------------------------------------------------------------------
+Bool GameEngine::canUpdateRegularGameLogic()
+{
+	const Bool enabled = TheFramePacer->isLogicTimeScaleEnabled();
+	const Int logicTimeScaleFps = TheFramePacer->getLogicTimeScaleFps();
+	const Int maxRenderFps = TheFramePacer->getFramesPerSecondLimit();
+
+#if defined(_ALLOW_DEBUG_CHEATS_IN_RELEASE)
+	const Bool useFastMode = TheGlobalData->m_TiVOFastMode;
+#else	//always allow this cheat key if we're in a replay game.
+	const Bool useFastMode = TheGlobalData->m_TiVOFastMode && TheGameLogic->isInReplayGame();
+#endif
+
+	if (useFastMode || !enabled || logicTimeScaleFps >= maxRenderFps)
+	{
+		// Logic time scale is uncapped or larger equal Render FPS. Update straight away.
+		return true;
+	}
+	else
+	{
+		// TheSuperHackers @tweak xezon 06/08/2025
+		// The logic time step is now decoupled from the render update.
+		const Real targetFrameTime = 1.0f / logicTimeScaleFps;
+		m_logicTimeAccumulator += min(TheFramePacer->getUpdateTime(), targetFrameTime);
+
+		if (m_logicTimeAccumulator >= targetFrameTime)
+		{
+			m_logicTimeAccumulator -= targetFrameTime;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/// -----------------------------------------------------------------------------------------------
 DECLARE_PERF_TIMER(GameEngine_update)
 
 /** -----------------------------------------------------------------------------------------------
  * Update the game engine by updating the GameClient and GameLogic singletons.
- * @todo Allow the client to run as fast as possible, but limit the execution
- * of TheNetwork and TheGameLogic to a fixed framerate.
  */
-void GameEngine::update( void )
+void GameEngine::update()
 {
 	USE_PERF_TIMER(GameEngine_update)
 	{
-
 		{
-
 			// VERIFY CRC needs to be in this code block.  Please to not pull TheGameLogic->update() inside this block.
 			VERIFY_CRC
 
@@ -640,23 +742,28 @@ void GameEngine::update( void )
 			TheGameClient->UPDATE();
 			TheMessageStream->propagateMessages();
 
-			if (TheNetwork != NULL)
+			if (TheNetwork != nullptr)
 			{
 				TheNetwork->UPDATE();
 			}
-
-			TheCDManager->UPDATE();
 		}
 
-		TheGameLogic->preUpdate();
+		const Bool canUpdate = canUpdateGameLogic();
+		const Bool canUpdateLogic = canUpdate && !TheFramePacer->isGameHalted() && !TheFramePacer->isTimeFrozen();
+		const Bool canUpdateScript = canUpdate && !TheFramePacer->isGameHalted();
 
-		if ((TheNetwork == NULL && !TheGameLogic->isGamePaused()) || (TheNetwork && TheNetwork->isFrameDataReady()))
+		if (canUpdateLogic)
 		{
+			TheGameClient->step();
 			TheGameLogic->UPDATE();
 		}
-
-	}	// end perfGather
-
+		else if (canUpdateScript)
+		{
+			// TheSuperHackers @info Still update the Script Engine to allow
+			// for scripted camera movements while the time is frozen.
+			TheScriptEngine->UPDATE();
+		}
+	}
 }
 
 // Horrible reference, but we really, really need to know if we are windowed.
@@ -666,10 +773,8 @@ extern HWND ApplicationHWnd;
 /** -----------------------------------------------------------------------------------------------
  * The "main loop" of the game engine. It will not return until the game exits.
  */
-void GameEngine::execute( void )
+void GameEngine::execute()
 {
-
-	DWORD prevTime = timeGetTime();
 #if defined(RTS_DEBUG)
 	DWORD startTime = timeGetTime() / 1000;
 #endif
@@ -735,46 +840,11 @@ void GameEngine::execute( void )
 					{
 					}
 					RELEASE_CRASH(("Uncaught Exception in GameEngine::update"));
-				}	// catch
-			}	// perf
-
-			{
-
-				if (TheTacticalView->getTimeMultiplier()<=1 && !TheScriptEngine->isTimeFast())
-				{
-
-		// I'm disabling this in internal because many people need alt-tab capability.  If you happen to be
-		// doing performance tuning, please just change this on your local system. -MDC
-		#if defined(RTS_DEBUG)
-					::Sleep(1); // give everyone else a tiny time slice.
-		#endif
-
-
-		#if defined(_ALLOW_DEBUG_CHEATS_IN_RELEASE)
-          if ( ! TheGlobalData->m_TiVOFastMode )
-		#else	//always allow this cheatkey if we're in a replaygame.
-		  if ( ! (TheGlobalData->m_TiVOFastMode && TheGameLogic->isInReplayGame()))
-		#endif
-          {
-            // limit the framerate
-					  DWORD now = timeGetTime();
-					  DWORD limit = (1000.0f/m_maxFPS)-1;
-					  while (TheGlobalData->m_useFpsLimit && (now - prevTime) < limit)
-					  {
-						  ::Sleep(0);
-						  now = timeGetTime();
-					  }
-					  //Int slept = now - prevTime;
-					  //DEBUG_LOG(("delayed %d",slept));
-
-					  prevTime = now;
-
-          }
-
-        }
+				}
 			}
 
-		}	// perfgather for execute_loop
+			TheFramePacer->update();
+		}
 
 #ifdef PERF_TIMERS
 		if (!m_quitting && TheGameLogic->isInGame() && !TheGameLogic->isInShellGame() && !TheGameLogic->isGamePaused())
@@ -786,13 +856,12 @@ void GameEngine::execute( void )
 #endif
 
 	}
-
 }
 
 /** -----------------------------------------------------------------------------------------------
 	* Factory for the message stream
 	*/
-MessageStream *GameEngine::createMessageStream( void )
+MessageStream *GameEngine::createMessageStream()
 {
 	// if you change this update the tools that use the engine systems
 	// like GUIEdit, it creates a message stream to run in "test" mode
@@ -800,13 +869,13 @@ MessageStream *GameEngine::createMessageStream( void )
 }
 
 //-------------------------------------------------------------------------------------------------
-FileSystem *GameEngine::createFileSystem( void )
+FileSystem *GameEngine::createFileSystem()
 {
 	return MSGNEW("GameEngineSubsystem") FileSystem;
 }
 
 //-------------------------------------------------------------------------------------------------
-Bool GameEngine::isMultiplayerSession( void )
+Bool GameEngine::isMultiplayerSession()
 {
 	return TheRecorder->isMultiplayer();
 }
@@ -820,7 +889,7 @@ logging code that is usually called from another thread.  I'm doing it here
 because there's no way to guarantee the other thread will execute before we
 exit the app.
 */
-void GameEngine::checkAbnormalQuitting(void)
+void GameEngine::checkAbnormalQuitting()
 {
 	if (TheRecorder->isMultiplayer() && TheGameLogic->isInInternetGame())
 	{	//Should not be quitting at this time, record it as a cheat.
@@ -990,11 +1059,3 @@ void updateTGAtoDDS()
 
 	system(CONVERT_EXEC1);
 }
-
-//-------------------------------------------------------------------------------------------------
-// System things
-
-// If we're using the Wide character version of MessageBox, then there's no additional
-// processing necessary. Please note that this is a sleazy way to get this information,
-// but pending a better one, this'll have to do.
-extern const Bool TheSystemIsUnicode = (((void*) (::MessageBox)) == ((void*) (::MessageBoxW)));

@@ -43,11 +43,11 @@ Int BrushTool::m_brushHeight;
 
 
 /// Constructor
-BrushTool::BrushTool(void) :
+BrushTool::BrushTool() :
 	Tool(ID_BRUSH_TOOL, IDC_BRUSH_CROSS)
 {
-	m_htMapEditCopy = NULL;
-	m_htMapFeatherCopy = NULL;
+	m_htMapEditCopy = nullptr;
+	m_htMapFeatherCopy = nullptr;
 
 	m_brushWidth = 0;
 	m_brushFeather = 0;
@@ -56,7 +56,7 @@ BrushTool::BrushTool(void) :
 }
 
 /// Destructor
-BrushTool::~BrushTool(void)
+BrushTool::~BrushTool()
 {
 	REF_PTR_RELEASE(m_htMapEditCopy);
 	REF_PTR_RELEASE(m_htMapFeatherCopy);

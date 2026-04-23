@@ -29,9 +29,6 @@
 
 #pragma once
 
-#ifndef __HEIGHTDIEUPDATE_H_
-#define __HEIGHTDIEUPDATE_H_
-
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/UpdateModule.h"
 
@@ -42,7 +39,7 @@ class HeightDieUpdateModuleData: public UpdateModuleData
 
 public:
 
-	HeightDieUpdateModuleData( void );
+	HeightDieUpdateModuleData();
 
 	static void buildFieldParse(MultiIniFieldParse& p);
 
@@ -68,7 +65,7 @@ public:
 	HeightDieUpdate( Thing *thing, const ModuleData* moduleData );
 	// virtual destructor prototype provided by memory pool declaration
 
-	virtual UpdateSleepTime update();
+	virtual UpdateSleepTime update() override;
 
 protected:
 
@@ -79,5 +76,3 @@ protected:
 	UnsignedInt m_earliestDeathFrame; ///< Earliest we are allowed to think about dying
 
 };
-
-#endif  // end __HEIGHTDIEUPDATE_H_

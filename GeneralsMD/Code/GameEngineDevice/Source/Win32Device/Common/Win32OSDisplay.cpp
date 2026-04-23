@@ -33,7 +33,6 @@
 #include "Common/SubsystemInterface.h"
 #include "Common/STLTypedefs.h"
 #include "Common/AsciiString.h"
-#include "Common/SystemInfo.h"
 #include "Common/UnicodeString.h"
 #include "GameClient/GameText.h"
 
@@ -100,26 +99,20 @@ OSDisplayButtonType OSDisplayWarningBox(AsciiString p, AsciiString m, UnsignedIn
 
 	// @todo Make this return more than just ok/cancel - jkmcd
 	// (we need a function to translate back the other way.)
-	Int returnResult = 0;
-	if (TheSystemIsUnicode)
-	{
-		returnResult = ::MessageBoxW(NULL, mesgStr.str(), promptStr.str(), windowsOptionsFlags);
-	}
-	else
-	{
-		// However, if we're using the default version of the message box, we need to
-		// translate the string into an AsciiString
-		AsciiString promptA, mesgA;
-		promptA.translate(promptStr);
-		mesgA.translate(mesgStr);
-		//Make sure main window is not TOP_MOST
-		::SetWindowPos(ApplicationHWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
-		returnResult = ::MessageBoxA(NULL, mesgA.str(), promptA.str(), windowsOptionsFlags);
-	}
-
+	const Int returnResult = ::MessageBoxW(nullptr, mesgStr.str(), promptStr.str(), windowsOptionsFlags);
 	if (returnResult == IDOK) {
 		return OSDBT_OK;
 	}
 
 	return OSDBT_CANCEL;
+}
+
+//-------------------------------------------------------------------------------------------------
+void OSDisplaySetBusyState(Bool busyDisplay, Bool busySystem)
+{
+	EXECUTION_STATE state = ES_CONTINUOUS;
+	state |= busyDisplay ? ES_DISPLAY_REQUIRED : 0;
+	state |= busySystem ? ES_SYSTEM_REQUIRED : 0;
+
+	::SetThreadExecutionState(state);
 }

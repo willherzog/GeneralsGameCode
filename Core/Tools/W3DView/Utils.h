@@ -18,15 +18,14 @@
 
 /////////////////////////////////////////////////////////////////////////////
 //
-//  Utils.H
+//  Utils.h
 //
 //  Module containing usefull misc. utility functions
 //
 
-#ifndef __UTILS_H
-#define __UTILS_H
+#pragma once
 
-#include "Vector.H"
+#include "Vector.h"
 
 // Forward declarations
 class RenderObjClass;
@@ -36,44 +35,14 @@ class RenderObjClass;
 //
 // Macros
 //
-#define SAFE_DELETE(pobject)					\
-			if (pobject) {							\
-				delete pobject;					\
-				pobject = NULL;					\
-			}											\
-
-#define SAFE_DELETE_ARRAY(pobject)			\
-			if (pobject) {							\
-				delete [] pobject;				\
-				pobject = NULL;					\
-			}											\
-
-#define SAFE_ADD_REF(pobject)					\
-			if (pobject) {							\
-				pobject->Add_Ref ();				\
-			}											\
-
-#define SAFE_RELEASE_REF(pobject)			\
-			if (pobject) {							\
-				pobject->Release_Ref ();		\
-			}											\
-
-#define MEMBER_RELEASE(pmember)				\
-			SAFE_RELEASE_REF(pmember);			\
-			pmember = NULL;						\
-
-
-#define MEMBER_ADD(pmember, pnew)			\
-			MEMBER_RELEASE (pmember);			\
-			pmember = pnew;						\
-			SAFE_ADD_REF (pmember);				\
-
+#define SAFE_DELETE(pobject) { delete pobject; pobject = nullptr; }
+#define SAFE_DELETE_ARRAY(pobject) { delete [] pobject; pobject = nullptr; }
 
 #define COM_RELEASE(pobject)					\
 			if (pobject) {							\
 				pobject->Release ();				\
 			}											\
-			pobject = NULL;						\
+			pobject = nullptr;						\
 
 #define SAFE_CLOSE(handle)								\
 			if (handle != INVALID_HANDLE_VALUE) {	\
@@ -96,7 +65,6 @@ __inline void Delimit_Path (LPTSTR path)
 	if (::lstrlen (path) > 0 && path[::lstrlen (path) - 1] != '\\') {
 		::lstrcat (path, "\\");
 	}
-	return ;
 }
 
 __inline void Delimit_Path (CString &path)
@@ -104,7 +72,6 @@ __inline void Delimit_Path (CString &path)
 	if (path[::lstrlen (path) - 1] != '\\') {
 		path += CString ("\\");
 	}
-	return ;
 }
 
 
@@ -117,8 +84,8 @@ class CGraphicView;
 //
 // Prototypes
 //
-class CW3DViewDoc *	GetCurrentDocument (void);
-CGraphicView *			Get_Graphic_View (void);
+class CW3DViewDoc *	GetCurrentDocument ();
+CGraphicView *			Get_Graphic_View ();
 void						Paint_Gradient (HWND hWnd, BYTE baseRed, BYTE baseGreen, BYTE baseBlue);
 void						CenterDialogAroundTreeView (HWND hDlg);
 
@@ -145,8 +112,8 @@ CString					Filename_From_Asset_Name (LPCTSTR asset_name);
 //
 //	File routines
 //
-bool						Get_File_Time (LPCTSTR path, LPFILETIME pcreation_time, LPFILETIME paccess_time = NULL, LPFILETIME pwrite_time = NULL);
-bool						Are_Glide_Drivers_Acceptable (void);
+bool						Get_File_Time (LPCTSTR path, LPFILETIME pcreation_time, LPFILETIME paccess_time = nullptr, LPFILETIME pwrite_time = nullptr);
+bool						Are_Glide_Drivers_Acceptable ();
 bool						Copy_File (LPCTSTR existing_filename, LPCTSTR new_filename, bool bforce_copy = false);
 
 //
@@ -167,5 +134,3 @@ bool						Is_Real_LOD (const char *asset_name);
 
 // Prototype routines
 void						Rename_Aggregate_Prototype (const char *old_name, const char *new_name);
-
-#endif //__UTILS_H

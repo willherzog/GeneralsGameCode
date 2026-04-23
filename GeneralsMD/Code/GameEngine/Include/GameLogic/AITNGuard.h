@@ -38,8 +38,6 @@
 /*---------------------------------------------------------------------------*/
 
 #pragma once
-#ifndef _H_AITNGUARD_
-#define _H_AITNGUARD_
 
 // INCLUDES ///////////////////////////////////////////////////////////////////
 #include "Common/GameMemory.h"
@@ -72,7 +70,7 @@ public:
 	{
 	}
 
-	virtual Bool shouldExit(const StateMachine* machine) const;
+	virtual Bool shouldExit(const StateMachine* machine) const override;
 };
 
 
@@ -90,9 +88,9 @@ private:
 
 protected:
 	// snapshot interface
-	virtual void crc( Xfer *xfer );
-	virtual void xfer( Xfer *xfer );
-	virtual void loadPostProcess();
+	virtual void crc( Xfer *xfer ) override;
+	virtual void xfer( Xfer *xfer ) override;
+	virtual void loadPostProcess() override;
 
 public:
 	/**
@@ -101,7 +99,7 @@ public:
 	 */
 	AITNGuardMachine( Object *owner );
 
-	const Coord3D *getPositionToGuard( void ) const { return &m_positionToGuard; }
+	const Coord3D *getPositionToGuard() const { return &m_positionToGuard; }
 	void setTargetPositionToGuard( const Coord3D *pos) { m_positionToGuard = *pos; }
 
 	void setNemesisID(ObjectID id) { m_nemesisToAttack = id; }
@@ -110,7 +108,7 @@ public:
 	GuardMode getGuardMode() const { return m_guardMode; }
 	void setGuardMode(GuardMode guardMode) { m_guardMode = guardMode; }
 
-	Bool lookForInnerTarget(void);
+	Bool lookForInnerTarget();
 
 	static Real getStdGuardRange(const Object* obj);
 };
@@ -122,16 +120,16 @@ class AITNGuardInnerState : public State
 public:
 	AITNGuardInnerState( StateMachine *machine ) : State( machine, "AITNGuardInner" )
 	{
-		m_attackState = NULL;
+		m_attackState = nullptr;
 	}
-	virtual StateReturnType onEnter( void );
-	virtual StateReturnType update( void );
-	virtual void onExit( StateExitType status );
+	virtual StateReturnType onEnter() override;
+	virtual StateReturnType update() override;
+	virtual void onExit( StateExitType status ) override;
 protected:
 	// snapshot interface
-	virtual void crc( Xfer *xfer );
-	virtual void xfer( Xfer *xfer );
-	virtual void loadPostProcess();
+	virtual void crc( Xfer *xfer ) override;
+	virtual void xfer( Xfer *xfer ) override;
+	virtual void loadPostProcess() override;
 private:
 	AITNGuardMachine* getGuardMachine() { return (AITNGuardMachine*)getMachine(); }
 
@@ -146,14 +144,14 @@ class AITNGuardIdleState : public State
 	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(AITNGuardIdleState, "AITNGuardIdleState")
 public:
 	AITNGuardIdleState( StateMachine *machine ) : State( machine, "AITNGuardIdleState" ) { }
-	virtual StateReturnType onEnter( void );
-	virtual StateReturnType update( void );
-	virtual void onExit( StateExitType status );
+	virtual StateReturnType onEnter() override;
+	virtual StateReturnType update() override;
+	virtual void onExit( StateExitType status ) override;
 protected:
 	// snapshot interface
-	virtual void crc( Xfer *xfer );
-	virtual void xfer( Xfer *xfer );
-	virtual void loadPostProcess();
+	virtual void crc( Xfer *xfer ) override;
+	virtual void xfer( Xfer *xfer ) override;
+	virtual void loadPostProcess() override;
 private:
 	AITNGuardMachine* getGuardMachine() { return (AITNGuardMachine*)getMachine(); }
 
@@ -169,16 +167,16 @@ class AITNGuardOuterState : public State
 public:
 	AITNGuardOuterState( StateMachine *machine ) : State( machine, "AITNGuardOuter" )
 	{
-		m_attackState = NULL;
+		m_attackState = nullptr;
 	}
-	virtual StateReturnType onEnter( void );
-	virtual StateReturnType update( void );
-	virtual void onExit( StateExitType status );
+	virtual StateReturnType onEnter() override;
+	virtual StateReturnType update() override;
+	virtual void onExit( StateExitType status ) override;
 protected:
 	// snapshot interface
-	virtual void crc( Xfer *xfer );
-	virtual void xfer( Xfer *xfer );
-	virtual void loadPostProcess();
+	virtual void crc( Xfer *xfer ) override;
+	virtual void xfer( Xfer *xfer ) override;
+	virtual void loadPostProcess() override;
 private:
 	AITNGuardMachine* getGuardMachine() { return (AITNGuardMachine*)getMachine(); }
 
@@ -197,18 +195,18 @@ public:
 	{
 		m_nextReturnScanTime = 0;
 	}
-	virtual StateReturnType onEnter( void );
-	virtual StateReturnType update( void );
-	virtual void onExit( StateExitType status );
+	virtual StateReturnType onEnter() override;
+	virtual StateReturnType update() override;
+	virtual void onExit( StateExitType status ) override;
 
 protected:
 	UnsignedInt m_nextReturnScanTime;
 
 protected:
 	// snapshot interface
-	virtual void crc( Xfer *xfer );
-	virtual void xfer( Xfer *xfer );
-	virtual void loadPostProcess();
+	virtual void crc( Xfer *xfer ) override;
+	virtual void xfer( Xfer *xfer ) override;
+	virtual void loadPostProcess() override;
 };
 EMPTY_DTOR(AITNGuardReturnState)
 
@@ -219,9 +217,9 @@ class AITNGuardPickUpCrateState : public AIPickUpCrateState
 	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(AITNGuardPickUpCrateState, "AITNGuardPickUpCrateState")
 public:
 	AITNGuardPickUpCrateState( StateMachine *machine );
-	virtual StateReturnType onEnter( void );
-	virtual StateReturnType update( void );
-	virtual void onExit( StateExitType status );
+	virtual StateReturnType onEnter() override;
+	virtual StateReturnType update() override;
+	virtual void onExit( StateExitType status ) override;
 };
 EMPTY_DTOR(AITNGuardPickUpCrateState)
 
@@ -231,14 +229,14 @@ class AITNGuardAttackAggressorState : public State
 	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(AITNGuardAttackAggressorState, "AITNGuardAttackAggressorState")
 public:
 	AITNGuardAttackAggressorState( StateMachine *machine );
-	virtual StateReturnType onEnter( void );
-	virtual StateReturnType update( void );
-	virtual void onExit( StateExitType status );
+	virtual StateReturnType onEnter() override;
+	virtual StateReturnType update() override;
+	virtual void onExit( StateExitType status ) override;
 protected:
 	// snapshot interface
-	virtual void crc( Xfer *xfer );
-	virtual void xfer( Xfer *xfer );
-	virtual void loadPostProcess();
+	virtual void crc( Xfer *xfer ) override;
+	virtual void xfer( Xfer *xfer ) override;
+	virtual void loadPostProcess() override;
 private:
 	AITNGuardMachine* getGuardMachine() { return (AITNGuardMachine*)getMachine(); }
 	TunnelNetworkExitConditions m_exitConditions;
@@ -246,5 +244,3 @@ private:
 };
 
 //--------------------------------------------------------------------------------------
-
-#endif /* _H_AIGUARD_ */

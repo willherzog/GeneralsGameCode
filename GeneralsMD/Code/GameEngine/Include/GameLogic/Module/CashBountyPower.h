@@ -44,9 +44,6 @@
 
 #pragma once
 
-#ifndef __CashBountyPower_H_
-#define __CashBountyPower_H_
-
 //-----------------------------------------------------------------------------
 // SYSTEM INCLUDES ////////////////////////////////////////////////////////////
 //-----------------------------------------------------------------------------
@@ -98,7 +95,7 @@ public:
 #endif
 	Real											m_defaultBounty;
 
-	CashBountyPowerModuleData( void );
+	CashBountyPowerModuleData();
 	static void buildFieldParse(MultiIniFieldParse& p);
 };
 
@@ -116,16 +113,14 @@ public:
 	CashBountyPower( Thing *thing, const ModuleData* moduleData );
 	// virtual destructor prototype defined by MemoryPoolObject
 
-	virtual void onObjectCreated();
+	virtual void onObjectCreated() override;
 
 	//virtual void onBuildComplete();	///< This is called when you are a finished game object
-	virtual void onSpecialPowerCreation();	///< This is called when you are a finished game object
-	virtual void doSpecialPower( UnsignedInt commandOptions ) { return; }
+	virtual void onSpecialPowerCreation() override;	///< This is called when you are a finished game object
+	virtual void doSpecialPower( UnsignedInt commandOptions ) override { return; }
 
 protected:
 
 	Real findBounty() const;
 
 };
-
-#endif // __CashBountyPower_H_

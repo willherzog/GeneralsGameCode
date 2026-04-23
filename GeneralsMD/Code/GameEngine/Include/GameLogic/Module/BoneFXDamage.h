@@ -29,9 +29,6 @@
 
 #pragma once
 
-#ifndef __BONEFXDAMAGE_H_
-#define __BONEFXDAMAGE_H_
-
 // USER INCLUDES //////////////////////////////////////////////////////////////////////////////////
 
 #include "GameLogic/Module/DamageModule.h"
@@ -55,16 +52,14 @@ public:
 	// virtual destructor prototype provided by memory pool declaration
 
 	// damage module methods
-	virtual void onDamage( DamageInfo *damageInfo ) { }
-	virtual void onHealing( DamageInfo *damageInfo ) { }
+	virtual void onDamage( DamageInfo *damageInfo ) override { }
+	virtual void onHealing( DamageInfo *damageInfo ) override { }
 	virtual void onBodyDamageStateChange( const DamageInfo* damageInfo,
 																				BodyDamageType oldState,
-																				BodyDamageType newState );
+																				BodyDamageType newState ) override;
 
 protected:
 
-	virtual void onObjectCreated();
+	virtual void onObjectCreated() override;
 
 };
-
-#endif  // end __BONEFXDAMAGE_H_

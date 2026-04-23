@@ -31,13 +31,13 @@
 
 Scorches ScorchOptions::m_scorchtype = SCORCH_1;
 Real ScorchOptions::m_scorchsize = DEFAULT_SCORCHMARK_RADIUS;
-ScorchOptions *ScorchOptions::m_staticThis = NULL;
+ScorchOptions *ScorchOptions::m_staticThis = nullptr;
 
 /////////////////////////////////////////////////////////////////////////////
 // ScorchOptions dialog
 
 
-ScorchOptions::ScorchOptions(CWnd* pParent /*=NULL*/)
+ScorchOptions::ScorchOptions(CWnd* pParent /*=nullptr*/)
 {
 	//{{AFX_DATA_INIT(ScorchOptions)
 		// NOTE: the ClassWizard will add member initialization here
@@ -61,9 +61,9 @@ BEGIN_MESSAGE_MAP(ScorchOptions, CDialog)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
-MapObject *ScorchOptions::getSingleSelectedScorch(void)
+MapObject *ScorchOptions::getSingleSelectedScorch()
 {
-	MapObject *theMapObj = NULL;
+	MapObject *theMapObj = nullptr;
 //	Bool found = false;
 	Int selCount=0;
 	MapObject *pMapObj;
@@ -79,10 +79,10 @@ MapObject *ScorchOptions::getSingleSelectedScorch(void)
 		return theMapObj;
 	}
 
-	return(NULL);
+	return(nullptr);
 }
 
-void ScorchOptions::updateTheUI(void)
+void ScorchOptions::updateTheUI()
 {
 	m_updating = true;
 	MapObject *theMapObj = getSingleSelectedScorch();
@@ -102,7 +102,7 @@ void ScorchOptions::updateTheUI(void)
 	m_updating = false;
 }
 
-void ScorchOptions::update(void)
+void ScorchOptions::update()
 {
 	if (m_staticThis) {
 		m_staticThis->updateTheUI();
@@ -176,7 +176,7 @@ void ScorchOptions::GetPopSliderInfo(const long sliderID, long *pMin, long *pMax
 			// uh-oh!
 			DEBUG_CRASH(("Slider message from unknown control"));
 			break;
-	}	// switch
+	}
 }
 
 void ScorchOptions::PopSliderChanged(const long sliderID, long theVal)
@@ -197,7 +197,7 @@ void ScorchOptions::PopSliderChanged(const long sliderID, long theVal)
 			// uh-oh!
 			DEBUG_CRASH(("Slider message from unknown control"));
 			break;
-	}	// switch
+	}
 	m_updating = false;
 }
 
@@ -212,11 +212,11 @@ void ScorchOptions::PopSliderFinished(const long sliderID, long theVal)
 			// uh-oh!
 			DEBUG_CRASH(("Slider message from unknown control"));
 			break;
-	}	// switch
+	}
 
 }
 
-void ScorchOptions::changeScorch(void)
+void ScorchOptions::changeScorch()
 {
 	getAllSelectedDicts();
 
@@ -231,7 +231,7 @@ void ScorchOptions::changeScorch(void)
 	pView->Invalidate();
 }
 
-void ScorchOptions::changeSize(void)
+void ScorchOptions::changeSize()
 {
 	getAllSelectedDicts();
 
@@ -246,7 +246,7 @@ void ScorchOptions::changeSize(void)
 	pView->Invalidate();
 }
 
-void ScorchOptions::getAllSelectedDicts(void)
+void ScorchOptions::getAllSelectedDicts()
 {
 	m_allSelectedDicts.clear();
 
@@ -261,7 +261,7 @@ void ScorchOptions::getAllSelectedDicts(void)
 Dict** ScorchOptions::getAllSelectedDictsData()
 {
 #if defined(USING_STLPORT) || __cplusplus < 201103L
-	return !m_allSelectedDicts.empty() ? &m_allSelectedDicts.front() : NULL;
+	return !m_allSelectedDicts.empty() ? &m_allSelectedDicts.front() : nullptr;
 #else
 	return m_allSelectedDicts.data();
 #endif

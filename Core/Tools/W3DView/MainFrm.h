@@ -20,12 +20,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-#if !defined(AFX_MAINFRM_H__2BB39E2F_5D3A_11D2_9FC6_00104B791122__INCLUDED_)
-#define AFX_MAINFRM_H__2BB39E2F_5D3A_11D2_9FC6_00104B791122__INCLUDED_
-
-#if _MSC_VER >= 1000
 #pragma once
-#endif // _MSC_VER >= 1000
 
 #include "DataTreeView.h"
 #include "Toolbar.h"
@@ -256,7 +251,7 @@ public:
 	CView *GetPane (int iRow, int iCol) const
 	{ return (CView *)m_wndSplitter.GetPane (iRow, iCol); }
 
-	void	ShowObjectProperties (void);
+	void	ShowObjectProperties ();
 
 	void	OnSelectionChanged (ASSET_TYPE newAssetType);
 
@@ -265,18 +260,18 @@ public:
 	void	Update_Particle_Count (int particles);
 	void	UpdateCameraDistance (float cameraDistance);
 	void	UpdateFrameCount (int iCurrentFrame, int iTotalFrames, float frame_rate);
-	void	RestoreOriginalSize (void);
+	void	RestoreOriginalSize ();
 	void	Select_Device (bool show_dlg = true);
 
-	HMENU	Get_Emitters_List_Menu (void) const { return m_hEmittersSubMenu; }
-	void	Update_Emitters_List (void);
+	HMENU	Get_Emitters_List_Menu () const { return m_hEmittersSubMenu; }
+	void	Update_Emitters_List ();
 
 protected:
 
 	//////////////////////////////////////////////////////////////////////
 	//	Protected methods
 	//////////////////////////////////////////////////////////////////////
-	void	Restore_Window_State (void);
+	void	Restore_Window_State ();
 
 private:
 
@@ -296,5 +291,3 @@ private:
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Developer Studio will insert additional declarations immediately before the previous line.
-
-#endif // !defined(AFX_MAINFRM_H__2BB39E2F_5D3A_11D2_9FC6_00104B791122__INCLUDED_)

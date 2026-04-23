@@ -28,10 +28,6 @@
 
 #pragma once
 
-
-#ifndef DYNAMICAUDIOEVENTINFO_H_INCLUDED
-#define DYNAMICAUDIOEVENTINFO_H_INCLUDED
-
 #include "Common/AudioEventInfo.h"
 #include "Common/BitFlags.h"
 
@@ -55,9 +51,9 @@ class DynamicAudioEventInfo : public AudioEventInfo
     explicit DynamicAudioEventInfo( const AudioEventInfo & baseInfo );
 
     // DynamicAudioEventInfo interfacing function overrides
-    virtual Bool isLevelSpecific() const;
-    virtual DynamicAudioEventInfo * getDynamicAudioEventInfo();
-    virtual const DynamicAudioEventInfo * getDynamicAudioEventInfo() const;
+    virtual Bool isLevelSpecific() const override;
+    virtual DynamicAudioEventInfo * getDynamicAudioEventInfo() override;
+    virtual const DynamicAudioEventInfo * getDynamicAudioEventInfo() const override;
 
     // Change various fields from their default (INI) values
     void overrideAudioName( const AsciiString & newName );
@@ -155,8 +151,3 @@ inline Bool DynamicAudioEventInfo::wasPriorityOverriden() const
 {
   return m_overriddenFields.test( OVERRIDE_PRIORITY );
 }
-
-
-
-#endif // DYNAMICAUDIOEVENTINFO_H_INCLUDED
-

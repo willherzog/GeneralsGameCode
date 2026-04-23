@@ -47,9 +47,6 @@
 
 #pragma once
 
-#ifndef __W3DDISPLAYSTRING_H_
-#define __W3DDISPLAYSTRING_H_
-
 // SYSTEM INCLUDES ////////////////////////////////////////////////////////////
 
 // USER INCLUDES //////////////////////////////////////////////////////////////
@@ -74,32 +71,32 @@ public:
 
 	friend W3DDisplayStringManager;
 
-	W3DDisplayString( void );
-	// ~W3DDisplayString( void );  // destructor defined by memory pool
+	W3DDisplayString();
+	// ~W3DDisplayString();  // destructor defined by memory pool
 
-	void notifyTextChanged( void );							///< called when text contents change
-	void draw( Int x, Int y, Color color, Color dropColor );  ///< render text
-	void draw( Int x, Int y, Color color, Color dropColor, Int xDrop, Int yDrop );  ///< render text with the drop shadow being at the offsets passed in
-	void getSize( Int *width, Int *height );		///< get render size
-	Int	getWidth( Int charPos = -1);
-	void setWordWrap( Int wordWrap );						///< set the word wrap width
-	void setWordWrapCentered( Bool isCentered ); ///< If this is set to true, the text on a new line is centered
-	void setFont( GameFont *font );							///< set a font for display
-	void setUseHotkey( Bool useHotkey, Color hotKeyColor = 0xffffffff );
-	void setClipRegion( IRegion2D *region );		///< clip text in this region
+	virtual void notifyTextChanged() override;							///< called when text contents change
+	virtual void draw( Int x, Int y, Color color, Color dropColor ) override;  ///< render text
+	virtual void draw( Int x, Int y, Color color, Color dropColor, Int xDrop, Int yDrop ) override;  ///< render text with the drop shadow being at the offsets passed in
+	virtual void getSize( Int *width, Int *height ) override;		///< get render size
+	virtual Int	getWidth( Int charPos = -1) override;
+	virtual void setWordWrap( Int wordWrap ) override;						///< set the word wrap width
+	virtual void setWordWrapCentered( Bool isCentered ) override; ///< If this is set to true, the text on a new line is centered
+	virtual void setFont( GameFont *font ) override;							///< set a font for display
+	virtual void setUseHotkey( Bool useHotkey, Color hotKeyColor = 0xffffffff ) override;
+	virtual void setClipRegion( IRegion2D *region ) override;		///< clip text in this region
 
 protected:
 
-	void checkForChangedTextData( void );  /**< called when we need to update our
+	void checkForChangedTextData();  /**< called when we need to update our
 																				 render sentence and update extents */
 	void usingResources( UnsignedInt frame );  /**< call this whenever display
 																						 resources are in use */
-	void computeExtents( void );  ///< compupte text width and height
+	void computeExtents();  ///< compupte text width and height
 
 	Render2DSentenceClass m_textRenderer;  ///< for drawing text
 	Render2DSentenceClass m_textRendererHotKey;  ///< for drawing text
 	Bool m_textChanged;  ///< when contents of string change this is TRUE
-	Bool m_fontChanged;  ///< when font has chagned this is TRUE
+	Bool m_fontChanged;  ///< when font has changed this is TRUE
 	UnicodeString m_hotkey;		///< holds the current hotkey marker.
 	Bool m_useHotKey;
 	ICoord2D m_hotKeyPos;
@@ -119,6 +116,3 @@ protected:
 inline void W3DDisplayString::usingResources( UnsignedInt frame ) { m_lastResourceFrame = frame; }
 
 // EXTERNALS //////////////////////////////////////////////////////////////////
-
-#endif // __W3DDISPLAYSTRING_H_
-

@@ -23,7 +23,7 @@
  *                                                                                             *
  *                 Project Name : Commando / G 3D engine                                       *
  *                                                                                             *
- *                    File Name : MeshDeformSaveSet.CPP
+ *                    File Name : MeshDeformSaveSet.cpp
  *                                                                                             *
  *                   Programmer : Patrick Smith                                                *
  *                                                                                             *
@@ -55,8 +55,7 @@ MeshDeformSaveSetClass::Reset (void)
 	}
 
 	m_DeformData.Delete_All ();
-	m_CurrentKeyFrame = NULL;
-	return ;
+	m_CurrentKeyFrame = nullptr;
 }
 
 
@@ -78,7 +77,6 @@ MeshDeformSaveSetClass::Begin_Keyframe (float state)
 	//	Add this new keyframe to the end of our list
 	//
 	m_DeformData.Add (m_CurrentKeyFrame);
-	return ;
 }
 
 
@@ -90,8 +88,7 @@ MeshDeformSaveSetClass::Begin_Keyframe (float state)
 void
 MeshDeformSaveSetClass::End_Keyframe (void)
 {
-	m_CurrentKeyFrame = NULL;
-	return ;
+	m_CurrentKeyFrame = nullptr;
 }
 
 
@@ -109,8 +106,8 @@ MeshDeformSaveSetClass::Add_Vert
 )
 {
 	// State OK?
-	assert (m_CurrentKeyFrame != NULL);
-	if (m_CurrentKeyFrame != NULL) {
+	assert (m_CurrentKeyFrame != nullptr);
+	if (m_CurrentKeyFrame != nullptr) {
 
 		//
 		//	Create a structure that will hold the
@@ -126,8 +123,6 @@ MeshDeformSaveSetClass::Add_Vert
 		//
 		m_CurrentKeyFrame->deform_list.Add (data);
 	}
-
-	return ;
 }
 
 
@@ -144,7 +139,7 @@ MeshDeformSaveSetClass::Replace_Deform_Data
 )
 {
 	KEYFRAME *key_frame = m_DeformData[keyframe_index];
-	if (key_frame != NULL) {
+	if (key_frame != nullptr) {
 
 		//
 		//	Replace the vertex deformation list for the keyframe
@@ -152,8 +147,6 @@ MeshDeformSaveSetClass::Replace_Deform_Data
 		key_frame->deform_list.Delete_All ();
 		key_frame->deform_list = list;
 	}
-
-	return ;
 }
 
 
@@ -171,7 +164,7 @@ MeshDeformSaveSetClass::Get_Deform_Count (void) const
 	int count = 0;
 	for (int index = 0; index < m_DeformData.Count (); index ++) {
 		KEYFRAME *key_frame = m_DeformData[index];
-		if (key_frame != NULL) {
+		if (key_frame != nullptr) {
 			count += key_frame->deform_list.Count ();
 		}
 	}

@@ -29,9 +29,6 @@
 
 #pragma once
 
-#ifndef __DieModule_H_
-#define __DieModule_H_
-
 #include "Common/Module.h"
 #include "GameLogic/Damage.h"
 #include "GameLogic/Module/BehaviorModule.h"
@@ -79,7 +76,7 @@ public:
 		p.add(DieMuxData::getFieldParse(), offsetof( DieModuleData, m_dieMuxData ));
 	}
 
-	inline Bool isDieApplicable(const Object* obj, const DamageInfo *damageInfo) const { return m_dieMuxData.isDieApplicable(obj, damageInfo); }
+	Bool isDieApplicable(const Object* obj, const DamageInfo *damageInfo) const { return m_dieMuxData.isDieApplicable(obj, damageInfo); }
 };
 
 //-------------------------------------------------------------------------------------------------
@@ -98,9 +95,9 @@ public:
 	static Int getInterfaceMask() { return MODULEINTERFACE_DIE; }
 
 	// BehaviorModule
-	virtual DieModuleInterface* getDie() { return this; }
+	virtual DieModuleInterface* getDie() override { return this; }
 
-	void onDie( const DamageInfo *damageInfo ) = 0;
+	virtual void onDie( const DamageInfo *damageInfo ) = 0;
 
 protected:
 	Bool isDieApplicable(const DamageInfo *damageInfo) const { return getDieModuleData()->isDieApplicable(getObject(), damageInfo); }
@@ -108,5 +105,3 @@ protected:
 };
 inline DieModule::DieModule( Thing *thing, const ModuleData* moduleData ) : BehaviorModule( thing, moduleData ) { }
 inline DieModule::~DieModule() { }
-
-#endif

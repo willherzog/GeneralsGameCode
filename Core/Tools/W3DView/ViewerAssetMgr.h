@@ -34,12 +34,7 @@
  * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-#if defined(_MSC_VER)
 #pragma once
-#endif
-
-#ifndef __VIEWER_ASSETMGR_H
-#define __VIEWER_ASSETMGR_H
 
 #include "assetmgr.h"
 
@@ -56,8 +51,8 @@ public:
 	///////////////////////////////////////////////////
 	//	Public constructors/destructors
 	///////////////////////////////////////////////////
-	ViewerAssetMgrClass (void) {}
-	virtual ~ViewerAssetMgrClass (void) {}
+	ViewerAssetMgrClass () {}
+	virtual ~ViewerAssetMgrClass () {}
 
 	///////////////////////////////////////////////////
 	//	Public methods
@@ -72,8 +67,8 @@ public:
 	//
 	//	Missing texture methods
 	//
-	void									Start_Tracking_Textures (void)	{ m_MissingTextureList.Delete_All (); }
-	DynamicVectorClass<CString> &	Get_Missing_Texture_List (void)	{ return m_MissingTextureList; }
+	void									Start_Tracking_Textures ()	{ m_MissingTextureList.Delete_All (); }
+	DynamicVectorClass<CString> &	Get_Missing_Texture_List ()	{ return m_MissingTextureList; }
 
 	//
 	//	Texture caching overrides
@@ -89,6 +84,3 @@ private:
 	///////////////////////////////////////////////////
 	DynamicVectorClass<CString>	m_MissingTextureList;
 };
-
-
-#endif //__VIEWER_ASSETMGR_H

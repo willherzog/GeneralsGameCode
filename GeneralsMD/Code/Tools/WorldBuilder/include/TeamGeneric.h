@@ -16,11 +16,7 @@
 **	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #pragma once
-
-#ifndef __TEAMGENERIC_H__
-#define __TEAMGENERIC_H__
 
 class Dict;
 
@@ -44,10 +40,8 @@ class TeamGeneric : public CPropertyPage
 
 
 	protected: // Windows Functions
-		virtual BOOL OnInitDialog();
+		virtual BOOL OnInitDialog() override;
 		afx_msg void _scriptsToDict();
 		afx_msg void OnScriptAdjust();
 		DECLARE_MESSAGE_MAP()
 };
-
-#endif

@@ -44,9 +44,9 @@ IMPLEMENT_DYNCREATE(EmitterSizePropPageClass, CPropertyPage)
 //
 /////////////////////////////////////////////////////////////
 EmitterSizePropPageClass::EmitterSizePropPageClass (EmitterInstanceListClass *pemitter)
-	:	m_pEmitterList (NULL),
+	:	m_pEmitterList (nullptr),
 		m_bValid (true),
-		m_SizeBar (NULL),
+		m_SizeBar (nullptr),
 		m_Lifetime (0),
 		CPropertyPage(EmitterSizePropPageClass::IDD)
 {
@@ -58,7 +58,6 @@ EmitterSizePropPageClass::EmitterSizePropPageClass (EmitterInstanceListClass *pe
 	//}}AFX_DATA_INIT
 
 	Initialize ();
-	return ;
 }
 
 
@@ -67,7 +66,7 @@ EmitterSizePropPageClass::EmitterSizePropPageClass (EmitterInstanceListClass *pe
 //  ~EmitterSizePropPageClass
 //
 /////////////////////////////////////////////////////////////
-EmitterSizePropPageClass::~EmitterSizePropPageClass (void)
+EmitterSizePropPageClass::~EmitterSizePropPageClass ()
 {
 	// Free the original setting arrays
 	SAFE_DELETE_ARRAY (m_OrigSizes.KeyTimes);
@@ -76,7 +75,6 @@ EmitterSizePropPageClass::~EmitterSizePropPageClass (void)
 	// Free the current setting arrays
 	SAFE_DELETE_ARRAY (m_CurrentSizes.KeyTimes);
 	SAFE_DELETE_ARRAY (m_CurrentSizes.Values);
-	return ;
 }
 
 
@@ -107,14 +105,14 @@ END_MESSAGE_MAP()
 //
 /////////////////////////////////////////////////////////////
 void
-EmitterSizePropPageClass::Initialize (void)
+EmitterSizePropPageClass::Initialize ()
 {
 	SAFE_DELETE_ARRAY (m_OrigSizes.KeyTimes);
 	SAFE_DELETE_ARRAY (m_OrigSizes.Values);
 	SAFE_DELETE_ARRAY (m_CurrentSizes.KeyTimes);
 	SAFE_DELETE_ARRAY (m_CurrentSizes.Values);
 
-	if (m_pEmitterList != NULL) {
+	if (m_pEmitterList != nullptr) {
 		m_Lifetime = m_pEmitterList->Get_Lifetime ();
 		m_pEmitterList->Get_Size_Keyframes (m_OrigSizes);
 		m_pEmitterList->Get_Size_Keyframes (m_CurrentSizes);
@@ -129,8 +127,6 @@ EmitterSizePropPageClass::Initialize (void)
 			}
 		}
 	}
-
-	return ;
 }
 
 
@@ -140,7 +136,7 @@ EmitterSizePropPageClass::Initialize (void)
 //
 /////////////////////////////////////////////////////////////
 BOOL
-EmitterSizePropPageClass::OnInitDialog (void)
+EmitterSizePropPageClass::OnInitDialog ()
 {
 	// Allow the base class to process this message
 	CPropertyPage::OnInitDialog ();
@@ -183,7 +179,7 @@ EmitterSizePropPageClass::OnInitDialog (void)
 //
 /////////////////////////////////////////////////////////////
 BOOL
-EmitterSizePropPageClass::OnApply (void)
+EmitterSizePropPageClass::OnApply ()
 {
 	/*SAFE_DELETE_ARRAY (m_OrigSizes.KeyTimes);
 	SAFE_DELETE_ARRAY (m_OrigSizes.Values);
@@ -217,7 +213,7 @@ EmitterSizePropPageClass::OnNotify
 	//	Update the spinner controls if necessary
 	//
 	NMHDR *pheader = (NMHDR *)lParam;
-	if ((pheader != NULL) && (pheader->code == UDN_DELTAPOS)) {
+	if ((pheader != nullptr) && (pheader->code == UDN_DELTAPOS)) {
 		LPNMUPDOWN pupdown = (LPNMUPDOWN)lParam;
 		::Update_Spinner_Buddy (pheader->hwndFrom, pupdown->iDelta);
 	}
@@ -309,7 +305,7 @@ EmitterSizePropPageClass::OnNotify
 //
 /////////////////////////////////////////////////////////////
 void
-EmitterSizePropPageClass::Update_Sizes (void)
+EmitterSizePropPageClass::Update_Sizes ()
 {
 	float position = 0;
 	float red = 0;
@@ -345,8 +341,6 @@ EmitterSizePropPageClass::Update_Sizes (void)
 			m_CurrentSizes.Values[index - 1] = m_SizeBar->Get_Graph_Percent (index) * m_MaxSize;
 		}
 	}
-
-	return ;
 }
 
 
@@ -409,8 +403,6 @@ EmitterSizePropPageClass::On_Lifetime_Changed (float lifetime)
 		m_pEmitterList->Set_Size_Keyframes (m_CurrentSizes);
 		m_Lifetime = lifetime;
 	}
-
-	return ;
 }
 
 

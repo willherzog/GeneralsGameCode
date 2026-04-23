@@ -16,12 +16,8 @@
 **	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if !defined(AFX_RINGGENERALPROPPAGE_H__E86BBE83_F527_11D3_A08F_00104B791122__INCLUDED_)
-#define AFX_RINGGENERALPROPPAGE_H__E86BBE83_F527_11D3_A08F_00104B791122__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
+
 // RingGeneralPropPage.h : header file
 //
 
@@ -40,7 +36,7 @@ class RingGeneralPropPageClass : public CPropertyPage
 
 // Construction
 public:
-	RingGeneralPropPageClass (RingRenderObjClass *ring = NULL);
+	RingGeneralPropPageClass (RingRenderObjClass *ring = nullptr);
 	~RingGeneralPropPageClass ();
 
 // Dialog Data
@@ -86,21 +82,21 @@ public:
 	//
 	//	Inline accessors
 	//
-	RingRenderObjClass *	Get_Ring (void) const					{ return m_RenderObj; }
+	RingRenderObjClass *	Get_Ring () const					{ return m_RenderObj; }
 	void						Set_Ring (RingRenderObjClass *ring)	{ m_RenderObj = ring; Initialize (); }
-	bool						Is_Data_Valid (void) const				{ return m_bValid; }
+	bool						Is_Data_Valid () const				{ return m_bValid; }
 
-	const CString &		Get_Name (void) const					{ return m_Name; }
-	const CString &		Get_Texture_Filename (void) const	{ return m_TextureFilename; }
-	float						Get_Lifetime (void) const				{ return m_Lifetime; }
-	const ShaderClass &	Get_Shader (void) const					{ return m_Shader; }
+	const CString &		Get_Name () const					{ return m_Name; }
+	const CString &		Get_Texture_Filename () const	{ return m_TextureFilename; }
+	float						Get_Lifetime () const				{ return m_Lifetime; }
+	const ShaderClass &	Get_Shader () const					{ return m_Shader; }
 
 protected:
 
 	/////////////////////////////////////////////////////////
 	//	Protected methods
 	/////////////////////////////////////////////////////////
-	void						Initialize (void);
+	void						Initialize ();
 	void						Add_Shader_To_Combo (ShaderClass &shader, LPCTSTR name);
 
 private:
@@ -118,5 +114,3 @@ private:
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
-
-#endif // !defined(AFX_RINGGENERALPROPPAGE_H__E86BBE83_F527_11D3_A08F_00104B791122__INCLUDED_)

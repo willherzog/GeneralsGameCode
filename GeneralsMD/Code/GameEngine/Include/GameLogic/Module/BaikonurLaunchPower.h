@@ -45,9 +45,6 @@
 
 #pragma once
 
-#ifndef __BAIKONUR_LAUNCH_POWER_H_
-#define __BAIKONUR_LAUNCH_POWER_H_
-
 #include "GameLogic/Module/SpecialPowerModule.h"
 
 class Object;
@@ -60,7 +57,7 @@ class BaikonurLaunchPowerModuleData : public SpecialPowerModuleData
 
 public:
 
-	BaikonurLaunchPowerModuleData( void );
+	BaikonurLaunchPowerModuleData();
 
 	static void buildFieldParse( MultiIniFieldParse& p );
 
@@ -79,11 +76,9 @@ public:
 
 	BaikonurLaunchPower( Thing *thing, const ModuleData *moduleData );
 
-	virtual void doSpecialPower( UnsignedInt commandOptions );
-	virtual void doSpecialPowerAtLocation( const Coord3D *loc, Real angle, UnsignedInt commandOptions );
+	virtual void doSpecialPower( UnsignedInt commandOptions ) override;
+	virtual void doSpecialPowerAtLocation( const Coord3D *loc, Real angle, UnsignedInt commandOptions ) override;
 
 protected:
 
 };
-
-#endif // __BAIKONUR_LAUNCH_POWER_H_

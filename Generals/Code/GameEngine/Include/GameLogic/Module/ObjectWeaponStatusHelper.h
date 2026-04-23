@@ -24,13 +24,10 @@
 
 // FILE: ObjectWeaponStatusHelper.h ///////////////////////////////////////////////////////////////
 // Author: Steven Johnson, Colin Day - September 202
-// Desc:   Object helpder - WeaponStatus
+// Desc:   Object helper - WeaponStatus
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-
-#ifndef __OBJECT_WEAPON_STATUS_HELPER_H_
-#define __OBJECT_WEAPON_STATUS_HELPER_H_
 
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common/ThingTemplate.h"
@@ -59,7 +56,7 @@ protected:
 		user update modules, so it redefines this. Please don't redefine this
 		for other modules without very careful deliberation. (srj)
 	*/
-	virtual SleepyUpdatePhase getUpdatePhase() const
+	virtual SleepyUpdatePhase getUpdatePhase() const override
 	{
 		return PHASE_FINAL;
 	}
@@ -74,12 +71,10 @@ public:
 	}
 	// virtual destructor prototype provided by memory pool object
 
-	virtual UpdateSleepTime update()
+	virtual UpdateSleepTime update() override
 	{
 		getObject()->adjustModelConditionForWeaponStatus();
 		// unlike other helpers, this one must run every frame.
 		return UPDATE_SLEEP_NONE;
 	}
 };
-
-#endif  // end __OBJECT_DEFECTION_HELPER_H_

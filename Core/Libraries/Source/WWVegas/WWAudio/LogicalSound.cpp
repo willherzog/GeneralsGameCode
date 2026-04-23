@@ -70,7 +70,7 @@ enum
 //	LogicalSoundClass
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////
-LogicalSoundClass::LogicalSoundClass (void)
+LogicalSoundClass::LogicalSoundClass ()
 	:	m_DropOffRadius (1),
 		m_TypeMask (0),
 		m_Position (0, 0, 0),
@@ -80,7 +80,6 @@ LogicalSoundClass::LogicalSoundClass (void)
 		m_NotifyDelayInMS (2000),
 		m_LastNotification (0)
 {
-	return ;
 }
 
 
@@ -89,9 +88,8 @@ LogicalSoundClass::LogicalSoundClass (void)
 //	~LogicalSoundClass
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////
-LogicalSoundClass::~LogicalSoundClass (void)
+LogicalSoundClass::~LogicalSoundClass ()
 {
-	return ;
 }
 
 
@@ -104,7 +102,7 @@ void
 LogicalSoundClass::Add_To_Scene (bool /*start_playing*/)
 {
 	SoundSceneClass *scene = WWAudioClass::Get_Instance ()->Get_Sound_Scene ();
-	if ((scene != NULL) && (m_Scene == NULL)) {
+	if ((scene != nullptr) && (m_Scene == nullptr)) {
 
 		//
 		//	Add this sound to the culling system
@@ -112,8 +110,6 @@ LogicalSoundClass::Add_To_Scene (bool /*start_playing*/)
 		m_Scene = scene;
 		scene->Add_Logical_Sound (this, m_IsSingleShot);
 	}
-
-	return ;
 }
 
 
@@ -123,20 +119,18 @@ LogicalSoundClass::Add_To_Scene (bool /*start_playing*/)
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void
-LogicalSoundClass::Remove_From_Scene (void)
+LogicalSoundClass::Remove_From_Scene ()
 {
-	if (m_Scene != NULL) {
+	if (m_Scene != nullptr) {
 
 		//
 		//	Remove this sound from the culling system
 		//
 		m_Scene->Remove_Logical_Sound (this, m_IsSingleShot);
-		m_Scene					= NULL;
-		m_PhysWrapper			= NULL;
+		m_Scene					= nullptr;
+		m_PhysWrapper			= nullptr;
 		m_LastNotification	= 0;
 	}
-
-	return ;
 }
 
 
@@ -171,7 +165,7 @@ LogicalSoundClass::On_Frame_Update (unsigned int milliseconds)
 	// Update the sound's position if its linked to a render object
 	//
 	Apply_Auto_Position ();
-	return SoundSceneObjClass::On_Frame_Update (milliseconds);;
+	return SoundSceneObjClass::On_Frame_Update (milliseconds);
 }
 
 
@@ -181,7 +175,7 @@ LogicalSoundClass::On_Frame_Update (unsigned int milliseconds)
 //
 /////////////////////////////////////////////////////////////////////////////////
 const PersistFactoryClass &
-LogicalSoundClass::Get_Factory (void) const
+LogicalSoundClass::Get_Factory () const
 {
 	return _LogicalSoundPersistFactory;
 }

@@ -29,9 +29,6 @@
 
 #pragma once
 
-#ifndef __FXListDie_H_
-#define __FXListDie_H_
-
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common/INI.h"
 #include "GameLogic/Module/DieModule.h"
@@ -51,7 +48,7 @@ public:
 
 	FXListDieModuleData()
 	{
-		m_defaultDeathFX = NULL;
+		m_defaultDeathFX = nullptr;
 		m_orientToObject = true;
 	}
 
@@ -61,8 +58,8 @@ public:
 
 		static const FieldParse dataFieldParse[] =
 		{
-			{ "DeathFX",							INI::parseFXList,		NULL, offsetof( FXListDieModuleData, m_defaultDeathFX ) },
-			{ "OrientToObject",				INI::parseBool,		NULL, offsetof( FXListDieModuleData, m_orientToObject ) },
+			{ "DeathFX",							INI::parseFXList,		nullptr, offsetof( FXListDieModuleData, m_defaultDeathFX ) },
+			{ "OrientToObject",				INI::parseBool,		nullptr, offsetof( FXListDieModuleData, m_orientToObject ) },
 			{ 0, 0, 0, 0 }
 		};
     p.add(dataFieldParse);
@@ -81,10 +78,6 @@ public:
 	FXListDie( Thing *thing, const ModuleData* moduleData );
 	// virtual destructor prototype provided by memory pool declaration
 
-	virtual void onDie( const DamageInfo *damageInfo );
+	virtual void onDie( const DamageInfo *damageInfo ) override;
 
 };
-
-
-#endif // __FXListDie_H_
-

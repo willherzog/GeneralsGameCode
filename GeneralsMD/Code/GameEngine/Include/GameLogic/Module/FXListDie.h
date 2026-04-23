@@ -29,9 +29,6 @@
 
 #pragma once
 
-#ifndef __FXListDie_H_
-#define __FXListDie_H_
-
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common/INI.h"
 #include "GameLogic/Module/DieModule.h"
@@ -54,7 +51,7 @@ public:
 
 	FXListDieModuleData()
 	{
-		m_defaultDeathFX = NULL;
+		m_defaultDeathFX = nullptr;
 		m_orientToObject = TRUE;
 		m_initiallyActive = TRUE; //Patch 1.02 -- Craptacular HACK -- should default to FALSE but only ONE case sets it false out of 847!
 	}
@@ -65,9 +62,9 @@ public:
 
 		static const FieldParse dataFieldParse[] =
 		{
-			{ "StartsActive",					INI::parseBool, NULL, offsetof( FXListDieModuleData, m_initiallyActive ) },
-			{ "DeathFX",							INI::parseFXList,		NULL, offsetof( FXListDieModuleData, m_defaultDeathFX ) },
-			{ "OrientToObject",				INI::parseBool,		NULL, offsetof( FXListDieModuleData, m_orientToObject ) },
+			{ "StartsActive",					INI::parseBool, nullptr, offsetof( FXListDieModuleData, m_initiallyActive ) },
+			{ "DeathFX",							INI::parseFXList,		nullptr, offsetof( FXListDieModuleData, m_defaultDeathFX ) },
+			{ "OrientToObject",				INI::parseBool,		nullptr, offsetof( FXListDieModuleData, m_orientToObject ) },
 			{ 0, 0, 0, 0 }
 		};
     p.add(dataFieldParse);
@@ -91,46 +88,42 @@ public:
 	static Int getInterfaceMask() { return BehaviorModule::getInterfaceMask() | (MODULEINTERFACE_UPGRADE) | (MODULEINTERFACE_DIE); }
 
 	// BehaviorModule
-	virtual UpgradeModuleInterface* getUpgrade() { return this; }
-	virtual DieModuleInterface* getDie() { return this; }
+	virtual UpgradeModuleInterface* getUpgrade() override { return this; }
+	virtual DieModuleInterface* getDie() override { return this; }
 
-	virtual void onDie( const DamageInfo *damageInfo );
+	virtual void onDie( const DamageInfo *damageInfo ) override;
 
 protected:
 
-	virtual void upgradeImplementation()
+	virtual void upgradeImplementation() override
 	{
 		// nothing!
 	}
 
-	virtual void getUpgradeActivationMasks(UpgradeMaskType& activation, UpgradeMaskType& conflicting) const
+	virtual void getUpgradeActivationMasks(UpgradeMaskType& activation, UpgradeMaskType& conflicting) const override
 	{
 		getFXListDieModuleData()->m_upgradeMuxData.getUpgradeActivationMasks(activation, conflicting);
 	}
 
-	virtual void performUpgradeFX()
+	virtual void performUpgradeFX() override
 	{
 		getFXListDieModuleData()->m_upgradeMuxData.performUpgradeFX(getObject());
 	}
 
-	virtual void processUpgradeRemoval()
+	virtual void processUpgradeRemoval() override
 	{
-		// I can't take it any more.  Let the record show that I think the UpgradeMux multiple inheritence is CRAP.
+		// I can't take it any more.  Let the record show that I think the UpgradeMux multiple inheritance is CRAP.
 		getFXListDieModuleData()->m_upgradeMuxData.muxDataProcessUpgradeRemoval(getObject());
 	}
 
-	virtual Bool requiresAllActivationUpgrades() const
+	virtual Bool requiresAllActivationUpgrades() const override
 	{
 		return getFXListDieModuleData()->m_upgradeMuxData.m_requiresAllTriggers;
 	}
 
-	inline Bool isUpgradeActive() const { return isAlreadyUpgraded(); }
+	Bool isUpgradeActive() const { return isAlreadyUpgraded(); }
 
-	virtual Bool isSubObjectsUpgrade() { return false; }
+	virtual Bool isSubObjectsUpgrade() override { return false; }
 
 
 };
-
-
-#endif // __FXListDie_H_
-

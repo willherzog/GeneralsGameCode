@@ -39,9 +39,6 @@
 
 #pragma once
 
-#ifndef __MAP_PREVIEW_H_
-#define __MAP_PREVIEW_H_
-
 //-----------------------------------------------------------------------------
 // SYSTEM INCLUDES ////////////////////////////////////////////////////////////
 //-----------------------------------------------------------------------------
@@ -66,7 +63,7 @@ enum
 class MapPreview
 {
 public:
-	MapPreview(void );
+	MapPreview();
 	void save( CString mapName );
 private:
 	void interpolateColorForHeight( RGBColor *color, Real height, Real hiZ, Real midZ, Real loZ );
@@ -84,5 +81,3 @@ private:
 //-----------------------------------------------------------------------------
 // EXTERNALS //////////////////////////////////////////////////////////////////
 //-----------------------------------------------------------------------------
-
-#endif // __MAP_PREVIEW_H_

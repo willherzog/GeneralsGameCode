@@ -27,9 +27,6 @@
 
 #pragma once
 
-#ifndef _H_MetaEvent
-#define _H_MetaEvent
-
 #include "Common/SubsystemInterface.h"
 #include "GameClient/InGameUI.h"
 
@@ -44,7 +41,8 @@ enum MappableKeyCategories CPP_11(: Int)
 	CATEGORY_TEAM,
 	CATEGORY_MISC,
 	CATEGORY_DEBUG,
-	CATEGORY_NUM_CATEGORIES // keep this last
+
+	CATEGORY_NUM_CATEGORIES
 };
 
 static const LookupListRec CategoryListName[] =
@@ -57,7 +55,7 @@ static const LookupListRec CategoryListName[] =
 	{"TEAM",							CATEGORY_TEAM},
 	{"MISC",							CATEGORY_MISC},
 	{"DEBUG",							CATEGORY_DEBUG},
-	{NULL, 0}// keep this last
+	{ nullptr, 0}
 };
 
 
@@ -69,6 +67,24 @@ static const LookupListRec CategoryListName[] =
 // KeyDefType; this is extremely important to maintain!
 enum MappableKeyType CPP_11(: Int)
 {
+	// keypad keys ----------------------------------------------------------------
+	MK_KP0					= KEY_KP0,
+	MK_KP1					= KEY_KP1,
+	MK_KP2					= KEY_KP2,
+	MK_KP3					= KEY_KP3,
+	MK_KP4					= KEY_KP4,
+	MK_KP5					= KEY_KP5,
+	MK_KP6					= KEY_KP6,
+	MK_KP7					= KEY_KP7,
+	MK_KP8					= KEY_KP8,
+	MK_KP9					= KEY_KP9,
+	MK_KPDEL				= KEY_KPDEL,
+	MK_KPSTAR				= KEY_KPSTAR,
+	MK_KPMINUS			= KEY_KPMINUS,
+	MK_KPPLUS				= KEY_KPPLUS,
+	MK_KPENTER			= KEY_KPENTER,
+	MK_KPSLASH			= KEY_KPSLASH,
+
 	MK_ESC					= KEY_ESC,
 	MK_BACKSPACE		= KEY_BACKSPACE,
 	MK_ENTER				= KEY_ENTER,
@@ -122,16 +138,6 @@ enum MappableKeyType CPP_11(: Int)
 	MK_8						= KEY_8,
 	MK_9						= KEY_9,
 	MK_0						= KEY_0,
-	MK_KP1					= KEY_KP1,
-	MK_KP2					= KEY_KP2,
-	MK_KP3					= KEY_KP3,
-	MK_KP4					= KEY_KP4,
-	MK_KP5					= KEY_KP5,
-	MK_KP6					= KEY_KP6,
-	MK_KP7					= KEY_KP7,
-	MK_KP8					= KEY_KP8,
-	MK_KP9					= KEY_KP9,
-	MK_KP0					= KEY_KP0,
 	MK_MINUS				= KEY_MINUS,
 	MK_EQUAL				= KEY_EQUAL,
 	MK_LBRACKET			= KEY_LBRACKET,
@@ -153,13 +159,30 @@ enum MappableKeyType CPP_11(: Int)
 	MK_PGDN					= KEY_PGDN,
 	MK_INS					= KEY_INS,
 	MK_DEL					= KEY_DEL,
-	MK_KPSLASH			= KEY_KPSLASH,
 	MK_NONE					= KEY_NONE
 
 };
 
 static const LookupListRec KeyNames[] =
 {
+	// keypad keys ----------------------------------------------------------------
+	{ "KEY_KP0", MK_KP0 },
+	{ "KEY_KP1", MK_KP1 },
+	{ "KEY_KP2", MK_KP2 },
+	{ "KEY_KP3", MK_KP3 },
+	{ "KEY_KP4", MK_KP4 },
+	{ "KEY_KP5", MK_KP5 },
+	{ "KEY_KP6", MK_KP6 },
+	{ "KEY_KP7", MK_KP7 },
+	{ "KEY_KP8", MK_KP8 },
+	{ "KEY_KP9", MK_KP9 },
+	{ "KEY_KPDEL", MK_KPDEL },
+	{ "KEY_KPSTAR", MK_KPSTAR },
+	{ "KEY_KPMINUS", MK_KPMINUS },
+	{ "KEY_KPPLUS", MK_KPPLUS },
+	{ "KEY_KPENTER", MK_KPENTER },
+	{ "KEY_KPSLASH", MK_KPSLASH },
+
 	{ "KEY_ESC", MK_ESC },
 	{ "KEY_BACKSPACE", MK_BACKSPACE },
 	{ "KEY_ENTER", MK_ENTER },
@@ -213,16 +236,6 @@ static const LookupListRec KeyNames[] =
 	{ "KEY_8", MK_8 },
 	{ "KEY_9", MK_9 },
 	{ "KEY_0", MK_0 },
-	{ "KEY_KP1", MK_KP1 },
-	{ "KEY_KP2", MK_KP2 },
-	{ "KEY_KP3", MK_KP3 },
-	{ "KEY_KP4", MK_KP4 },
-	{ "KEY_KP5", MK_KP5 },
-	{ "KEY_KP6", MK_KP6 },
-	{ "KEY_KP7", MK_KP7 },
-	{ "KEY_KP8", MK_KP8 },
-	{ "KEY_KP9", MK_KP9 },
-	{ "KEY_KP0", MK_KP0 },
 	{ "KEY_MINUS", MK_MINUS },
 	{ "KEY_EQUAL", MK_EQUAL },
 	{ "KEY_LBRACKET", MK_LBRACKET },
@@ -244,9 +257,8 @@ static const LookupListRec KeyNames[] =
 	{ "KEY_PGDN", MK_PGDN },
 	{ "KEY_INS", MK_INS },
 	{ "KEY_DEL", MK_DEL },
-	{ "KEY_KPSLASH", MK_KPSLASH },
 	{ "KEY_NONE", MK_NONE },
-	{ NULL, 0	} // keep this last!
+	{ nullptr, 0	}
 };
 
 // -------------------------------------------------------------------------------
@@ -254,7 +266,9 @@ enum MappableKeyTransition CPP_11(: Int)
 {
 	DOWN,
 	UP,
-	DOUBLEDOWN	// if a key transition is repeated immediately, we generate this.
+	DOUBLEDOWN,	// if a key transition is repeated immediately, we generate this.
+
+	MAPPABLE_KEY_TRANSITION_COUNT
 };
 
 static const LookupListRec TransitionNames[] =
@@ -262,8 +276,9 @@ static const LookupListRec TransitionNames[] =
 	{ "DOWN",				DOWN },
 	{ "UP",					UP },
 	{ "DOUBLEDOWN",	DOUBLEDOWN },
-	{ NULL, 0	}// keep this last!
+	{ nullptr, 0	}
 };
+static_assert(ARRAY_SIZE(TransitionNames) == MAPPABLE_KEY_TRANSITION_COUNT + 1, "Incorrect array size");
 
 // -------------------------------------------------------------------------------
 // an easier-to-type subset of the KEY_STATE stuff.
@@ -289,7 +304,7 @@ static const LookupListRec ModifierNames[] =
 	{ "SHIFT_CTRL",				SHIFT_CTRL },
 	{ "SHIFT_ALT",				SHIFT_ALT },
 	{ "SHIFT_ALT_CTRL" ,	SHIFT_ALT_CTRL },
-	{ NULL, 0	}// keep this last!
+	{ nullptr, 0	}
 };
 
 
@@ -300,16 +315,20 @@ enum CommandUsableInType CPP_11(: Int)
 {
 	COMMANDUSABLE_NONE				= 0,
 
-	COMMANDUSABLE_SHELL				= (1 << 0),
-	COMMANDUSABLE_GAME				= (1 << 1)
+	COMMANDUSABLE_SHELL				= (1 << 0), // Command is usable when in Shell (Menus)
+	COMMANDUSABLE_GAME				= (1 << 1), // Command is usable when not in Shell
+	COMMANDUSABLE_OBSERVER		= (1 << 2), // TheSuperHackers @feature Command is usable when observing
+
+	COMMANDUSABLE_EVERYWHERE = ~0,
 };
 
-static const char* TheCommandUsableInNames[] =
+static const char* const TheCommandUsableInNames[] =
 {
 	"SHELL",
 	"GAME",
+	"OBSERVER",
 
-	NULL
+	nullptr
 };
 
 // -------------------------------------------------------------------------------
@@ -324,7 +343,7 @@ public:
 	MappableKeyModState			m_modState;				///< the required state of the ctrl-alt-shift keys
 	CommandUsableInType			m_usableIn;				///< the allowed place the command can be used in
 	// Next fields are added for Key mapping Dialog
-	MappableKeyCategories		m_category;				///< This is the catagory the key falls under
+	MappableKeyCategories		m_category;				///< This is the category the key falls under
 	UnicodeString						m_description;		///< The description string for the keys
 	UnicodeString						m_displayName;		///< The display name of our command
 };
@@ -345,8 +364,8 @@ private:
 
 public:
 	MetaEventTranslator();
-	~MetaEventTranslator();
-	virtual GameMessageDisposition translateGameMessage(const GameMessage *msg);
+	virtual ~MetaEventTranslator() override;
+	virtual GameMessageDisposition translateGameMessage(const GameMessage *msg) override;
 };
 
 //-----------------------------------------------------------------------------
@@ -364,21 +383,21 @@ protected:
 public:
 
 	MetaMap();
-	~MetaMap();
+	virtual ~MetaMap() override;
 
-	void init() { }
-	void reset() { }
-	void update() { }
+	virtual void init() override { }
+	virtual void reset() override { }
+	virtual void update() override { }
 
 	static void parseMetaMap(INI* ini);
 
-	// TheSuperHackers @info Function to generate default key mappings
+	// TheSuperHackers @feature Function to generate default key mappings
 	// for actions that were not found in a CommandMap.ini
-	static void generateMetaMap();
+	void generateMetaMap();
+
+	void verifyMetaMap();
 
 	const MetaMapRec *getFirstMetaMapRec() const { return m_metaMaps; }
 };
 
 extern MetaMap *TheMetaMap;
-
-#endif

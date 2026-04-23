@@ -24,7 +24,7 @@
 #include "EmitterParticlePropPage.h"
 #include "part_emt.h"
 #include "Utils.h"
-#include "Vector3RndCombo.H"
+#include "Vector3RndCombo.h"
 #include "VolumeRandomDialog.h"
 #include "EmitterInstanceList.h"
 
@@ -50,13 +50,12 @@ EmitterParticlePropPageClass::EmitterParticlePropPageClass (EmitterInstanceListC
 	  m_Rate (0),
 	  m_BurstSize (0),
 	  m_MaxParticles (0),
-	  m_Randomizer (NULL),
+	  m_Randomizer (nullptr),
 	  CPropertyPage(EmitterParticlePropPageClass::IDD)
 {
 	//{{AFX_DATA_INIT(EmitterParticlePropPageClass)
 	//}}AFX_DATA_INIT
 	Initialize ();
-	return ;
 }
 
 
@@ -64,10 +63,9 @@ EmitterParticlePropPageClass::EmitterParticlePropPageClass (EmitterInstanceListC
 //
 //  ~EmitterParticlePropPageClass
 //
-EmitterParticlePropPageClass::~EmitterParticlePropPageClass (void)
+EmitterParticlePropPageClass::~EmitterParticlePropPageClass ()
 {
 	SAFE_DELETE (m_Randomizer);
-	return;
 }
 
 
@@ -85,7 +83,6 @@ EmitterParticlePropPageClass::DoDataExchange (CDataExchange* pDX)
 	DDX_Control(pDX, IDC_EMISSION_RATE_SPIN, m_EmitionRateSpin);
 	DDX_Control(pDX, IDC_MAX_PARTICLES_SPIN, m_MaxParticlesSpin);
 	//}}AFX_DATA_MAP
-	return ;
 }
 
 
@@ -102,10 +99,10 @@ END_MESSAGE_MAP()
 //  Initialize
 //
 void
-EmitterParticlePropPageClass::Initialize (void)
+EmitterParticlePropPageClass::Initialize ()
 {
 	SAFE_DELETE (m_Randomizer);
-	if (m_pEmitterList != NULL) {
+	if (m_pEmitterList != nullptr) {
 
 		//
 		// Read the settings from the emitter
@@ -115,8 +112,6 @@ EmitterParticlePropPageClass::Initialize (void)
 		m_MaxParticles	= m_pEmitterList->Get_Max_Emissions ();
 		m_Randomizer	= m_pEmitterList->Get_Creation_Volume ();
 	}
-
-	return ;
 }
 
 
@@ -125,7 +120,7 @@ EmitterParticlePropPageClass::Initialize (void)
 //  OnInitDialog
 //
 BOOL
-EmitterParticlePropPageClass::OnInitDialog (void)
+EmitterParticlePropPageClass::OnInitDialog ()
 {
 	// Allow the base class to process this message
 	CPropertyPage::OnInitDialog ();
@@ -154,7 +149,7 @@ EmitterParticlePropPageClass::OnInitDialog (void)
 //  OnApply
 //
 BOOL
-EmitterParticlePropPageClass::OnApply (void)
+EmitterParticlePropPageClass::OnApply ()
 {
 	//
 	//	Get the data from the controls
@@ -220,7 +215,7 @@ EmitterParticlePropPageClass::OnNotify
 	//	Update the spinner control if necessary
 	//
 	NMHDR *pheader = (NMHDR *)lParam;
-	if ((pheader != NULL) && (pheader->code == UDN_DELTAPOS)) {
+	if ((pheader != nullptr) && (pheader->code == UDN_DELTAPOS)) {
 		LPNMUPDOWN pupdown = (LPNMUPDOWN)lParam;
 		::Update_Spinner_Buddy (pheader->hwndFrom, pupdown->iDelta);
 		SetModified ();
@@ -237,7 +232,7 @@ EmitterParticlePropPageClass::OnNotify
 //
 /////////////////////////////////////////////////////////////
 void
-EmitterParticlePropPageClass::OnSpecifyCreationVolume (void)
+EmitterParticlePropPageClass::OnSpecifyCreationVolume ()
 {
 	VolumeRandomDialogClass dialog (m_Randomizer, this);
 	if (dialog.DoModal () == IDOK) {
@@ -249,8 +244,6 @@ EmitterParticlePropPageClass::OnSpecifyCreationVolume (void)
 		m_Randomizer = dialog.Get_Randomizer ();
 		SetModified ();
 	}
-
-	return ;
 }
 
 
@@ -287,12 +280,11 @@ EmitterParticlePropPageClass::OnCommand
 //
 /////////////////////////////////////////////////////////////
 void
-EmitterParticlePropPageClass::OnMaxParticlesCheck (void)
+EmitterParticlePropPageClass::OnMaxParticlesCheck ()
 {
 	BOOL enable = SendDlgItemMessage (IDC_MAX_PARTICLES_CHECK, BM_GETCHECK);
 	::EnableWindow (::GetDlgItem (m_hWnd, IDC_MAX_PARTICLES_EDIT), enable);
 	::EnableWindow (::GetDlgItem (m_hWnd, IDC_MAX_PARTICLES_SPIN), enable);
 
 	SetModified ();
-	return ;
 }

@@ -16,12 +16,8 @@
 **	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if !defined(AFX_EMITTERGENERALPROPPAGE_H__83A8B83C_BA3B_11D2_9FFA_00104B791122__INCLUDED_)
-#define AFX_EMITTERGENERALPROPPAGE_H__83A8B83C_BA3B_11D2_9FFA_00104B791122__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
+
 // EmitterGeneralPropPage.h : header file
 //
 
@@ -42,7 +38,7 @@ class EmitterGeneralPropPageClass : public CPropertyPage
 
 // Construction
 public:
-	EmitterGeneralPropPageClass (EmitterInstanceListClass *pemitter_list = NULL);
+	EmitterGeneralPropPageClass (EmitterInstanceListClass *pemitter_list = nullptr);
 	~EmitterGeneralPropPageClass ();
 
 // Dialog Data
@@ -88,18 +84,18 @@ protected:
 		//
 		//	Inline accessors
 		//
-		EmitterInstanceListClass *	Get_Emitter (void) const { return m_pEmitterList; }
+		EmitterInstanceListClass *	Get_Emitter () const { return m_pEmitterList; }
 		void								Set_Emitter (EmitterInstanceListClass *pemitter_list) { m_pEmitterList = pemitter_list; Initialize (); }
 
-		EmitterPropertySheetClass *Get_Parent (void) const { return m_Parent; }
+		EmitterPropertySheetClass *Get_Parent () const { return m_Parent; }
 		void								Set_Parent (EmitterPropertySheetClass * parent) { m_Parent = parent; }
 
-		bool								Is_Data_Valid (void) const { return m_bValid; }
+		bool								Is_Data_Valid () const { return m_bValid; }
 
-		const CString &				Get_Name (void) const					{ return m_EmitterName; }
-		const CString &				Get_Texture_Filename (void) const	{ return m_TextureFilename; }
-		float								Get_Lifetime (void) const				{ return m_Lifetime; }
-		const ShaderClass &			Get_Shader (void) const					{ return m_Shader; }
+		const CString &				Get_Name () const					{ return m_EmitterName; }
+		const CString &				Get_Texture_Filename () const	{ return m_TextureFilename; }
+		float								Get_Lifetime () const				{ return m_Lifetime; }
+		const ShaderClass &			Get_Shader () const					{ return m_Shader; }
 		//void								Get_Shader (ShaderClass &shader);
 
 	protected:
@@ -108,7 +104,7 @@ protected:
 		//
 		//	Protected methods
 		//
-		void								Initialize (void);
+		void								Initialize ();
 		void								Add_Shader_To_Combo (ShaderClass &shader, LPCTSTR name);
 
 	private:
@@ -130,5 +126,3 @@ protected:
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
-
-#endif // !defined(AFX_EMITTERGENERALPROPPAGE_H__83A8B83C_BA3B_11D2_9FFA_00104B791122__INCLUDED_)

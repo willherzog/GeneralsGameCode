@@ -43,9 +43,6 @@
 
 #pragma once
 
-#ifndef __CLEANUP_AREA_POWER_H_
-#define __CLEANUP_AREA_POWER_H_
-
 //-----------------------------------------------------------------------------
 #include "GameLogic/Module/SpecialPowerModule.h"
 
@@ -57,7 +54,7 @@ public:
 
 	Real m_cleanupMoveRange;
 
-	CleanupAreaPowerModuleData( void );
+	CleanupAreaPowerModuleData();
 	static void buildFieldParse(MultiIniFieldParse& p);
 };
 
@@ -73,7 +70,5 @@ public:
 	CleanupAreaPower( Thing *thing, const ModuleData* moduleData );
 	// virtual destructor prototype defined by MemoryPoolObject
 
-	virtual void doSpecialPowerAtLocation( const Coord3D *loc, Real angle, UnsignedInt commandOptions );
+	virtual void doSpecialPowerAtLocation( const Coord3D *loc, Real angle, UnsignedInt commandOptions ) override;
 };
-
-#endif

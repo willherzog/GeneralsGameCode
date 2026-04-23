@@ -29,9 +29,6 @@
 
 #pragma once
 
-#ifndef __SubdualDamageHelper_H_
-#define __SubdualDamageHelper_H_
-
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/ObjectHelper.h"
 
@@ -55,14 +52,11 @@ public:
 	SubdualDamageHelper( Thing *thing, const ModuleData *modData );
 	// virtual destructor prototype provided by memory pool object
 
-	virtual DisabledMaskType getDisabledTypesToProcess() const { return DISABLEDMASK_ALL; }
-	virtual UpdateSleepTime update();
+	virtual DisabledMaskType getDisabledTypesToProcess() const override { return DISABLEDMASK_ALL; }
+	virtual UpdateSleepTime update() override;
 
 	void notifySubdualDamage( Real amount );
 
 protected:
 	UnsignedInt m_healingStepCountdown;
 };
-
-
-#endif  // end __SubdualDamageHelper_H_

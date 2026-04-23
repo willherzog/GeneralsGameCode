@@ -45,9 +45,9 @@ IMPLEMENT_DYNCREATE(EmitterRotationPropPageClass, CPropertyPage)
 /////////////////////////////////////////////////////////////
 EmitterRotationPropPageClass::EmitterRotationPropPageClass() :
 	CPropertyPage(EmitterRotationPropPageClass::IDD),
-	m_pEmitterList(NULL),
+	m_pEmitterList(nullptr),
 	m_bValid(true),
-	m_RotationBar(NULL),
+	m_RotationBar(nullptr),
 	m_Lifetime(0),
 	m_MinRotation(0),
 	m_MaxRotation(1),
@@ -105,12 +105,12 @@ END_MESSAGE_MAP()
 //  Initialize
 //
 /////////////////////////////////////////////////////////////
-void EmitterRotationPropPageClass::Initialize (void)
+void EmitterRotationPropPageClass::Initialize ()
 {
 	SAFE_DELETE_ARRAY (m_Rotations.KeyTimes);
 	SAFE_DELETE_ARRAY (m_Rotations.Values);
 
-	if (m_pEmitterList != NULL) {
+	if (m_pEmitterList != nullptr) {
 		m_Lifetime = m_pEmitterList->Get_Lifetime ();
 		m_pEmitterList->Get_Rotation_Keyframes (m_Rotations);
 		m_InitialOrientationRandom = m_pEmitterList->Get_Initial_Orientation_Random();
@@ -190,7 +190,7 @@ BOOL EmitterRotationPropPageClass::OnNotify(WPARAM wParam, LPARAM lParam, LRESUL
 	//	Update the spinner controls if necessary
 	//
 	NMHDR *pheader = (NMHDR *)lParam;
-	if ((pheader != NULL) && (pheader->code == UDN_DELTAPOS)) {
+	if ((pheader != nullptr) && (pheader->code == UDN_DELTAPOS)) {
 		LPNMUPDOWN pupdown = (LPNMUPDOWN)lParam;
 		::Update_Spinner_Buddy (pheader->hwndFrom, pupdown->iDelta);
 	}
@@ -303,7 +303,7 @@ BOOL EmitterRotationPropPageClass::OnNotify(WPARAM wParam, LPARAM lParam, LRESUL
 //
 /////////////////////////////////////////////////////////////
 void
-EmitterRotationPropPageClass::Update_Rotations (void)
+EmitterRotationPropPageClass::Update_Rotations ()
 {
 	float position = 0;
 	float red = 0;
@@ -339,8 +339,6 @@ EmitterRotationPropPageClass::Update_Rotations (void)
 			m_Rotations.Values[index - 1] = Denormalize_Rotation(m_RotationBar->Get_Graph_Percent (index) );
 		}
 	}
-
-	return ;
 }
 
 /////////////////////////////////////////////////////////////
@@ -415,6 +413,4 @@ EmitterRotationPropPageClass::On_Lifetime_Changed (float lifetime)
 		m_pEmitterList->Set_Rotation_Keyframes (m_Rotations, m_InitialOrientationRandom);
 		m_Lifetime = lifetime;
 	}
-
-	return ;
 }

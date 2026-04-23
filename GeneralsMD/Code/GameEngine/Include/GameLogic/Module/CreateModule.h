@@ -29,9 +29,6 @@
 
 #pragma once
 
-#ifndef __CreateModule_H_
-#define __CreateModule_H_
-
 #include "Common/Module.h"
 #include "GameLogic/Module/BehaviorModule.h"
 
@@ -74,16 +71,14 @@ public:
 	static Int getInterfaceMask() { return MODULEINTERFACE_CREATE; }
 
 	// BehaviorModule
-	virtual CreateModuleInterface* getCreate() { return this; }
+	virtual CreateModuleInterface* getCreate() override { return this; }
 
 	virtual void onCreate() = 0;				///< This is called when you become a code Object
-	virtual void onBuildComplete(){ m_needToRunOnBuildComplete = FALSE; }	///< This is called when you are a finished game object
-	virtual Bool shouldDoOnBuildComplete() const { return m_needToRunOnBuildComplete; }
+	virtual void onBuildComplete() override { m_needToRunOnBuildComplete = FALSE; }	///< This is called when you are a finished game object
+	virtual Bool shouldDoOnBuildComplete() const override { return m_needToRunOnBuildComplete; }
 
 private:
 
 	Bool m_needToRunOnBuildComplete; ///< Prevent the multiple calling of onBuildComplete
 
 };
-
-#endif

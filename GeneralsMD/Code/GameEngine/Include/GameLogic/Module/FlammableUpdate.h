@@ -29,9 +29,6 @@
 
 #pragma once
 
-#ifndef __FLAMMABLE_UPDATE_H_
-#define __FLAMMABLE_UPDATE_H_
-
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common/AudioEventRTS.h"
 #include "GameLogic/Module/DamageModule.h"
@@ -45,8 +42,6 @@ enum FlammabilityStatusType CPP_11(: Int)
 	FS_NORMAL = 0,
 	FS_AFLAME,
 	FS_BURNED,
-
-	FS_NORMAL_COUNT	// keep last
 };
 
 //-------------------------------------------------------------------------------------------------
@@ -85,20 +80,20 @@ public:
 	// virtual destructor prototype provided by memory pool declaration
 
 	static Int getInterfaceMask() { return UpdateModule::getInterfaceMask() | (MODULEINTERFACE_DAMAGE); }
-	virtual DamageModuleInterface* getDamage() { return this; }
+	virtual DamageModuleInterface* getDamage() override { return this; }
 
 	void tryToIgnite(); ///< FlammabeDamage uses this.  It is up to me to decide if I am burnable
 	Bool wouldIgnite(); ///< Since we need to cheat sometimes and light something directly, ask if this would light
 
 	//UpdateModuleInterface
-	virtual UpdateSleepTime update();
+	virtual UpdateSleepTime update() override;
 
 	//DamageModuleInterface
-	virtual void onDamage( DamageInfo *damageInfo );
-	virtual void onHealing( DamageInfo *damageInfo ) { }
+	virtual void onDamage( DamageInfo *damageInfo ) override;
+	virtual void onHealing( DamageInfo *damageInfo ) override { }
 	virtual void onBodyDamageStateChange( const DamageInfo *damageInfo,
 																				BodyDamageType oldState,
-																				BodyDamageType newState ) { }
+																				BodyDamageType newState ) override { }
 
 protected:
 
@@ -113,8 +108,6 @@ protected:
 	UnsignedInt							m_damageEndFrame;
 	AudioHandle							m_audioHandle;
 	Real										m_flameDamageLimit;
+	ObjectID								m_flameSource;
 	UnsignedInt							m_lastFlameDamageDealt;
 };
-
-#endif
-

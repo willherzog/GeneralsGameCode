@@ -42,16 +42,16 @@ Int MoundTool::m_brushFeather;
 
 
 /// Constructor
-MoundTool::MoundTool(void) :
+MoundTool::MoundTool() :
 	Tool(ID_BRUSH_ADD_TOOL, IDC_BRUSH_CROSS)
 {
-	m_htMapEditCopy = NULL;
-	m_htMapSaveCopy = NULL;
+	m_htMapEditCopy = nullptr;
+	m_htMapSaveCopy = nullptr;
 	m_raising = true;
 }
 
 /// Destructor
-MoundTool::~MoundTool(void)
+MoundTool::~MoundTool()
 {
 	REF_PTR_RELEASE(m_htMapEditCopy);
 	REF_PTR_RELEASE(m_htMapSaveCopy);
@@ -239,7 +239,7 @@ void MoundTool::mouseMoved(TTrackingMode m, CPoint viewPt, WbView* pView, CWorld
 **                             DigTool
 ***************************************************************************/
 /// Constructor
-DigTool::DigTool(void)
+DigTool::DigTool()
 {
 	m_toolID = ID_BRUSH_SUBTRACT_TOOL;
 	m_raising = false;  // digging.

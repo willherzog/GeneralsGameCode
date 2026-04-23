@@ -16,12 +16,8 @@
 **	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if !defined(AFX_EMITTERSIZEPROPPAGE_H__0CD2CBA3_1219_11D3_A034_00104B791122__INCLUDED_)
-#define AFX_EMITTERSIZEPROPPAGE_H__0CD2CBA3_1219_11D3_A034_00104B791122__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
+
 // EmitterSizePropPage.h : header file
 //
 
@@ -42,7 +38,7 @@ class EmitterSizePropPageClass : public CPropertyPage
 
 // Construction
 public:
-	EmitterSizePropPageClass(EmitterInstanceListClass *pemitter = NULL);
+	EmitterSizePropPageClass(EmitterInstanceListClass *pemitter = nullptr);
 	~EmitterSizePropPageClass();
 
 // Dialog Data
@@ -81,9 +77,9 @@ protected:
 		//
 		//	Inline accessors
 		//
-		EmitterInstanceListClass *	Get_Emitter (void) const { return m_pEmitterList; }
+		EmitterInstanceListClass *	Get_Emitter () const { return m_pEmitterList; }
 		void								Set_Emitter (EmitterInstanceListClass *pemitter_list) { m_pEmitterList = pemitter_list; Initialize (); }
-		bool								Is_Data_Valid (void) const { return m_bValid; }
+		bool								Is_Data_Valid () const { return m_bValid; }
 
 		void								Get_Size_Keyframes (ParticlePropertyStruct<float> &sizes)		{ sizes = m_CurrentSizes; }
 
@@ -95,8 +91,8 @@ protected:
 		//
 		//	Protected methods
 		//
-		void				Initialize (void);
-		void				Update_Sizes (void);
+		void				Initialize ();
+		void				Update_Sizes ();
 
 	private:
 
@@ -115,5 +111,3 @@ protected:
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
-
-#endif // !defined(AFX_EMITTERSIZEPROPPAGE_H__0CD2CBA3_1219_11D3_A034_00104B791122__INCLUDED_)

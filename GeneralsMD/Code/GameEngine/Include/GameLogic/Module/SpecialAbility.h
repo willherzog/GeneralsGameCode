@@ -30,9 +30,6 @@
 
 #pragma once
 
-#ifndef __SPECIAL_ABILITY_H_
-#define __SPECIAL_ABILITY_H_
-
 // USER INCLUDES //////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/SpecialPowerModule.h"
 
@@ -58,12 +55,10 @@ public:
 
 	SpecialAbility( Thing *thing, const ModuleData *moduleData );
 
-	virtual void doSpecialPowerAtObject( Object *obj, UnsignedInt commandOptions );
-	virtual void doSpecialPowerAtLocation( const Coord3D *loc, Real angle, UnsignedInt commandOptions );
-	virtual void doSpecialPower( UnsignedInt commandOptions );
+	virtual void doSpecialPowerAtObject( Object *obj, UnsignedInt commandOptions ) override;
+	virtual void doSpecialPowerAtLocation( const Coord3D *loc, Real angle, UnsignedInt commandOptions ) override;
+	virtual void doSpecialPower( UnsignedInt commandOptions ) override;
 
 protected:
 
 };
-
-#endif  // end __SPECIAL_ABILITY_H_

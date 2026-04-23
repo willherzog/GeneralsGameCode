@@ -82,7 +82,7 @@ MeshDeformPanelClass::Message_Proc
 	}
 
 	// Pass the message onto the controlling panel-object
-	if (panel_obj != NULL) {
+	if (panel_obj != nullptr) {
 		result = panel_obj->On_Message (message, wparam, lparam);
 	}
 
@@ -154,8 +154,8 @@ MeshDeformPanelClass::On_Message
 			//
 			//	Ensure the sliders are repainted
 			//
-			//::InvalidateRect (::GetDlgItem (m_hWnd, IDC_STATE_SLIDER), NULL, TRUE);
-			//::InvalidateRect (::GetDlgItem (m_hWnd, IDC_CURRENT_SET_SLIDER), NULL, TRUE);
+			//::InvalidateRect (::GetDlgItem (m_hWnd, IDC_STATE_SLIDER), nullptr, TRUE);
+			//::InvalidateRect (::GetDlgItem (m_hWnd, IDC_CURRENT_SET_SLIDER), nullptr, TRUE);
 			break;
 
 		case WM_DESTROY:
@@ -163,10 +163,10 @@ MeshDeformPanelClass::On_Message
 			::ReleaseICustEdit (m_pMaxSetsEdit);
 			::ReleaseISpinner (m_pMaxSetsSpin);
 			//::ReleaseICustButton (m_pEditButton);
-			m_pColorSwatch = NULL;
-			m_pMaxSetsEdit = NULL;
-			m_pMaxSetsSpin = NULL;
-			//m_pEditButton = NULL;
+			m_pColorSwatch = nullptr;
+			m_pMaxSetsEdit = nullptr;
+			m_pMaxSetsSpin = nullptr;
+			//m_pEditButton = nullptr;
 			break;
 
 		case WM_COMMAND:
@@ -249,8 +249,6 @@ MeshDeformPanelClass::On_Command
 		case IDC_MAX_SETS_EDIT:
 			break;
 	}
-
-	return ;
 }
 
 
@@ -272,8 +270,6 @@ MeshDeformPanelClass::Set_Deformer (MeshDeformClass *obj)
 		// Now update the current vertex color
 		Update_Vertex_Color ();
 	}
-
-	return ;
 }
 
 
@@ -285,15 +281,13 @@ MeshDeformPanelClass::Set_Deformer (MeshDeformClass *obj)
 void
 MeshDeformPanelClass::Update_Vertex_Color (void)
 {
-	if (m_pMeshDeformer != NULL) {
+	if (m_pMeshDeformer != nullptr) {
 
 		// Update the color swatch with data from the deformer
 		Point3 color;
 		m_pMeshDeformer->Get_Vertex_Color (color);
 		m_pColorSwatch->SetColor (RGB (int(color.x * 255.0F), int(color.y * 255.0F), int(color.z * 255.0F)), FALSE);
 	}
-
-	return ;
 }
 
 
@@ -315,13 +309,11 @@ MeshDeformPanelClass::Set_Max_Sets
 
 	if (notify == false) {
 		m_pMaxSetsSpin->SetValue (max, TRUE);
-	} else if (m_pMeshDeformer != NULL) {
+	} else if (m_pMeshDeformer != nullptr) {
 
 		// Update the deformer
 		m_pMeshDeformer->Set_Max_Deform_Sets (max);
 	}
-
-	return ;
 }
 
 
@@ -342,13 +334,11 @@ MeshDeformPanelClass::Set_Current_Set
 
 	if (notify == false) {
 		::SendDlgItemMessage (m_hWnd, IDC_CURRENT_SET_SLIDER, TBM_SETPOS, (WPARAM)TRUE, set + 1);
-	} else if (m_pMeshDeformer != NULL) {
+	} else if (m_pMeshDeformer != nullptr) {
 
 		// Update the deformer
 		m_pMeshDeformer->Set_Current_Set (set, true);
 	}
-
-	return ;
 }
 
 
@@ -361,5 +351,4 @@ void
 MeshDeformPanelClass::Set_Current_State (float state)
 {
 	::SendDlgItemMessage (m_hWnd, IDC_STATE_SLIDER, TBM_SETPOS, (WPARAM)TRUE, LPARAM(state * 10.0F));
-	return ;
 }

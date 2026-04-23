@@ -51,7 +51,6 @@ RingGeneralPropPageClass::RingGeneralPropPageClass (RingRenderObjClass *ring)
 	//}}AFX_DATA_INIT
 
 	Initialize ();
-	return ;
 }
 
 
@@ -62,7 +61,6 @@ RingGeneralPropPageClass::RingGeneralPropPageClass (RingRenderObjClass *ring)
 /////////////////////////////////////////////////////////////
 RingGeneralPropPageClass::~RingGeneralPropPageClass()
 {
-	return ;
 }
 
 void
@@ -73,7 +71,6 @@ RingGeneralPropPageClass::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_TEXTURE_TILE_SPIN, m_TextureTileSpin);
 	DDX_Control(pDX, IDC_LIFETIME_SPIN, m_LifetimeSpin);
 	//}}AFX_DATA_MAP
-	return ;
 }
 
 
@@ -95,15 +92,15 @@ END_MESSAGE_MAP()
 //
 /////////////////////////////////////////////////////////////
 void
-RingGeneralPropPageClass::Initialize (void)
+RingGeneralPropPageClass::Initialize ()
 {
-	if (m_RenderObj != NULL) {
+	if (m_RenderObj != nullptr) {
 
 		//
 		// Get the object's texture
 		//
 		TextureClass *texture = m_RenderObj->Peek_Texture ();
-		if (texture != NULL) {
+		if (texture != nullptr) {
 			m_TextureFilename = texture->Get_Texture_Name ();
 		}
 
@@ -114,8 +111,6 @@ RingGeneralPropPageClass::Initialize (void)
 		m_Name		= m_RenderObj->Get_Name ();
 		m_Shader		= m_RenderObj->Get_Shader ();
 	}
-
-	return ;
 }
 
 
@@ -146,8 +141,6 @@ RingGeneralPropPageClass::Add_Shader_To_Combo
 			SendDlgItemMessage (IDC_SHADER_COMBO, CB_SETCURSEL, (WPARAM)index);
 		}
 	}
-
-	return ;
 }
 
 
@@ -157,7 +150,7 @@ RingGeneralPropPageClass::Add_Shader_To_Combo
 //
 /////////////////////////////////////////////////////////////
 BOOL
-RingGeneralPropPageClass::OnInitDialog (void)
+RingGeneralPropPageClass::OnInitDialog ()
 {
 	// Allow the base class to process this message
 	CPropertyPage::OnInitDialog ();
@@ -199,7 +192,7 @@ RingGeneralPropPageClass::OnInitDialog (void)
 //
 /////////////////////////////////////////////////////////////
 BOOL
-RingGeneralPropPageClass::OnApply (void)
+RingGeneralPropPageClass::OnApply ()
 {
 	// Get the data from the dialog controls
 	GetDlgItemText (IDC_NAME_EDIT, m_Name);
@@ -212,7 +205,7 @@ RingGeneralPropPageClass::OnApply (void)
 	int index = SendDlgItemMessage (IDC_SHADER_COMBO, CB_GETCURSEL);
 	if (index != CB_ERR) {
 		ShaderClass *shader = (ShaderClass *)SendDlgItemMessage (IDC_SHADER_COMBO, CB_GETITEMDATA, (WPARAM)index);
-		if (shader != NULL) {
+		if (shader != nullptr) {
 			m_Shader = (*shader);
 		}
 	}
@@ -227,7 +220,7 @@ RingGeneralPropPageClass::OnApply (void)
 		//
 		//	Create a texture and pass it onto the object
 		//
-		TextureClass *texture = NULL;
+		TextureClass *texture = nullptr;
 		if (m_TextureFilename.GetLength () > 0) {
 			texture = WW3DAssetManager::Get_Instance ()->Get_Texture (::Get_Filename_From_Path (m_TextureFilename));
 		}
@@ -260,11 +253,11 @@ RingGeneralPropPageClass::OnApply (void)
 //
 /////////////////////////////////////////////////////////////
 void
-RingGeneralPropPageClass::OnBrowseButton (void)
+RingGeneralPropPageClass::OnBrowseButton ()
 {
 	CFileDialog dialog (	TRUE,
 								".tga",
-								NULL,
+								nullptr,
 								OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT | OFN_EXPLORER,
 								"Textures files (*.tga)|*.tga||",
 								::AfxGetMainWnd ());
@@ -274,8 +267,6 @@ RingGeneralPropPageClass::OnBrowseButton (void)
 		SetDlgItemText (IDC_FILENAME_EDIT, dialog.GetPathName ());
 		SetModified ();
 	}
-
-	return ;
 }
 
 
@@ -285,10 +276,9 @@ RingGeneralPropPageClass::OnBrowseButton (void)
 //
 /////////////////////////////////////////////////////////////
 void
-RingGeneralPropPageClass::OnChangeFilenameEdit (void)
+RingGeneralPropPageClass::OnChangeFilenameEdit ()
 {
 	SetModified ();
-	return ;
 }
 
 
@@ -298,10 +288,9 @@ RingGeneralPropPageClass::OnChangeFilenameEdit (void)
 //
 /////////////////////////////////////////////////////////////
 void
-RingGeneralPropPageClass::OnChangeNameEdit (void)
+RingGeneralPropPageClass::OnChangeNameEdit ()
 {
 	SetModified ();
-	return ;
 }
 
 
@@ -322,7 +311,7 @@ RingGeneralPropPageClass::OnNotify
 	//	Update the spinner control if necessary
 	//
 	NMHDR *header = (NMHDR *)lParam;
-	if ((header != NULL) && (header->code == UDN_DELTAPOS)) {
+	if ((header != nullptr) && (header->code == UDN_DELTAPOS)) {
 		LPNMUPDOWN updown = (LPNMUPDOWN)lParam;
 		::Update_Spinner_Buddy (header->hwndFrom, updown->iDelta);
 	}
@@ -338,10 +327,9 @@ RingGeneralPropPageClass::OnNotify
 //
 /////////////////////////////////////////////////////////////
 void
-RingGeneralPropPageClass::OnChangeLifetimeEdit (void)
+RingGeneralPropPageClass::OnChangeLifetimeEdit ()
 {
 	SetModified ();
-	return ;
 }
 
 
@@ -351,10 +339,9 @@ RingGeneralPropPageClass::OnChangeLifetimeEdit (void)
 //
 /////////////////////////////////////////////////////////////
 void
-RingGeneralPropPageClass::OnSelchangeShaderCombo (void)
+RingGeneralPropPageClass::OnSelchangeShaderCombo ()
 {
 	SetModified ();
-	return ;
 }
 
 
@@ -397,9 +384,8 @@ RingGeneralPropPageClass::OnCommand
 //
 /////////////////////////////////////////////////////////////
 void
-RingGeneralPropPageClass::OnChangeTextureTileEdit (void)
+RingGeneralPropPageClass::OnChangeTextureTileEdit ()
 {
 	SetModified ();
-	return ;
 }
 

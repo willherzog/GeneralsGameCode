@@ -50,9 +50,9 @@ static bool Is_LERP (float last_value, float last_time, float curr_value, float 
 SphereSizePropPageClass::SphereSizePropPageClass (SphereRenderObjClass *sphere)
 	:	m_RenderObj (sphere),
 		m_bValid (true),
-		m_ScaleXBar (NULL),
-		m_ScaleYBar (NULL),
-		m_ScaleZBar (NULL),
+		m_ScaleXBar (nullptr),
+		m_ScaleYBar (nullptr),
+		m_ScaleZBar (nullptr),
 		m_Size (0.5F, 0.5F, 0.5F),
 		CPropertyPage(SphereSizePropPageClass::IDD)
 {
@@ -61,7 +61,6 @@ SphereSizePropPageClass::SphereSizePropPageClass (SphereRenderObjClass *sphere)
 	//}}AFX_DATA_INIT
 
 	Initialize ();
-	return ;
 }
 
 
@@ -70,9 +69,8 @@ SphereSizePropPageClass::SphereSizePropPageClass (SphereRenderObjClass *sphere)
 //	~SphereSizePropPageClass
 //
 /////////////////////////////////////////////////////////////
-SphereSizePropPageClass::~SphereSizePropPageClass (void)
+SphereSizePropPageClass::~SphereSizePropPageClass ()
 {
-	return ;
 }
 
 
@@ -90,7 +88,6 @@ SphereSizePropPageClass::DoDataExchange (CDataExchange* pDX)
 	DDX_Control(pDX, IDC_SIZE_Y_SPIN, m_SizeYSpin);
 	DDX_Control(pDX, IDC_SIZE_X_SPIN, m_SizeXSpin);
 	//}}AFX_DATA_MAP
-	return ;
 }
 
 
@@ -107,12 +104,12 @@ END_MESSAGE_MAP()
 //
 /////////////////////////////////////////////////////////////
 void
-SphereSizePropPageClass::Initialize (void)
+SphereSizePropPageClass::Initialize ()
 {
 	m_ScaleChannel.Reset ();
 	m_OrigScaleChannel.Reset ();
 
-	if (m_RenderObj != NULL) {
+	if (m_RenderObj != nullptr) {
 		m_Size					= m_RenderObj->Get_Box ().Extent;
 		m_ScaleChannel			= m_RenderObj->Get_Scale_Channel ();
 		m_OrigScaleChannel	= m_RenderObj->Get_Scale_Channel ();
@@ -122,8 +119,6 @@ SphereSizePropPageClass::Initialize (void)
 			m_OrigScaleChannel.Add_Key (m_RenderObj->Get_Scale (), 0);
 		}
 	}
-
-	return ;
 }
 
 
@@ -133,7 +128,7 @@ SphereSizePropPageClass::Initialize (void)
 //
 /////////////////////////////////////////////////////////////
 BOOL
-SphereSizePropPageClass::OnInitDialog (void)
+SphereSizePropPageClass::OnInitDialog ()
 {
 	// Allow the base class to process this message
 	CPropertyPage::OnInitDialog ();
@@ -259,7 +254,7 @@ SphereSizePropPageClass::OnInitDialog (void)
 //
 /////////////////////////////////////////////////////////////
 BOOL
-SphereSizePropPageClass::OnApply (void)
+SphereSizePropPageClass::OnApply ()
 {
 	// Allow the base class to process this message
 	return CPropertyPage::OnApply ();
@@ -272,10 +267,9 @@ SphereSizePropPageClass::OnApply (void)
 //
 /////////////////////////////////////////////////////////////
 void
-SphereSizePropPageClass::OnDestroy (void)
+SphereSizePropPageClass::OnDestroy ()
 {
 	CPropertyPage::OnDestroy();
-	return ;
 }
 
 
@@ -306,7 +300,7 @@ SphereSizePropPageClass::OnNotify
 			//
 			//	Determine the timeline bar which sent the notification
 			//
-			ColorBarClass *timeline = NULL;
+			ColorBarClass *timeline = nullptr;
 			if (color_bar_hdr->hdr.idFrom == IDC_SCALE_BAR_X) {
 				timeline = m_ScaleXBar;
 			} else if (color_bar_hdr->hdr.idFrom == IDC_SCALE_BAR_Y) {
@@ -410,7 +404,7 @@ SphereSizePropPageClass::OnCommand
 //
 /////////////////////////////////////////////////////////////
 void
-SphereSizePropPageClass::OnCancel (void)
+SphereSizePropPageClass::OnCancel ()
 {
 	//
 	//	Reset the object to its original state
@@ -418,7 +412,6 @@ SphereSizePropPageClass::OnCancel (void)
 	m_RenderObj->Set_Scale_Channel (m_ScaleChannel);
 
 	CPropertyPage::OnCancel ();
-	return ;
 }
 
 
@@ -428,7 +421,7 @@ SphereSizePropPageClass::OnCancel (void)
 //
 /////////////////////////////////////////////////////////////
 void
-SphereSizePropPageClass::Update_Scale_Array (void)
+SphereSizePropPageClass::Update_Scale_Array ()
 {
 	m_ScaleChannel.Reset ();
 
@@ -541,7 +534,6 @@ SphereSizePropPageClass::Update_Scale_Array (void)
 	//
 	m_RenderObj->Set_Scale_Channel (m_ScaleChannel);
 	m_RenderObj->Restart_Animation ();
-	return ;
 }
 
 

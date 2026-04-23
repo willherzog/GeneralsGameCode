@@ -43,10 +43,9 @@
 //	Sound2DHandleClass
 //
 //////////////////////////////////////////////////////////////////////
-Sound2DHandleClass::Sound2DHandleClass (void)	:
+Sound2DHandleClass::Sound2DHandleClass ()	:
 	SampleHandle ((HSAMPLE)INVALID_MILES_HANDLE)
 {
-	return ;
 }
 
 
@@ -55,9 +54,8 @@ Sound2DHandleClass::Sound2DHandleClass (void)	:
 //	~Sound2DHandleClass
 //
 //////////////////////////////////////////////////////////////////////
-Sound2DHandleClass::~Sound2DHandleClass (void)
+Sound2DHandleClass::~Sound2DHandleClass ()
 {
-	return ;
 }
 
 
@@ -81,13 +79,11 @@ Sound2DHandleClass::Initialize (SoundBufferClass *buffer)
 		//
 		// Pass the actual sound data onto the sample
 		//
-		if (Buffer != NULL) {
+		if (Buffer != nullptr) {
 			::AIL_set_named_sample_file (SampleHandle, (char *)Buffer->Get_Filename (),
 					Buffer->Get_Raw_Buffer (), Buffer->Get_Raw_Length (), 0);
 		}
 	}
-
-	return ;
 }
 
 
@@ -97,13 +93,11 @@ Sound2DHandleClass::Initialize (SoundBufferClass *buffer)
 //
 //////////////////////////////////////////////////////////////////////
 void
-Sound2DHandleClass::Start_Sample (void)
+Sound2DHandleClass::Start_Sample ()
 {
 	if (SampleHandle != (HSAMPLE)INVALID_MILES_HANDLE) {
 		::AIL_start_sample (SampleHandle);
 	}
-
-	return ;
 }
 
 
@@ -113,13 +107,11 @@ Sound2DHandleClass::Start_Sample (void)
 //
 //////////////////////////////////////////////////////////////////////
 void
-Sound2DHandleClass::Stop_Sample (void)
+Sound2DHandleClass::Stop_Sample ()
 {
 	if (SampleHandle != (HSAMPLE)INVALID_MILES_HANDLE) {
 		::AIL_stop_sample (SampleHandle);
 	}
-
-	return ;
 }
 
 
@@ -129,13 +121,11 @@ Sound2DHandleClass::Stop_Sample (void)
 //
 //////////////////////////////////////////////////////////////////////
 void
-Sound2DHandleClass::Resume_Sample (void)
+Sound2DHandleClass::Resume_Sample ()
 {
 	if (SampleHandle != (HSAMPLE)INVALID_MILES_HANDLE) {
 		::AIL_resume_sample (SampleHandle);
 	}
-
-	return ;
 }
 
 
@@ -145,13 +135,11 @@ Sound2DHandleClass::Resume_Sample (void)
 //
 //////////////////////////////////////////////////////////////////////
 void
-Sound2DHandleClass::End_Sample (void)
+Sound2DHandleClass::End_Sample ()
 {
 	if (SampleHandle != (HSAMPLE)INVALID_MILES_HANDLE) {
 		::AIL_end_sample (SampleHandle);
 	}
-
-	return ;
 }
 
 
@@ -167,12 +155,10 @@ Sound2DHandleClass::Set_Sample_Pan (S32 pan)
 		// TheSuperHackers @fix xezon 05/04/2025 Upgrades miles call from legacy AIL_set_sample_pan.
 		// TheSuperHackers @todo Perhaps use float natively.
 		float fVolume = 0.0F;
-		::AIL_sample_volume_pan (SampleHandle, &fVolume, NULL);
+		::AIL_sample_volume_pan (SampleHandle, &fVolume, nullptr);
 		float fPan = pan / 127.0F;
 		::AIL_set_sample_volume_pan (SampleHandle, fVolume, fPan);
 	}
-
-	return ;
 }
 
 
@@ -182,14 +168,14 @@ Sound2DHandleClass::Set_Sample_Pan (S32 pan)
 //
 //////////////////////////////////////////////////////////////////////
 S32
-Sound2DHandleClass::Get_Sample_Pan (void)
+Sound2DHandleClass::Get_Sample_Pan ()
 {
 	S32 retval = 0;
 
 	if (SampleHandle != (HSAMPLE)INVALID_MILES_HANDLE) {
 		// TheSuperHackers @fix xezon 05/04/2025 Upgrades miles call from legacy AIL_sample_pan.
 		float fPan = 0.5F;
-		::AIL_sample_volume_pan (SampleHandle, NULL, &fPan);
+		::AIL_sample_volume_pan (SampleHandle, nullptr, &fPan);
 		retval = fPan * 127;
 	}
 
@@ -209,11 +195,10 @@ Sound2DHandleClass::Set_Sample_Volume (S32 volume)
 		// TheSuperHackers @fix xezon 05/04/2025 Upgrades miles call from legacy AIL_set_sample_volume.
 		// TheSuperHackers @todo Perhaps use float natively.
 		float fPan = 0.5F;
-		::AIL_sample_volume_pan (SampleHandle, NULL, &fPan);
+		::AIL_sample_volume_pan (SampleHandle, nullptr, &fPan);
 		float fVolume = volume / 127.0F;
 		::AIL_set_sample_volume_pan (SampleHandle, fVolume, fPan);
 	}
-	return ;
 }
 
 
@@ -223,14 +208,14 @@ Sound2DHandleClass::Set_Sample_Volume (S32 volume)
 //
 //////////////////////////////////////////////////////////////////////
 S32
-Sound2DHandleClass::Get_Sample_Volume (void)
+Sound2DHandleClass::Get_Sample_Volume ()
 {
 	S32 retval = 0;
 
 	if (SampleHandle != (HSAMPLE)INVALID_MILES_HANDLE) {
 		// TheSuperHackers @fix xezon 05/04/2025 Upgrades miles call from legacy AIL_sample_volume.
 		float fVolume = 0.0F;
-		::AIL_sample_volume_pan (SampleHandle, &fVolume, NULL);
+		::AIL_sample_volume_pan (SampleHandle, &fVolume, nullptr);
 		retval = fVolume * 127;
 	}
 
@@ -249,8 +234,6 @@ Sound2DHandleClass::Set_Sample_Loop_Count (U32 count)
 	if (SampleHandle != (HSAMPLE)INVALID_MILES_HANDLE) {
 		::AIL_set_sample_loop_count (SampleHandle, count);
 	}
-
-	return ;
 }
 
 
@@ -260,7 +243,7 @@ Sound2DHandleClass::Set_Sample_Loop_Count (U32 count)
 //
 //////////////////////////////////////////////////////////////////////
 U32
-Sound2DHandleClass::Get_Sample_Loop_Count (void)
+Sound2DHandleClass::Get_Sample_Loop_Count ()
 {
 	U32 retval = 0;
 
@@ -283,8 +266,6 @@ Sound2DHandleClass::Set_Sample_MS_Position (U32 ms)
 	if (SampleHandle != (HSAMPLE)INVALID_MILES_HANDLE) {
 		::AIL_set_sample_ms_position (SampleHandle, ms);
 	}
-
-	return ;
 }
 
 
@@ -299,8 +280,6 @@ Sound2DHandleClass::Get_Sample_MS_Position (S32 *len, S32 *pos)
 	if (SampleHandle != (HSAMPLE)INVALID_MILES_HANDLE) {
 		::AIL_sample_ms_position (SampleHandle, len, pos);
 	}
-
-	return ;
 }
 
 
@@ -310,13 +289,11 @@ Sound2DHandleClass::Get_Sample_MS_Position (S32 *len, S32 *pos)
 //
 //////////////////////////////////////////////////////////////////////
 void
-Sound2DHandleClass::Set_Sample_User_Data (S32 i, U32 val)
+Sound2DHandleClass::Set_Sample_User_Data (S32 i, void *val)
 {
 	if (SampleHandle != (HSAMPLE)INVALID_MILES_HANDLE) {
 		::AIL_set_sample_user_data (SampleHandle, i, val);
 	}
-
-	return ;
 }
 
 
@@ -325,10 +302,10 @@ Sound2DHandleClass::Set_Sample_User_Data (S32 i, U32 val)
 //	Get_Sample_User_Data
 //
 //////////////////////////////////////////////////////////////////////
-U32
+void *
 Sound2DHandleClass::Get_Sample_User_Data (S32 i)
 {
-	U32 retval = 0;
+	void *retval = nullptr;
 
 	if (SampleHandle != (HSAMPLE)INVALID_MILES_HANDLE) {
 		retval = ::AIL_sample_user_data (SampleHandle, i);
@@ -344,7 +321,7 @@ Sound2DHandleClass::Get_Sample_User_Data (S32 i)
 //
 //////////////////////////////////////////////////////////////////////
 S32
-Sound2DHandleClass::Get_Sample_Playback_Rate (void)
+Sound2DHandleClass::Get_Sample_Playback_Rate ()
 {
 	S32 retval = 0;
 
@@ -367,8 +344,6 @@ Sound2DHandleClass::Set_Sample_Playback_Rate (S32 rate)
 	if (SampleHandle != (HSAMPLE)INVALID_MILES_HANDLE) {
 		::AIL_set_sample_playback_rate (SampleHandle, rate);
 	}
-
-	return ;
 }
 
 
@@ -381,5 +356,4 @@ void
 Sound2DHandleClass::Set_Miles_Handle (uint32 handle)
 {
 	SampleHandle = (HSAMPLE)handle;
-	return ;
 }

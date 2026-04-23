@@ -73,10 +73,10 @@ CDebugWindowApp::CDebugWindowApp()
 {
 	AfxInitialize(true);
 	AFX_MANAGE_STATE(AfxGetStaticModuleState( ));
-	m_DialogWindow = NULL;
+	m_DialogWindow = nullptr;
 }
 
-DebugWindowDialog* CDebugWindowApp::GetDialogWindow(void)
+DebugWindowDialog* CDebugWindowApp::GetDialogWindow()
 {
 	return m_DialogWindow;
 }
@@ -96,14 +96,14 @@ CDebugWindowApp::~CDebugWindowApp()
 
 CDebugWindowApp theApp;
 
-void __declspec(dllexport) CreateDebugDialog(void)
+void __declspec(dllexport) CreateDebugDialog()
 {
 	AFX_MANAGE_STATE(AfxGetStaticModuleState( ));
 
 	DebugWindowDialog* tmpWnd;
 	tmpWnd = new DebugWindowDialog;
 	tmpWnd->Create(DebugWindowDialog::IDD);
-	tmpWnd->SetWindowPos(NULL, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+	tmpWnd->SetWindowPos(nullptr, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
 	tmpWnd->ShowWindow(SW_SHOW);
 	if (tmpWnd->GetMainWndHWND()) {
 		SetFocus(tmpWnd->GetMainWndHWND());
@@ -112,7 +112,7 @@ void __declspec(dllexport) CreateDebugDialog(void)
 	theApp.SetDialogWindow(tmpWnd);
 }
 
-void __declspec(dllexport) DestroyDebugDialog(void)
+void __declspec(dllexport) DestroyDebugDialog()
 {
 	AFX_MANAGE_STATE(AfxGetStaticModuleState( ));
 	DebugWindowDialog* tmpWnd = theApp.GetDialogWindow();
@@ -120,12 +120,12 @@ void __declspec(dllexport) DestroyDebugDialog(void)
 	if (tmpWnd) {
 		tmpWnd->DestroyWindow();
 		delete tmpWnd;
-		theApp.SetDialogWindow(NULL);
+		theApp.SetDialogWindow(nullptr);
 	}
 
 }
 
-bool __declspec(dllexport) CanAppContinue(void)
+bool __declspec(dllexport) CanAppContinue()
 {
 	AFX_MANAGE_STATE(AfxGetStaticModuleState( ));
 
@@ -138,7 +138,7 @@ bool __declspec(dllexport) CanAppContinue(void)
 	return pDbg->CanProceed();
 }
 
-void __declspec(dllexport) ForceAppContinue(void)
+void __declspec(dllexport) ForceAppContinue()
 {
 	AFX_MANAGE_STATE(AfxGetStaticModuleState( ));
 
@@ -151,7 +151,7 @@ void __declspec(dllexport) ForceAppContinue(void)
 	pDbg->ForceContinue();
 }
 
-bool __declspec(dllexport) RunAppFast(void)
+bool __declspec(dllexport) RunAppFast()
 {
 	AFX_MANAGE_STATE(AfxGetStaticModuleState( ));
 

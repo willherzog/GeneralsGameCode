@@ -16,12 +16,8 @@
 **	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if !defined(AFX_EMITTERLINEPROPPAGE_H__BBD9ED4C_E752_439A_81D5_A4FA9A6F6FC8__INCLUDED_)
-#define AFX_EMITTERLINEPROPPAGE_H__BBD9ED4C_E752_439A_81D5_A4FA9A6F6FC8__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
+
 // EmitterLinePropPage.h : header file
 //
 
@@ -82,21 +78,21 @@ protected:
 		//
 		//	Public methods
 		//
-		EmitterInstanceListClass *	Get_Emitter (void) const { return m_pEmitterList; }
+		EmitterInstanceListClass *	Get_Emitter () const { return m_pEmitterList; }
 		void								Set_Emitter (EmitterInstanceListClass *pemitter_list) { m_pEmitterList = pemitter_list; Initialize (); }
-		bool								Is_Data_Valid (void) const { return m_bValid; }
+		bool								Is_Data_Valid () const { return m_bValid; }
 
-		int								Get_Mapping_Mode (void) const { return m_MappingMode; }
-		bool								Get_Merge_Intersections (void) const { return m_MergeIntersections; }
-		bool								Get_End_Caps (void) const { return m_EndCaps; }
-		bool								Get_Disable_Sorting (void) const { return m_DisableSorting; }
+		int								Get_Mapping_Mode () const { return m_MappingMode; }
+		bool								Get_Merge_Intersections () const { return m_MergeIntersections; }
+		bool								Get_End_Caps () const { return m_EndCaps; }
+		bool								Get_Disable_Sorting () const { return m_DisableSorting; }
 
-		int								Get_Subdivision_Level (void) const { return m_SubdivisionLevel; }
-		float								Get_Noise_Amplitude (void) const { return m_NoiseAmplitude; }
-		float								Get_Merge_Abort_Factor (void) const { return m_MergeAbortFactor; }
-		float								Get_Texture_Tile_Factor (void) const { return m_TextureTileFactor; }
-		float								Get_U_Per_Sec(void) const { return m_UPerSec; }
-		float								Get_V_Per_Sed(void) const { return m_VPerSec; }
+		int								Get_Subdivision_Level () const { return m_SubdivisionLevel; }
+		float								Get_Noise_Amplitude () const { return m_NoiseAmplitude; }
+		float								Get_Merge_Abort_Factor () const { return m_MergeAbortFactor; }
+		float								Get_Texture_Tile_Factor () const { return m_TextureTileFactor; }
+		float								Get_U_Per_Sec() const { return m_UPerSec; }
+		float								Get_V_Per_Sed() const { return m_VPerSec; }
 
 	protected:
 
@@ -104,7 +100,7 @@ protected:
 		//
 		//	Protected methods
 		//
-		void								Initialize (void);
+		void								Initialize ();
 
 	private:
 
@@ -131,5 +127,3 @@ protected:
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
-
-#endif // !defined(AFX_EMITTERLINEPROPPAGE_H__BBD9ED4C_E752_439A_81D5_A4FA9A6F6FC8__INCLUDED_)

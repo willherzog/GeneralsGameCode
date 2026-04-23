@@ -20,12 +20,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-#if !defined(AFX_MAINFRM_H__371EC7AB_29D3_11D5_8CE0_00010297BBAC__INCLUDED_)
-#define AFX_MAINFRM_H__371EC7AB_29D3_11D5_8CE0_00010297BBAC__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 
 #include "Lib/BaseType.h"
 #include "MyToolbar.h"
@@ -73,12 +68,12 @@ public:
 // Overrides
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(CMainFrame)
-	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
+	virtual BOOL PreCreateWindow(CREATESTRUCT& cs) override;
 	//}}AFX_VIRTUAL
 
 // Implementation
 public:
-	virtual ~CMainFrame();
+	virtual ~CMainFrame() override;
 #ifdef RTS_DEBUG
 	virtual void AssertValid() const;
 	virtual void Dump(CDumpContext& dc) const;
@@ -88,10 +83,10 @@ public:
 
 	void showOptionsDialog(Int dialogID);
 	void OnEditGloballightoptions();
-	void ResetWindowPositions(void);
-	void adjustWindowSize(void);
-	Bool isAutoSaving(void) {return m_autoSaving;};
-	void handleCameraChange(void);
+	void ResetWindowPositions();
+	void adjustWindowSize();
+	Bool isAutoSaving() {return m_autoSaving;};
+	void handleCameraChange();
 
 protected:  // control bar embedded members
 	CStatusBar					m_wndStatusBar;
@@ -155,5 +150,3 @@ protected:
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
-
-#endif // !defined(AFX_MAINFRM_H__371EC7AB_29D3_11D5_8CE0_00010297BBAC__INCLUDED_)

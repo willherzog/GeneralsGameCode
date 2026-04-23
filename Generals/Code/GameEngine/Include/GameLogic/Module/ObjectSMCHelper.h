@@ -24,13 +24,10 @@
 
 // FILE: ObjectSMCHelper.h ////////////////////////////////////////////////////////////////////////
 // Author: Steven Johnson, Colin Day - September 202
-// Desc:   Object helpder - SMC
+// Desc:   Object helper - SMC
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-
-#ifndef __OBJECT_SMC_HELPER_H_
-#define __OBJECT_SMC_HELPER_H_
 
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/ObjectHelper.h"
@@ -55,9 +52,6 @@ public:
 	ObjectSMCHelper( Thing *thing, const ModuleData *modData ) : ObjectHelper( thing, modData ) { }
 	// virtual destructor prototype provided by memory pool object
 
-	virtual UpdateSleepTime update();
+	virtual UpdateSleepTime update() override;
 
 };
-
-
-#endif  // end __OBJECT_SMC_HELPER_H_

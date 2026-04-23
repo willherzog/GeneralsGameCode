@@ -28,16 +28,13 @@
 
 #pragma once
 
-#ifndef __LOCALFILESYSTEM_H
-#define __LOCALFILESYSTEM_H
-
 #include "Common/SubsystemInterface.h"
 #include "FileSystem.h" // for typedefs, etc.
 
 class LocalFileSystem : public SubsystemInterface
 {
 public:
-	virtual ~LocalFileSystem() {}
+	virtual ~LocalFileSystem() override {}
 
 	virtual void init() = 0;
 	virtual void reset() = 0;
@@ -54,5 +51,3 @@ protected:
 };
 
 extern LocalFileSystem *TheLocalFileSystem;
-
-#endif // __LOCALFILESYSTEM_H

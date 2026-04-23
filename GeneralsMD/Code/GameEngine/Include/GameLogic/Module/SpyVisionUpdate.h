@@ -31,9 +31,6 @@
 
 #pragma once
 
-#ifndef _SPY_VISION_UPDATE_H
-#define _SPY_VISION_UPDATE_H
-
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/UpdateModule.h"
 #include "GameLogic/Module/UpgradeModule.h"
@@ -66,11 +63,11 @@ public:
 	{
 		static const FieldParse dataFieldParse[] =
 		{
-			{ "NeedsUpgrade",					INI::parseBool,									NULL, offsetof( SpyVisionUpdateModuleData, m_needsUpgrade ) },
-			{ "SelfPowered",					INI::parseBool,									NULL, offsetof( SpyVisionUpdateModuleData, m_selfPowered ) },
-			{ "SelfPoweredDuration",	INI::parseDurationUnsignedInt,	NULL, offsetof( SpyVisionUpdateModuleData, m_selfPoweredDuration ) },
-			{ "SelfPoweredInterval",	INI::parseDurationUnsignedInt,	NULL, offsetof( SpyVisionUpdateModuleData, m_selfPoweredInterval ) },
-			{ "SpyOnKindof",					KindOfMaskType::parseFromINI,		NULL, offsetof( SpyVisionUpdateModuleData, m_spyOnKindof ) },
+			{ "NeedsUpgrade",					INI::parseBool,									nullptr, offsetof( SpyVisionUpdateModuleData, m_needsUpgrade ) },
+			{ "SelfPowered",					INI::parseBool,									nullptr, offsetof( SpyVisionUpdateModuleData, m_selfPowered ) },
+			{ "SelfPoweredDuration",	INI::parseDurationUnsignedInt,	nullptr, offsetof( SpyVisionUpdateModuleData, m_selfPoweredDuration ) },
+			{ "SelfPoweredInterval",	INI::parseDurationUnsignedInt,	nullptr, offsetof( SpyVisionUpdateModuleData, m_selfPoweredInterval ) },
+			{ "SpyOnKindof",					KindOfMaskType::parseFromINI,		nullptr, offsetof( SpyVisionUpdateModuleData, m_spyOnKindof ) },
 			{ 0, 0, 0, 0 }
 		};
 
@@ -93,19 +90,19 @@ public:
 	SpyVisionUpdate( Thing *thing, const ModuleData* moduleData );
 	// virtual destructor prototype provided by memory pool declaration
 
-	virtual SpyVisionUpdate* getSpyVisionUpdate() { return this; }
+	virtual SpyVisionUpdate* getSpyVisionUpdate() override { return this; }
 
 	// module methods
 	static Int getInterfaceMask() { return UpdateModule::getInterfaceMask() | MODULEINTERFACE_UPGRADE; }
-	virtual void onDelete( void );
-	virtual void onCapture( Player *oldOwner, Player *newOwner );
-	virtual void onDisabledEdge( Bool nowDisabled );
+	virtual void onDelete() override;
+	virtual void onCapture( Player *oldOwner, Player *newOwner ) override;
+	virtual void onDisabledEdge( Bool nowDisabled ) override;
 
 	// BehaviorModule
-	virtual UpgradeModuleInterface* getUpgrade() { return this; }
+	virtual UpgradeModuleInterface* getUpgrade() override { return this; }
 
 	//Update module
-	virtual UpdateSleepTime update( void );
+	virtual UpdateSleepTime update() override;
 
 	void activateSpyVision( UnsignedInt duration );
 
@@ -115,27 +112,27 @@ public:
 protected:
 
 	// UpgradeMux functions.  Mux standing, of course, for Majorly Ugly Xhitcode
-	virtual void upgradeImplementation();
-	virtual void getUpgradeActivationMasks(UpgradeMaskType& activation, UpgradeMaskType& conflicting) const
+	virtual void upgradeImplementation() override;
+	virtual void getUpgradeActivationMasks(UpgradeMaskType& activation, UpgradeMaskType& conflicting) const override
 	{
 		getSpyVisionUpdateModuleData()->m_upgradeMuxData.getUpgradeActivationMasks(activation, conflicting);
 	}
-	virtual void performUpgradeFX()
+	virtual void performUpgradeFX() override
 	{
 		getSpyVisionUpdateModuleData()->m_upgradeMuxData.performUpgradeFX(getObject());
 	}
-	virtual void processUpgradeRemoval()
+	virtual void processUpgradeRemoval() override
 	{
-		// I can't take it any more.  Let the record show that I think the UpgradeMux multiple inheritence is CRAP.
+		// I can't take it any more.  Let the record show that I think the UpgradeMux multiple inheritance is CRAP.
 		getSpyVisionUpdateModuleData()->m_upgradeMuxData.muxDataProcessUpgradeRemoval(getObject());
 	}
 
-	virtual Bool requiresAllActivationUpgrades() const
+	virtual Bool requiresAllActivationUpgrades() const override
 	{
 		return getSpyVisionUpdateModuleData()->m_upgradeMuxData.m_requiresAllTriggers;
 	}
-	inline Bool isUpgradeActive() const { return isAlreadyUpgraded(); }
-	virtual Bool isSubObjectsUpgrade() { return false; }
+	Bool isUpgradeActive() const { return isAlreadyUpgraded(); }
+	virtual Bool isSubObjectsUpgrade() override { return false; }
 
 private:
 
@@ -146,6 +143,3 @@ private:
 	Bool m_currentlyActive;
 	Bool m_resetTimersNextUpdate;
 };
-
-#endif
-

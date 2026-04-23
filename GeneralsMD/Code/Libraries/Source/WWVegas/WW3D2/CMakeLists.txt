@@ -15,8 +15,8 @@ set(WW3D2_SRC
     #assetstatus.h
     #bitmaphandler.cpp
     #bitmaphandler.h
-    bmp2d.cpp
-    bmp2d.h
+    #bmp2d.cpp
+    #bmp2d.h
     boxrobj.cpp
     boxrobj.h
     #bwrender.cpp
@@ -43,8 +43,8 @@ set(WW3D2_SRC
     #distlod.cpp
     #distlod.h
     #dllist.h
-    dx8caps.cpp
-    dx8caps.h
+#    dx8caps.cpp
+#    dx8caps.h
     dx8fvf.cpp
     dx8fvf.h
     dx8indexbuffer.cpp
@@ -54,16 +54,16 @@ set(WW3D2_SRC
     #dx8polygonrenderer.h
     dx8renderer.cpp
     dx8renderer.h
-    dx8rendererdebugger.cpp
-    dx8rendererdebugger.h
-    dx8texman.cpp
-    dx8texman.h
+#    dx8rendererdebugger.cpp
+#    dx8rendererdebugger.h
+    #dx8texman.cpp
+    #dx8texman.h
     dx8vertexbuffer.cpp
     dx8vertexbuffer.h
     #dx8webbrowser.cpp
     #dx8webbrowser.h
-    dx8wrapper.cpp
-    dx8wrapper.h
+#    dx8wrapper.cpp
+#    dx8wrapper.h
     #dynamesh.cpp
     #dynamesh.h
     #font3d.cpp
@@ -81,7 +81,7 @@ set(WW3D2_SRC
     hlod.cpp
     hlod.h
     #hmdldef.cpp
-    #hmdldef.H
+    #hmdldef.h
     hmorphanim.cpp
     hmorphanim.h
     hrawanim.cpp
@@ -108,8 +108,8 @@ set(WW3D2_SRC
     mapper.h
     #matinfo.cpp
     #matinfo.h
-    matpass.cpp
-    matpass.h
+    #matpass.cpp
+    #matpass.h
     matrixmapper.cpp
     matrixmapper.h
     mesh.cpp
@@ -178,7 +178,7 @@ set(WW3D2_SRC
     shader.h
     #shattersystem.cpp
     #shattersystem.h
-    shdlib.h
+#    shdlib.h
     #snappts.cpp
     #snapPts.h
     sortingrenderer.cpp
@@ -200,18 +200,18 @@ set(WW3D2_SRC
     #stripoptimizer.h
     #surfaceclass.cpp
     #surfaceclass.h
-    texproject.cpp
-    texproject.h
+    #texproject.cpp
+    #texproject.h
     #textdraw.cpp
     #textdraw.h
-    texture.cpp
-    texture.h
-    texturefilter.cpp
-    texturefilter.h
-    textureloader.cpp
-    textureloader.h
-    texturethumbnail.cpp
-    texturethumbnail.h
+    #texture.cpp
+    #texture.h
+    #texturefilter.cpp
+    #texturefilter.h
+    #textureloader.cpp
+    #textureloader.h
+    #texturethumbnail.cpp
+    #texturethumbnail.h
     vertmaterial.cpp
     vertmaterial.h
     #visrasterizer.cpp
@@ -238,7 +238,24 @@ set_target_properties(z_ww3d2 PROPERTIES OUTPUT_NAME ww3d2)
 
 target_sources(z_ww3d2 PRIVATE ${WW3D2_SRC})
 
+target_compile_definitions(z_ww3d2 PRIVATE
+    $<$<BOOL:${IS_VS6_BUILD}>:WINVER=0x0500>
+)
+
+target_precompile_headers(z_ww3d2 PRIVATE
+    [["Utility/CppMacros.h"]] # Must be first, to be removed when abandoning VC6
+    [["dx8wrapper.h"]]
+    [["always.h"]]
+    [["STLUtils.h"]]
+    [["win.h"]]
+    [["WWCommon.h"]]
+    [["wwstring.h"]]
+    <windows.h>
+)
+
 target_link_libraries(z_ww3d2 PRIVATE
+    core_wwdebug
     corei_ww3d2
     z_wwcommon
+    zi_always
 )

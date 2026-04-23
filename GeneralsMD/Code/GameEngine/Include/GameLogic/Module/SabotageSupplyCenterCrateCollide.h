@@ -32,9 +32,6 @@
 
 #pragma once
 
-#ifndef SABOTAGE_SUPPLY_CENTER_CRATE_COLLIDE_H_
-#define SABOTAGE_SUPPLY_CENTER_CRATE_COLLIDE_H_
-
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common/Module.h"
 #include "GameLogic/Module/CrateCollide.h"
@@ -59,7 +56,7 @@ public:
 
 		static const FieldParse dataFieldParse[] =
 		{
-			{ "StealCashAmount",	INI::parseUnsignedInt, NULL, offsetof( SabotageSupplyCenterCrateCollideModuleData, m_stealCashAmount ) },
+			{ "StealCashAmount",	INI::parseUnsignedInt, nullptr, offsetof( SabotageSupplyCenterCrateCollideModuleData, m_stealCashAmount ) },
 			{ 0, 0, 0, 0 }
 		};
 		p.add( dataFieldParse );
@@ -82,13 +79,11 @@ public:
 protected:
 
 	/// This allows specific vetoes to certain types of crates and their data
-	virtual Bool isValidToExecute( const Object *other ) const;
+	virtual Bool isValidToExecute( const Object *other ) const override;
 
 	/// This is the game logic execution function that all real CrateCollides will implement
-	virtual Bool executeCrateBehavior( Object *other );
+	virtual Bool executeCrateBehavior( Object *other ) override;
 
-	virtual Bool isSabotageBuildingCrateCollide() const { return TRUE; }
+	virtual Bool isSabotageBuildingCrateCollide() const override { return TRUE; }
 
 };
-
-#endif

@@ -32,7 +32,7 @@
 
 
 #include "StdAfx.h"
-#include "Vector3RndCombo.H"
+#include "Vector3RndCombo.h"
 #include "v3_rnd.h"
 
 const char * const RANDOMIZER_NAMES[Vector3Randomizer::CLASSID_MAXKNOWN] =
@@ -60,8 +60,6 @@ Fill_Vector3_Rnd_Combo (HWND hcombobox)
 	for (int index = 0; index < Vector3Randomizer::CLASSID_MAXKNOWN; index ++) {
 		::SendMessage (hcombobox, CB_ADDSTRING, 0, (LPARAM)RANDOMIZER_NAMES[index]);
 	}
-
-	return ;
 }
 
 
@@ -74,7 +72,7 @@ int
 Combo_Index_From_Vector3_Rnd (Vector3Randomizer *randomizer)
 {
 	int index = 0;
-	if (randomizer != NULL) {
+	if (randomizer != nullptr) {
 		index = (int)randomizer->Class_ID ();
 	}
 
@@ -91,7 +89,7 @@ Combo_Index_From_Vector3_Rnd (Vector3Randomizer *randomizer)
 Vector3Randomizer *
 Vector3_Rnd_From_Combo_Index (int index, float value1, float value2, float value3)
 {
-	Vector3Randomizer *randomizer = NULL;
+	Vector3Randomizer *randomizer = nullptr;
 
 	//
 	//	What type of randomizer should we create?

@@ -16,12 +16,8 @@
 **	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if !defined(AFX_VOLUMERANDOMDIALOG_H__F22DB07B_0EFF_11D3_A034_00104B791122__INCLUDED_)
-#define AFX_VOLUMERANDOMDIALOG_H__F22DB07B_0EFF_11D3_A034_00104B791122__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
+
 // VolumeRandomDialog.h : header file
 //
 
@@ -37,7 +33,7 @@ class VolumeRandomDialogClass : public CDialog
 {
 // Construction
 public:
-	VolumeRandomDialogClass (Vector3Randomizer *randomizer, CWnd *pParent = NULL);   // standard constructor
+	VolumeRandomDialogClass (Vector3Randomizer *randomizer, CWnd *pParent = nullptr);   // standard constructor
 
 // Dialog Data
 	//{{AFX_DATA(VolumeRandomDialogClass)
@@ -77,14 +73,14 @@ protected:
 		//////////////////////////////////////////////////////////////////////////////
 		//	Public methods
 		//////////////////////////////////////////////////////////////////////////////
-		Vector3Randomizer *	Get_Randomizer (void) const { return m_Randomizer; }
+		Vector3Randomizer *	Get_Randomizer () const { return m_Randomizer; }
 
 	protected:
 
 		//////////////////////////////////////////////////////////////////////////////
 		//	Protected methods
 		//////////////////////////////////////////////////////////////////////////////
-		void						Update_Enable_State (void);
+		void						Update_Enable_State ();
 
 	private:
 
@@ -96,5 +92,3 @@ protected:
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
-
-#endif // !defined(AFX_VOLUMERANDOMDIALOG_H__F22DB07B_0EFF_11D3_A034_00104B791122__INCLUDED_)

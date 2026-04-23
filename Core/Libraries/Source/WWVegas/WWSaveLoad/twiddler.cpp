@@ -36,7 +36,7 @@
 
 
 #include "twiddler.h"
-#include "RANDOM.H"
+#include "RANDOM.h"
 #include "saveloadids.h"
 #include "simpledefinitionfactory.h"
 #include "persistfactory.h"
@@ -77,12 +77,11 @@ SimplePersistFactoryClass<TwiddlerClass, CHUNKID_TWIDDLER>						_TwiddlerPersist
 //	TwiddlerClass
 //
 //////////////////////////////////////////////////////////////////////////////////
-TwiddlerClass::TwiddlerClass (void)
+TwiddlerClass::TwiddlerClass ()
 	:	m_IndirectClassID (0)
 
 {
 	CLASSID_DEFIDLIST_PARAM (TwiddlerClass, m_DefinitionList, 0, m_IndirectClassID, "Preset List");
-	return ;
 }
 
 
@@ -91,9 +90,8 @@ TwiddlerClass::TwiddlerClass (void)
 //	~TwiddlerClass
 //
 //////////////////////////////////////////////////////////////////////////////////
-TwiddlerClass::~TwiddlerClass (void)
+TwiddlerClass::~TwiddlerClass ()
 {
-	return ;
 }
 
 
@@ -103,9 +101,9 @@ TwiddlerClass::~TwiddlerClass (void)
 //
 //////////////////////////////////////////////////////////////////////////////////
 DefinitionClass *
-TwiddlerClass::Twiddle (void) const
+TwiddlerClass::Twiddle () const
 {
-	DefinitionClass *definition = NULL;
+	DefinitionClass *definition = nullptr;
 
 	if (m_DefinitionList.Count () > 0) {
 
@@ -132,15 +130,15 @@ TwiddlerClass::Twiddle (void) const
 //
 //////////////////////////////////////////////////////////////////////////////////
 PersistClass *
-TwiddlerClass::Create (void) const
+TwiddlerClass::Create () const
 {
-	PersistClass *retval = NULL;
+	PersistClass *retval = nullptr;
 
 	//
 	//	Pick a random definition
 	//
 	DefinitionClass *definition = Twiddle ();
-	if (definition != NULL) {
+	if (definition != nullptr) {
 
 		//
 		//	Indirect the creation to the definition we randomly selected
@@ -159,7 +157,7 @@ TwiddlerClass::Create (void) const
 //
 //////////////////////////////////////////////////////////////////////////////////
 const PersistFactoryClass &
-TwiddlerClass::Get_Factory (void) const
+TwiddlerClass::Get_Factory () const
 {
 	return _TwiddlerPersistFactory;
 }

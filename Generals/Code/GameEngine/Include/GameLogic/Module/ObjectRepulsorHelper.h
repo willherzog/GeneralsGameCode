@@ -29,9 +29,6 @@
 
 #pragma once
 
-#ifndef __ObjectRepulsorHelper_H_
-#define __ObjectRepulsorHelper_H_
-
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/ObjectHelper.h"
 
@@ -55,9 +52,6 @@ public:
 	ObjectRepulsorHelper( Thing *thing, const ModuleData *modData ) : ObjectHelper( thing, modData ) { }
 	// virtual destructor prototype provided by memory pool object
 
-	virtual UpdateSleepTime update();
+	virtual UpdateSleepTime update() override;
 
 };
-
-
-#endif  // end __ObjectRepulsorHelper_H_

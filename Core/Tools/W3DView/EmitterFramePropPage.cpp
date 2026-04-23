@@ -44,9 +44,9 @@ IMPLEMENT_DYNCREATE(EmitterFramePropPageClass, CPropertyPage)
 /////////////////////////////////////////////////////////////
 EmitterFramePropPageClass::EmitterFramePropPageClass() :
 	CPropertyPage(EmitterFramePropPageClass::IDD),
-	m_pEmitterList(NULL),
+	m_pEmitterList(nullptr),
 	m_bValid(true),
-	m_FrameBar(NULL),
+	m_FrameBar(nullptr),
 	m_Lifetime(0),
 	m_MinFrame(0),
 	m_MaxFrame(1)
@@ -98,12 +98,12 @@ END_MESSAGE_MAP()
 //
 /////////////////////////////////////////////////////////////
 void
-EmitterFramePropPageClass::Initialize (void)
+EmitterFramePropPageClass::Initialize ()
 {
 	SAFE_DELETE_ARRAY (m_Frames.KeyTimes);
 	SAFE_DELETE_ARRAY (m_Frames.Values);
 
-	if (m_pEmitterList != NULL) {
+	if (m_pEmitterList != nullptr) {
 		m_Lifetime = m_pEmitterList->Get_Lifetime ();
 		m_pEmitterList->Get_Frame_Keyframes (m_Frames);
 
@@ -122,8 +122,6 @@ EmitterFramePropPageClass::Initialize (void)
 			}
 		}
 	}
-
-	return ;
 }
 
 
@@ -213,7 +211,7 @@ BOOL EmitterFramePropPageClass::OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* 
 	//	Update the spinner controls if necessary
 	//
 	NMHDR *pheader = (NMHDR *)lParam;
-	if ((pheader != NULL) && (pheader->code == UDN_DELTAPOS)) {
+	if ((pheader != nullptr) && (pheader->code == UDN_DELTAPOS)) {
 		LPNMUPDOWN pupdown = (LPNMUPDOWN)lParam;
 		::Update_Spinner_Buddy (pheader->hwndFrom, pupdown->iDelta);
 	}
@@ -315,7 +313,7 @@ BOOL EmitterFramePropPageClass::OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* 
 //
 /////////////////////////////////////////////////////////////
 void
-EmitterFramePropPageClass::Update_Frames (void)
+EmitterFramePropPageClass::Update_Frames ()
 {
 	float position = 0;
 	float red = 0;
@@ -351,8 +349,6 @@ EmitterFramePropPageClass::Update_Frames (void)
 			m_Frames.Values[index - 1] = Denormalize_Frame(m_FrameBar->Get_Graph_Percent (index) );
 		}
 	}
-
-	return ;
 }
 
 /////////////////////////////////////////////////////////////
@@ -415,6 +411,4 @@ EmitterFramePropPageClass::On_Lifetime_Changed (float lifetime)
 		m_pEmitterList->Set_Frame_Keyframes (m_Frames);
 		m_Lifetime = lifetime;
 	}
-
-	return ;
 }

@@ -29,9 +29,6 @@
 
 #pragma once
 
-#ifndef __StatusDamageHelper_H_
-#define __StatusDamageHelper_H_
-
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/ObjectHelper.h"
 
@@ -55,8 +52,8 @@ public:
 	StatusDamageHelper( Thing *thing, const ModuleData *modData );
 	// virtual destructor prototype provided by memory pool object
 
-	virtual DisabledMaskType getDisabledTypesToProcess() const { return DISABLEDMASK_ALL; }
-	virtual UpdateSleepTime update();
+	virtual DisabledMaskType getDisabledTypesToProcess() const override { return DISABLEDMASK_ALL; }
+	virtual UpdateSleepTime update() override;
 
 	void doStatusDamage( ObjectStatusTypes status, Real duration );
 
@@ -65,6 +62,3 @@ protected:
 	UnsignedInt m_frameToHeal;
 	void clearStatusCondition();
 };
-
-
-#endif  // end __StatusDamageHelper_H_

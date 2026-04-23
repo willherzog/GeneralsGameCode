@@ -34,13 +34,7 @@
  * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-#if defined(_MSC_VER)
 #pragma once
-#endif
-
-#ifndef __PRIM_ANIM_H
-#define __PRIM_ANIM_H
-
 
 #include "simplevec.h"
 #include "chunkio.h"
@@ -67,9 +61,9 @@ public:
 	/////////////////////////////////////////////////////////
 	//	Public constructors/destructors
 	/////////////////////////////////////////////////////////
-	PrimitiveAnimationChannelClass (void)
+	PrimitiveAnimationChannelClass ()
 		:	m_LastIndex (0)									{ }
-	virtual ~PrimitiveAnimationChannelClass (void)	{ Reset (); }
+	virtual ~PrimitiveAnimationChannelClass ()	{ Reset (); }
 
 	/////////////////////////////////////////////////////////
 	//	Public data types
@@ -77,16 +71,16 @@ public:
 	class KeyClass
 	{
 	public:
-		KeyClass (void)
+		KeyClass ()
 			:	m_Time (0) {}
 
 		KeyClass (const T &value, float time)
 			:	m_Value (value),
 				m_Time (time) {}
 
-		float			Get_Time (void) const		{ return m_Time; }
-		const T &	Get_Value (void) const		{ return m_Value; }
-		T &			Get_Value (void)				{ return m_Value; }
+		float			Get_Time () const		{ return m_Time; }
+		const T &	Get_Value () const		{ return m_Value; }
+		T &			Get_Value ()				{ return m_Value; }
 
 		float			Set_Time (float time)		{ m_Time = time; }
 		void			Set_Value (const T &value)	{ m_Value = value; }
@@ -107,14 +101,14 @@ public:
 	/////////////////////////////////////////////////////////
 	virtual T				Evaluate (float time) = 0;
 
-	int						Get_Key_Count (void) const;
+	int						Get_Key_Count () const;
 	const KeyClass &		Get_Key (int index) const;
 	void						Set_Key (int index, const T &value, float time);
 	void						Set_Key_Value (int index, const T &value);
 	void						Add_Key (const T &value, float time);
 	void						Insert_Key (int index, const T &value, float time);
 	void						Delete_Key (int index);
-	void						Reset (void);
+	void						Reset ();
 
 	virtual void			Save (ChunkSaveClass &csave);
 	virtual void			Load (ChunkLoadClass &cload);
@@ -170,7 +164,7 @@ public:
 	/////////////////////////////////////////////////////////
 	//	Public methods
 	/////////////////////////////////////////////////////////
-	virtual T Evaluate (float time);
+	virtual T Evaluate (float time) override;
 };
 
 
@@ -178,7 +172,7 @@ public:
 //	Set_Key
 /////////////////////////////////////////////////////////
 template<class T>
-int PrimitiveAnimationChannelClass<T>::Get_Key_Count (void) const
+int PrimitiveAnimationChannelClass<T>::Get_Key_Count () const
 {
 	return m_Data.Count ();
 }
@@ -200,7 +194,6 @@ void PrimitiveAnimationChannelClass<T>::Set_Key (int index, const T &value, floa
 {
 	m_Data[index].Set_Value (value);
 	m_Data[index].Set_Time (time);
-	return ;
 }
 
 /////////////////////////////////////////////////////////
@@ -210,7 +203,6 @@ template<class T>
 void PrimitiveAnimationChannelClass<T>::Set_Key_Value (int index, const T &value)
 {
 	m_Data[index].Set_Value (value);
-	return ;
 }
 
 /////////////////////////////////////////////////////////
@@ -220,7 +212,6 @@ template<class T>
 void PrimitiveAnimationChannelClass<T>::Add_Key (const T &value, float time)
 {
 	m_Data.Add (KeyClass (value, time));
-	return ;
 }
 
 /////////////////////////////////////////////////////////
@@ -230,7 +221,6 @@ template<class T>
 void PrimitiveAnimationChannelClass<T>::Insert_Key (int index, const T &value, float time)
 {
 	m_Data.Insert (index, KeyClass (value, time));
-	return ;
 }
 
 /////////////////////////////////////////////////////////
@@ -240,18 +230,16 @@ template<class T>
 void PrimitiveAnimationChannelClass<T>::Delete_Key (int index)
 {
 	m_Data.Delete (index);
-	return ;
 }
 
 /////////////////////////////////////////////////////////
 //	Reset
 /////////////////////////////////////////////////////////
 template<class T>
-void PrimitiveAnimationChannelClass<T>::Reset (void)
+void PrimitiveAnimationChannelClass<T>::Reset ()
 {
 	m_Data.Delete_All ();
 	m_LastIndex = 0;
-	return ;
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -290,8 +278,6 @@ PrimitiveAnimationChannelClass<T>::Save (ChunkSaveClass &csave)
 		}
 
 	csave.End_Chunk ();
-
-	return ;
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -312,8 +298,6 @@ PrimitiveAnimationChannelClass<T>::Load (ChunkLoadClass &cload)
 
 		cload.Close_Chunk ();
 	}
-
-	return ;
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -339,8 +323,6 @@ PrimitiveAnimationChannelClass<T>::Load_Variables (ChunkLoadClass &cload)
 
 		cload.Close_Micro_Chunk ();
 	}
-
-	return ;
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -387,5 +369,3 @@ LERPAnimationChannelClass<T>::Evaluate (float time)
 
 	return value;
 }
-
-#endif //__PRIM_ANIM_H

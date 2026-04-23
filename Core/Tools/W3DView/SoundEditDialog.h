@@ -16,13 +16,7 @@
 **	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if !defined(AFX_SOUNDEDITDIALOG_H__376FEA4C_0A53_44FB_A6B5_DF0E96CF1DEF__INCLUDED_)
-#define AFX_SOUNDEDITDIALOG_H__376FEA4C_0A53_44FB_A6B5_DF0E96CF1DEF__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
-
 
 #include "wwstring.h"
 #include "resource.h"
@@ -43,7 +37,7 @@ class SoundEditDialogClass : public CDialog
 {
 public:
 	SoundEditDialogClass (CWnd *parent);
-	virtual ~SoundEditDialogClass (void);
+	virtual ~SoundEditDialogClass ();
 
 // Form Data
 public:
@@ -91,15 +85,15 @@ public:
 	//	Public methods
 	///////////////////////////////////////////////////////
 	void							Set_Sound (SoundRenderObjClass *sound)	{ REF_PTR_SET (SoundRObj, sound); }
-	SoundRenderObjClass *	Get_Sound (void) const						{ if (SoundRObj != NULL) SoundRObj->Add_Ref (); return SoundRObj; }
+	SoundRenderObjClass *	Get_Sound () const						{ if (SoundRObj != nullptr) SoundRObj->Add_Ref (); return SoundRObj; }
 
 protected:
 
 	///////////////////////////////////////////////////////
 	//	Protected methods
 	///////////////////////////////////////////////////////
-	void							Update_Enable_State (void);
-	AudibleSoundClass *		Create_Sound_Object (void);
+	void							Update_Enable_State ();
+	AudibleSoundClass *		Create_Sound_Object ();
 
 private:
 
@@ -113,5 +107,3 @@ private:
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
-
-#endif // !defined(AFX_SOUNDEDITDIALOG_H__376FEA4C_0A53_44FB_A6B5_DF0E96CF1DEF__INCLUDED_)

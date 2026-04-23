@@ -26,7 +26,7 @@
 // Implementation of the message stream
 // Author: Michael S. Booth, February 2001
 
-#include "PreRTS.h"	// This must go first in EVERY cpp file int the GameEngine
+#include "PreRTS.h"	// This must go first in EVERY cpp file in the GameEngine
 
 #include "Common/MessageStream.h"
 #include "Common/Player.h"
@@ -37,8 +37,8 @@
 #include "GameLogic/GameLogic.h"
 
 /// The singleton message stream for messages going to TheGameLogic
-MessageStream *TheMessageStream = NULL;
-CommandList *TheCommandList = NULL;
+MessageStream *TheMessageStream = nullptr;
+CommandList *TheCommandList = nullptr;
 
 
 
@@ -56,17 +56,17 @@ GameMessage::GameMessage( GameMessage::Type type )
 {
 	m_playerIndex = ThePlayerList->getLocalPlayer()->getPlayerIndex();
 	m_type = type;
-	m_argList = NULL;
-	m_argTail = NULL;
+	m_argList = nullptr;
+	m_argTail = nullptr;
 	m_argCount = 0;
-	m_list = 0;
+	m_list = nullptr;
 }
 
 
 /**
  * Destructor
  */
-GameMessage::~GameMessage( )
+GameMessage::~GameMessage()
 {
 	// free all arguments
 	GameMessageArgument *arg, *nextArg;
@@ -88,21 +88,20 @@ GameMessage::~GameMessage( )
  */
 const GameMessageArgumentType *GameMessage::getArgument( Int argIndex ) const
 {
-	static const GameMessageArgumentType junk = { 0 };
-
 	int i=0;
 	for( GameMessageArgument *a = m_argList; a; a=a->m_next, i++ )
 		if (i == argIndex)
 			return &a->m_data;
 
 	DEBUG_CRASH(("argument not found"));
-	return &junk;
+	static const GameMessageArgumentType zero = { 0 };
+	return &zero;
 }
 
 /**
  * Return the given argument data type
  */
-GameMessageArgumentDataType GameMessage::getArgumentDataType( Int argIndex )
+GameMessageArgumentDataType GameMessage::getArgumentDataType( Int argIndex ) const
 {
 	if (argIndex >= m_argCount) {
 		return ARGUMENTDATATYPE_UNKNOWN;
@@ -111,7 +110,7 @@ GameMessageArgumentDataType GameMessage::getArgumentDataType( Int argIndex )
 	GameMessageArgument *a = m_argList;
 	for (; a && (i < argIndex); a=a->m_next, ++i );
 
-	if (a != NULL)
+	if (a != nullptr)
 	{
 		return a->m_type;
 	}
@@ -121,7 +120,7 @@ GameMessageArgumentDataType GameMessage::getArgumentDataType( Int argIndex )
 /**
  * Allocate a new argument, add it to the argument list, and increment the total arg count
  */
-GameMessageArgument *GameMessage::allocArg( void )
+GameMessageArgument *GameMessage::allocArg()
 {
 	// allocate a new argument
 	GameMessageArgument *arg = newInstance(GameMessageArgument);
@@ -135,7 +134,7 @@ GameMessageArgument *GameMessage::allocArg( void )
 		m_argTail = arg;
 	}
 
-	arg->m_next = NULL;
+	arg->m_next = nullptr;
 	m_argTail = arg;
 
 	m_argCount++;
@@ -223,7 +222,7 @@ void GameMessage::appendWideCharArgument( const WideChar& arg )
 	a->m_type = ARGUMENTDATATYPE_WIDECHAR;
 }
 
-const char *GameMessage::getCommandAsString( void ) const
+const char *GameMessage::getCommandAsString() const
 {
 	return getCommandTypeAsString(m_type);
 }
@@ -326,6 +325,7 @@ const char *GameMessage::getCommandTypeAsString(GameMessage::Type t)
 	CASE_LABEL(MSG_META_SELECT_PREV_UNIT)
 	CASE_LABEL(MSG_META_SELECT_NEXT_WORKER)
 	CASE_LABEL(MSG_META_SELECT_PREV_WORKER)
+	CASE_LABEL(MSG_META_SELECT_NEXT_IDLE_WORKER)
 	CASE_LABEL(MSG_META_VIEW_COMMAND_CENTER)
 	CASE_LABEL(MSG_META_VIEW_LAST_RADAR_EVENT)
 	CASE_LABEL(MSG_META_SELECT_HERO)
@@ -346,8 +346,13 @@ const char *GameMessage::getCommandTypeAsString(GameMessage::Type t)
 	CASE_LABEL(MSG_META_HELP)
 #endif
 
+	CASE_LABEL(MSG_META_INCREASE_MAX_RENDER_FPS)
+	CASE_LABEL(MSG_META_DECREASE_MAX_RENDER_FPS)
+	CASE_LABEL(MSG_META_INCREASE_LOGIC_TIME_SCALE)
+	CASE_LABEL(MSG_META_DECREASE_LOGIC_TIME_SCALE)
 	CASE_LABEL(MSG_META_TOGGLE_LOWER_DETAILS)
 	CASE_LABEL(MSG_META_TOGGLE_CONTROL_BAR)
+	CASE_LABEL(MSG_META_TOGGLE_PLAYER_OBSERVER)
 	CASE_LABEL(MSG_META_BEGIN_PATH_BUILD)
 	CASE_LABEL(MSG_META_END_PATH_BUILD)
 	CASE_LABEL(MSG_META_BEGIN_FORCEATTACK)
@@ -363,8 +368,10 @@ const char *GameMessage::getCommandTypeAsString(GameMessage::Type t)
 	CASE_LABEL(MSG_META_TOGGLE_ATTACKMOVE)
 	CASE_LABEL(MSG_META_BEGIN_CAMERA_ROTATE_LEFT)
 	CASE_LABEL(MSG_META_END_CAMERA_ROTATE_LEFT)
+	CASE_LABEL(MSG_META_ALT_CAMERA_ROTATE_LEFT)
 	CASE_LABEL(MSG_META_BEGIN_CAMERA_ROTATE_RIGHT)
 	CASE_LABEL(MSG_META_END_CAMERA_ROTATE_RIGHT)
+	CASE_LABEL(MSG_META_ALT_CAMERA_ROTATE_RIGHT)
 	CASE_LABEL(MSG_META_BEGIN_CAMERA_ZOOM_IN)
 	CASE_LABEL(MSG_META_END_CAMERA_ZOOM_IN)
 	CASE_LABEL(MSG_META_BEGIN_CAMERA_ZOOM_OUT)
@@ -372,7 +379,9 @@ const char *GameMessage::getCommandTypeAsString(GameMessage::Type t)
 	CASE_LABEL(MSG_META_CAMERA_RESET)
 	CASE_LABEL(MSG_META_TOGGLE_FAST_FORWARD_REPLAY)
 	CASE_LABEL(MSG_META_TOGGLE_PAUSE)
+	CASE_LABEL(MSG_META_TOGGLE_PAUSE_ALT)
 	CASE_LABEL(MSG_META_STEP_FRAME)
+	CASE_LABEL(MSG_META_STEP_FRAME_ALT)
 
 #if defined(RTS_DEBUG)
 	CASE_LABEL(MSG_META_DEMO_TOGGLE_BEHIND_BUILDINGS)
@@ -412,6 +421,8 @@ const char *GameMessage::getCommandTypeAsString(GameMessage::Type t)
 	CASE_LABEL(MSG_META_DEMO_PLAY_OBJECTIVE_MOVIE6)
 	CASE_LABEL(MSG_META_DEMO_BEGIN_ADJUST_PITCH)
 	CASE_LABEL(MSG_META_DEMO_END_ADJUST_PITCH)
+	CASE_LABEL(MSG_META_DEMO_BEGIN_ADJUST_DEFAULTPITCH)
+	CASE_LABEL(MSG_META_DEMO_END_ADJUST_DEFAULTPITCH)
 	CASE_LABEL(MSG_META_DEMO_BEGIN_ADJUST_FOV)
 	CASE_LABEL(MSG_META_DEMO_END_ADJUST_FOV)
 	CASE_LABEL(MSG_META_DEMO_LOCK_CAMERA_TO_PLANES)
@@ -669,10 +680,10 @@ const char *GameMessage::getCommandTypeAsString(GameMessage::Type t)
 /**
  * Constructor
  */
-GameMessageList::GameMessageList( void )
+GameMessageList::GameMessageList()
 {
-	m_firstMessage = 0;
-	m_lastMessage = 0;
+	m_firstMessage = nullptr;
+	m_lastMessage = nullptr;
 }
 
 /**
@@ -687,7 +698,7 @@ GameMessageList::~GameMessageList()
 		nextMsg = msg->next();
 		// set list ptr to null to avoid it trying to remove itself from the list
 		// that we are in the process of nuking...
-		msg->friend_setList(NULL);
+		msg->friend_setList(nullptr);
 		deleteInstance(msg);
 	}
 }
@@ -697,7 +708,7 @@ GameMessageList::~GameMessageList()
  */
 void GameMessageList::appendMessage( GameMessage *msg )
 {
-	msg->friend_setNext(NULL);
+	msg->friend_setNext(nullptr);
 
 	if (m_lastMessage)
 	{
@@ -710,7 +721,7 @@ void GameMessageList::appendMessage( GameMessage *msg )
 		// first message
 		m_firstMessage = msg;
 		m_lastMessage = msg;
-		msg->friend_setPrev(NULL);
+		msg->friend_setPrev(nullptr);
 	}
 
 	// note containment within message itself
@@ -756,7 +767,7 @@ void GameMessageList::removeMessage( GameMessage *msg )
 	else
 		m_firstMessage = msg->next();
 
-	msg->friend_setList(NULL);
+	msg->friend_setList(nullptr);
 }
 
 /**
@@ -782,9 +793,9 @@ Bool GameMessageList::containsMessageOfType( GameMessage::Type type )
 /**
  * Constructor
  */
-MessageStream::MessageStream( void )
+MessageStream::MessageStream()
 {
-	m_firstTranslator = 0;
+	m_firstTranslator = nullptr;
 	m_nextTranslatorID = 1;
 }
 
@@ -805,7 +816,7 @@ MessageStream::~MessageStream()
 /**
 	* Init
 	*/
-void MessageStream::init( void )
+void MessageStream::init()
 {
 	// extend
 	GameMessageList::init();
@@ -814,7 +825,7 @@ void MessageStream::init( void )
 /**
 	* Reset
 	*/
-void MessageStream::reset( void )
+void MessageStream::reset()
 {
 
 	/// @todo Reset the MessageStream
@@ -827,7 +838,7 @@ void MessageStream::reset( void )
 /**
 	* Update
 	*/
-void MessageStream::update( void )
+void MessageStream::update()
 {
 	// extend
 	GameMessageList::update();
@@ -851,7 +862,7 @@ GameMessage *MessageStream::appendMessage( GameMessage::Type type )
 
 /**
  * Create a new message of the given message type and insert it
- * in the stream after messageToInsertAfter, which must not be NULL.
+ * in the stream after messageToInsertAfter, which must not be nullptr.
  */
 GameMessage *MessageStream::insertMessage( GameMessage::Type type, GameMessage *messageToInsertAfter )
 {
@@ -879,17 +890,17 @@ TranslatorID MessageStream::attachTranslator( GameMessageTranslator *translator,
 	newSS->m_priority = priority;
 	newSS->m_id = m_nextTranslatorID++;
 
-	if (m_firstTranslator == NULL)
+	if (m_firstTranslator == nullptr)
 	{
 		// first Translator to be attached
-		newSS->m_prev = NULL;
-		newSS->m_next = NULL;
+		newSS->m_prev = nullptr;
+		newSS->m_next = nullptr;
 		m_firstTranslator = newSS;
 		m_lastTranslator = newSS;
 		return newSS->m_id;
 	}
 
-	// seach the Translator list for our priority location
+	// search the Translator list for our priority location
 	for( ss=m_firstTranslator; ss; ss=ss->m_next )
 		if (ss->m_priority > newSS->m_priority)
 			break;
@@ -908,7 +919,7 @@ TranslatorID MessageStream::attachTranslator( GameMessageTranslator *translator,
 		else
 		{
 			// insert at head of list
-			newSS->m_prev = NULL;
+			newSS->m_prev = nullptr;
 			newSS->m_next = m_firstTranslator;
 			m_firstTranslator->m_prev = newSS;
 			m_firstTranslator = newSS;
@@ -919,7 +930,7 @@ TranslatorID MessageStream::attachTranslator( GameMessageTranslator *translator,
 		// append Translator to end of list
 		m_lastTranslator->m_next = newSS;
 		newSS->m_prev = m_lastTranslator;
-		newSS->m_next = NULL;
+		newSS->m_next = nullptr;
 		m_lastTranslator = newSS;
 	}
 
@@ -941,7 +952,7 @@ GameMessageTranslator* MessageStream::findTranslator( TranslatorID id )
 
 	}
 
-	return NULL;
+	return nullptr;
 
 }
 
@@ -1056,7 +1067,7 @@ Bool isInvalidDebugCommand( GameMessage::Type t )
  * Once all Translators have evaluated the message stream, all messages
  * in the stream are destroyed.
  */
-void MessageStream::propagateMessages( void )
+void MessageStream::propagateMessages()
 {
 	MessageStream::TranslatorData *ss;
 	GameMessage *msg, *next;
@@ -1091,8 +1102,8 @@ void MessageStream::propagateMessages( void )
 	TheCommandList->appendMessageList( m_firstMessage );
 
 	// clear the stream
-	m_firstMessage = NULL;
-	m_lastMessage = NULL;
+	m_firstMessage = nullptr;
+	m_lastMessage = nullptr;
 
 }
 
@@ -1104,7 +1115,7 @@ void MessageStream::propagateMessages( void )
 /**
  * Constructor
  */
-CommandList::CommandList( void )
+CommandList::CommandList()
 {
 }
 
@@ -1119,7 +1130,7 @@ CommandList::~CommandList()
 /**
 	* Init
 	*/
-void CommandList::init( void )
+void CommandList::init()
 {
 
 	// extend
@@ -1130,7 +1141,7 @@ void CommandList::init( void )
 /**
 	* Destroy all messages on the list, and reset list to empty
 	*/
-void CommandList::reset( void )
+void CommandList::reset()
 {
 
 	// extend
@@ -1144,7 +1155,7 @@ void CommandList::reset( void )
 /**
 	* Update
 	*/
-void CommandList::update( void )
+void CommandList::update()
 {
 
 	// extend
@@ -1156,7 +1167,7 @@ void CommandList::update( void )
 	* Destroy all messages on the command list, this will get called from the
 	* destructor and reset methods, DO NOT throw exceptions
 	*/
-void CommandList::destroyAllMessages( void )
+void CommandList::destroyAllMessages()
 {
 	GameMessage *msg, *next;
 
@@ -1166,8 +1177,8 @@ void CommandList::destroyAllMessages( void )
 		deleteInstance(msg);
 	}
 
-	m_firstMessage = NULL;
-	m_lastMessage = NULL;
+	m_firstMessage = nullptr;
+	m_lastMessage = nullptr;
 
 }
 

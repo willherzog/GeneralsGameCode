@@ -46,9 +46,6 @@
 
 #pragma once
 
-#ifndef __SUB_OBJECTS_UPGRADE_H
-#define __SUB_OBJECTS_UPGRADE_H
-
 //-----------------------------------------------------------------------------
 // USER INCLUDES //////////////////////////////////////////////////////////////
 //-----------------------------------------------------------------------------
@@ -84,11 +81,7 @@ public:
 	// virtual destructor prototype defined by MemoryPoolObject
 
 protected:
-	virtual void upgradeImplementation( ); ///< Here's the actual work of Upgrading
-	virtual Bool isSubObjectsUpgrade() { return true; }
+	virtual void upgradeImplementation( ) override; ///< Here's the actual work of Upgrading
+	virtual Bool isSubObjectsUpgrade() override { return true; }
 
 };
-
-#endif
-
-

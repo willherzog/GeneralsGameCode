@@ -31,9 +31,6 @@
 
 #pragma once
 
-#ifndef __GUICOMMANDTRANSLATOR_H_
-#define __GUICOMMANDTRANSLATOR_H_
-
 // USER INCLUDES //////////////////////////////////////////////////////////////////////////////////
 #include "GameClient/InGameUI.h"
 
@@ -44,12 +41,8 @@ class GUICommandTranslator : public GameMessageTranslator
 
 public:
 
-	GUICommandTranslator( void );
-	~GUICommandTranslator( void );
+	GUICommandTranslator();
+	virtual ~GUICommandTranslator() override;
 
-	virtual GameMessageDisposition translateGameMessage( const GameMessage *msg );
+	virtual GameMessageDisposition translateGameMessage( const GameMessage *msg ) override;
 };
-
-#endif  // end __GUICOMMANDTRANSLATOR_H_
-
-

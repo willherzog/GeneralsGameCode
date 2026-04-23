@@ -33,9 +33,6 @@
 
 #pragma once
 
-#ifndef CONVERT_TO_HIJACKED_VEHICLE_CRATE_COLLIDE_H_
-#define CONVERT_TO_HIJACKED_VEHICLE_CRATE_COLLIDE_H_
-
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common/Module.h"
 #include "GameLogic/Module/CrateCollide.h"
@@ -76,12 +73,10 @@ public:
 protected:
 
 	/// This allows specific vetoes to certain types of crates and their data
-	virtual Bool isValidToExecute( const Object *other ) const;
+	virtual Bool isValidToExecute( const Object *other ) const override;
 
 	/// This is the game logic execution function that all real CrateCollides will implement
-	virtual Bool executeCrateBehavior( Object *other );
+	virtual Bool executeCrateBehavior( Object *other ) override;
 
-	virtual Bool isHijackedVehicleCrateCollide() const { return TRUE; }
+	virtual Bool isHijackedVehicleCrateCollide() const override { return TRUE; }
 };
-
-#endif

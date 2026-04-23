@@ -30,14 +30,9 @@
  * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-#if defined(_MSC_VER)
 #pragma once
-#endif
 
-#ifndef __EMITTER_INSTANCE_LIST_H
-#define __EMITTER_INSTANCE_LIST_H
-
-#include "Vector.H"
+#include "Vector.h"
 #include "part_ldr.h"
 #include "part_emt.h"
 
@@ -54,17 +49,17 @@ class EmitterInstanceListClass : public ParticleEmitterDefClass
 		///////////////////////////////////////////////////////
 		// Public constructors/destructors
 		///////////////////////////////////////////////////////
-		EmitterInstanceListClass (void)		{ }
+		EmitterInstanceListClass ()		{ }
 		EmitterInstanceListClass (const EmitterInstanceListClass &src)
 			: ParticleEmitterDefClass (src)	{ }
 
-		virtual ~EmitterInstanceListClass (void);
+		virtual ~EmitterInstanceListClass ();
 
 		///////////////////////////////////////////////////////
 		// Public methods
 		///////////////////////////////////////////////////////
 		virtual void			Add_Emitter (ParticleEmitterClass *emitter);
-		virtual void			Free_List (void);
+		virtual void			Free_List ();
 
 		///////////////////////////////////////////////////////
 		// Derived overrides
@@ -110,5 +105,3 @@ class EmitterInstanceListClass : public ParticleEmitterDefClass
 
 		DynamicVectorClass<ParticleEmitterClass *>	m_List;
 };
-
-#endif //__EMITTER_INSTANCE_LIST_H

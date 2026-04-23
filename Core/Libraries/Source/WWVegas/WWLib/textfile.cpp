@@ -41,9 +41,8 @@
 //	TextFileClass
 //
 ///////////////////////////////////////////////////////////////////////////////
-TextFileClass::TextFileClass (void)
+TextFileClass::TextFileClass ()
 {
-	return ;
 }
 
 
@@ -55,7 +54,6 @@ TextFileClass::TextFileClass (void)
 TextFileClass::TextFileClass (char const *filename)
 	:	RawFileClass (filename)
 {
-	return ;
 }
 
 
@@ -64,9 +62,8 @@ TextFileClass::TextFileClass (char const *filename)
 //	~TextFileClass
 //
 ///////////////////////////////////////////////////////////////////////////////
-TextFileClass::~TextFileClass (void)
+TextFileClass::~TextFileClass ()
 {
-	return ;
 }
 
 
@@ -130,7 +127,7 @@ TextFileClass::Read_Line (StringClass &string)
 		}
 	}
 
-	bool retval = (string.Get_Length () > 0);
+	bool retval = (!string.Is_Empty());
 	if (retval) {
 
 		int len				= string.Get_Length ();

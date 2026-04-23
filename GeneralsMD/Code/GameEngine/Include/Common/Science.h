@@ -24,13 +24,10 @@
 
 // FILE: Science.h ////////////////////////////////////////////////////////////////////////////////
 // Author: Steven Johnson, Colin Day November 2001
-// Desc:   Science descriptoins
+// Desc:   Science descriptions
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-
-#ifndef __SCIENCE_H_
-#define __SCIENCE_H_
 
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common/Overridable.h"
@@ -81,11 +78,11 @@ class ScienceStore : public SubsystemInterface
 	friend class ScienceInfo;
 
 public:
-	virtual ~ScienceStore();
+	virtual ~ScienceStore() override;
 
-	void init();
-	void reset();
-	void update() { }
+	virtual void init() override;
+	virtual void reset() override;
+	virtual void update() override { }
 
 	Bool isValidScience(ScienceType st) const;
 
@@ -134,7 +131,3 @@ private:
 };
 
 extern ScienceStore* TheScienceStore;
-
-
-#endif // __SCIENCE_H_
-

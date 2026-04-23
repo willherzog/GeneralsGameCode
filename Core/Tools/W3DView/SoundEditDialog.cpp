@@ -59,12 +59,11 @@ static char THIS_FILE[] = __FILE__;
 //
 /////////////////////////////////////////////////////////////////////////////
 SoundEditDialogClass::SoundEditDialogClass (CWnd *parent)
-	:	SoundRObj (NULL),
+	:	SoundRObj (nullptr),
 		CDialog (SoundEditDialogClass::IDD, parent)
 {
 	//{{AFX_DATA_INIT(SoundEditDialogClass)
 	//}}AFX_DATA_INIT
-	return ;
 }
 
 
@@ -73,10 +72,9 @@ SoundEditDialogClass::SoundEditDialogClass (CWnd *parent)
 // ~SoundEditDialogClass
 //
 /////////////////////////////////////////////////////////////////////////////
-SoundEditDialogClass::~SoundEditDialogClass (void)
+SoundEditDialogClass::~SoundEditDialogClass ()
 {
 	REF_PTR_RELEASE (SoundRObj);
-	return;
 }
 
 
@@ -93,7 +91,6 @@ SoundEditDialogClass::DoDataExchange (CDataExchange* pDX)
 	DDX_Control(pDX, IDC_VOLUME_SLIDER, VolumeSlider);
 	DDX_Control(pDX, IDC_PRIORITY_SLIDER, PrioritySlider);
 	//}}AFX_DATA_MAP
-	return ;
 }
 
 
@@ -132,14 +129,14 @@ void SoundEditDialogClass::Dump(CDumpContext& dc) const
 //
 /////////////////////////////////////////////////////////////////////////////
 BOOL
-SoundEditDialogClass::OnInitDialog (void)
+SoundEditDialogClass::OnInitDialog ()
 {
 	CDialog::OnInitDialog ();
 
 	//
 	//	Create the reneder object if we don't already have one
 	//
-	if (SoundRObj == NULL) {
+	if (SoundRObj == nullptr) {
 		SoundRObj = new SoundRenderObjClass;
 	}
 
@@ -161,18 +158,18 @@ SoundEditDialogClass::OnInitDialog (void)
 	// Get the real settings from the sound object (if we have one)
 	//
 	AudibleSoundClass *sound = SoundRObj->Peek_Sound ();
-	if (sound != NULL) {
+	if (sound != nullptr) {
 
 		Sound3DClass *sound_3d = sound->As_Sound3DClass ();
 		filename				= sound->Get_Filename ();
 		drop_off_radius	= sound->Get_DropOff_Radius ();
 		priority				= sound->Peek_Priority ();
-		is_3d					= (sound_3d != NULL);
+		is_3d					= (sound_3d != nullptr);
 		is_music				= (sound->Get_Type () == AudibleSoundClass::TYPE_MUSIC);
 		loop_count			= sound->Get_Loop_Count ();
 		volume				= sound->Get_Volume ();
 
-		if (sound_3d != NULL) {
+		if (sound_3d != nullptr) {
 			max_vol_radius	= sound_3d->Get_Max_Vol_Radius ();
 		}
 	}
@@ -223,7 +220,7 @@ SoundEditDialogClass::OnInitDialog (void)
 //
 /////////////////////////////////////////////////////////////////////////////
 void
-SoundEditDialogClass::OnOK (void)
+SoundEditDialogClass::OnOK ()
 {
 	CString name;
 	GetDlgItemText (IDC_NAME_EDIT, name);
@@ -267,7 +264,7 @@ SoundEditDialogClass::OnOK (void)
 	//	Add this sound object to the viewer
 	//
 	CW3DViewDoc *doc = ::GetCurrentDocument ();
-	if (doc != NULL) {
+	if (doc != nullptr) {
 
 		//
 		// Create a new prototype for this emitter and add it to the asset manager
@@ -278,7 +275,7 @@ SoundEditDialogClass::OnOK (void)
 		//
 		// Update the asset manager with the new prototype
 		//
-		if (OldName.Get_Length () > 0) {
+		if (!OldName.Is_Empty()) {
 			WW3DAssetManager::Get_Instance()->Remove_Prototype (OldName);
 		}
 		WW3DAssetManager::Get_Instance()->Add_Prototype (prototype);
@@ -297,7 +294,6 @@ SoundEditDialogClass::OnOK (void)
 	}
 
 	CDialog::OnOK ();
-	return ;
 }
 
 
@@ -307,9 +303,9 @@ SoundEditDialogClass::OnOK (void)
 //
 /////////////////////////////////////////////////////////////////////////////
 AudibleSoundClass *
-SoundEditDialogClass::Create_Sound_Object (void)
+SoundEditDialogClass::Create_Sound_Object ()
 {
-	AudibleSoundClass *sound = NULL;
+	AudibleSoundClass *sound = nullptr;
 
 	//
 	// Get the filename
@@ -328,7 +324,7 @@ SoundEditDialogClass::Create_Sound_Object (void)
 		sound = WWAudioClass::Get_Instance ()->Create_Sound_Effect (filename);
 	}
 
-	if (sound != NULL) {
+	if (sound != nullptr) {
 
 		//
 		// Pass the new volume and priority onto the sound
@@ -380,7 +376,7 @@ SoundEditDialogClass::Create_Sound_Object (void)
 //
 /////////////////////////////////////////////////////////////////////////////
 void
-SoundEditDialogClass::OnBrowse (void)
+SoundEditDialogClass::OnBrowse ()
 {
 	//
 	// Determine what filename and path to initially display in the dialog
@@ -413,8 +409,6 @@ SoundEditDialogClass::OnBrowse (void)
 		//
 		SetDlgItemText (IDC_FILENAME_EDIT, ::Get_Filename_From_Path (dialog.GetPathName ()));
 	}
-
-	return ;
 }
 
 
@@ -424,10 +418,9 @@ SoundEditDialogClass::OnBrowse (void)
 //
 /////////////////////////////////////////////////////////////////////////////
 void
-SoundEditDialogClass::On2DRadio (void)
+SoundEditDialogClass::On2DRadio ()
 {
 	Update_Enable_State ();
-	return ;
 }
 
 
@@ -437,10 +430,9 @@ SoundEditDialogClass::On2DRadio (void)
 //
 /////////////////////////////////////////////////////////////////////////////
 void
-SoundEditDialogClass::On3DRadio (void)
+SoundEditDialogClass::On3DRadio ()
 {
 	Update_Enable_State ();
-	return ;
 }
 
 
@@ -450,14 +442,13 @@ SoundEditDialogClass::On3DRadio (void)
 //
 /////////////////////////////////////////////////////////////////////////////
 void
-SoundEditDialogClass::Update_Enable_State (void)
+SoundEditDialogClass::Update_Enable_State ()
 {
 	bool enable_3d = (SendDlgItemMessage (IDC_3D_RADIO, BM_GETCHECK) == 1);
 
 	::EnableWindow (::GetDlgItem (m_hWnd, IDC_MAX_VOL_EDIT), enable_3d);
 	::EnableWindow (::GetDlgItem (m_hWnd, IDC_DROP_OFF_EDIT), enable_3d);
 	::EnableWindow (::GetDlgItem (m_hWnd, IDC_TRIGGER_RADIUS_EDIT), !enable_3d);
-	return ;
 }
 
 
@@ -467,7 +458,7 @@ SoundEditDialogClass::Update_Enable_State (void)
 //
 /////////////////////////////////////////////////////////////////////////////
 void
-SoundEditDialogClass::OnPlay (void)
+SoundEditDialogClass::OnPlay ()
 {
 	//
 	//	Get the current filename
@@ -480,7 +471,6 @@ SoundEditDialogClass::OnPlay (void)
 	//
 	PlaySoundDialogClass dialog (filename, this);
 	dialog.DoModal ();
-	return ;
 }
 
 
@@ -490,8 +480,7 @@ SoundEditDialogClass::OnPlay (void)
 //
 /////////////////////////////////////////////////////////////////////////////
 void
-SoundEditDialogClass::OnCancel (void)
+SoundEditDialogClass::OnCancel ()
 {
 	CDialog::OnCancel ();
-	return ;
 }

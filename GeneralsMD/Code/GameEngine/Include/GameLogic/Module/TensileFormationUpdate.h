@@ -29,9 +29,6 @@
 
 #pragma once
 
-#ifndef __TENSILEFORMATIONUPDATE_H_
-#define __TENSILEFORMATIONUPDATE_H_
-
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/UpdateModule.h"
 
@@ -44,7 +41,7 @@ class TensileFormationUpdateModuleData: public UpdateModuleData
 
 public:
 
-	TensileFormationUpdateModuleData( void );
+	TensileFormationUpdateModuleData();
 
 	static void buildFieldParse(MultiIniFieldParse& p);
 
@@ -66,12 +63,12 @@ public:
 	// virtual destructor prototype provided by memory pool declaration
 
 	void setEnabled( Bool enabled ) { m_enabled = enabled; }  ///< enable/disable formation
-	virtual UpdateSleepTime update();	///< Deciding whether or not to make new guys
+	virtual UpdateSleepTime update() override;	///< Deciding whether or not to make new guys
 
 protected:
 
 	void propagateDislodgement( Bool enabled );
-	void initLinks( void );
+	void initLinks();
 
 	struct TensileLink
 	{
@@ -90,5 +87,3 @@ protected:
 	AudioEventRTS				m_crackSound;
 
 };
-
-#endif  // end __TENSILEFORMATIONUPDATE_H_

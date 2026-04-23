@@ -16,12 +16,8 @@
 **	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if !defined(AFX_EMITTERPHYSICSPROPPAGE_H__83A8B83E_BA3B_11D2_9FFA_00104B791122__INCLUDED_)
-#define AFX_EMITTERPHYSICSPROPPAGE_H__83A8B83E_BA3B_11D2_9FFA_00104B791122__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
+
 // EmitterPhysicsPropPage.h : header file
 //
 
@@ -41,7 +37,7 @@ class EmitterPhysicsPropPageClass : public CPropertyPage
 
 // Construction
 public:
-	EmitterPhysicsPropPageClass (EmitterInstanceListClass *pemitter_list = NULL);
+	EmitterPhysicsPropPageClass (EmitterInstanceListClass *pemitter_list = nullptr);
 	~EmitterPhysicsPropPageClass ();
 
 // Dialog Data
@@ -88,15 +84,15 @@ protected:
 		//
 		//	Inline accessors
 		//
-		EmitterInstanceListClass *	Get_Emitter (void) const { return m_pEmitterList; }
+		EmitterInstanceListClass *	Get_Emitter () const { return m_pEmitterList; }
 		void								Set_Emitter (EmitterInstanceListClass *pemitter_list) { m_pEmitterList = pemitter_list; Initialize (); }
-		bool								Is_Data_Valid (void) const { return m_bValid; }
+		bool								Is_Data_Valid () const { return m_bValid; }
 
-		Vector3Randomizer *			Get_Velocity_Random (void) const	{ return m_Randomizer; }
-		const Vector3 &				Get_Velocity (void) const			{ return m_Velocity; }
-		const Vector3 &				Get_Acceleration (void) const		{ return m_Acceleration; }
-		float								Get_Out_Factor (void) const		{ return m_OutFactor; }
-		float								Get_Inheritance_Factor (void) const	{ return m_InheritanceFactor; }
+		Vector3Randomizer *			Get_Velocity_Random () const	{ return m_Randomizer; }
+		const Vector3 &				Get_Velocity () const			{ return m_Velocity; }
+		const Vector3 &				Get_Acceleration () const		{ return m_Acceleration; }
+		float								Get_Out_Factor () const		{ return m_OutFactor; }
+		float								Get_Inheritance_Factor () const	{ return m_InheritanceFactor; }
 
 	protected:
 
@@ -104,7 +100,7 @@ protected:
 		//
 		//	Protected methods
 		//
-		void								Initialize (void);
+		void								Initialize ();
 		void								On_Setting_Changed (UINT ctrl_id);
 
 	private:
@@ -125,5 +121,3 @@ protected:
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
-
-#endif // !defined(AFX_EMITTERPHYSICSPROPPAGE_H__83A8B83E_BA3B_11D2_9FFA_00104B791122__INCLUDED_)

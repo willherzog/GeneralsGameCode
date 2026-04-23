@@ -18,14 +18,12 @@
 
 //////////////////////////////////////////////////////////////////////
 //
-//  Toolbar.H
+//  Toolbar.h
 //
 //  Declaration of a 'fancy' toolbar using hi-color buttons
 //
 
-#ifndef __FANCYTOOLBAR_H
-#define __FANCYTOOLBAR_H
-
+#pragma once
 
 //////////////////////////////////////////////////////////////
 //
@@ -121,10 +119,10 @@ class CFancyToolbar : public CControlBar
         //
         //  Protected Methods
         //
-        void Paint (void);
+        void Paint ();
         void DrawButton (HDC hDC, int iXPos, int iYPos, HBITMAP hBMP);
         int ButtonFromPoint (const CPoint &point);
-        void RegisterFancyToolbarClass (void);
+        void RegisterFancyToolbarClass ();
 
 	    //{{AFX_MSG(CFancyToolbar)
         afx_msg void OnPaint();
@@ -164,5 +162,3 @@ class CFancyToolbar : public CControlBar
         int m_iButtons;
         int m_iCurrentButton;
 };
-
-#endif // __FANCYTOOLBAR_H

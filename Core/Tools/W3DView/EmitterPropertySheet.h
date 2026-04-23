@@ -16,12 +16,8 @@
 **	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if !defined(AFX_EMITTERPROPERTYSHEET_H__83A8B844_BA3B_11D2_9FFA_00104B791122__INCLUDED_)
-#define AFX_EMITTERPROPERTYSHEET_H__83A8B844_BA3B_11D2_9FFA_00104B791122__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
+
 // EmitterPropertySheet.h : header file
 //
 
@@ -52,8 +48,8 @@ class EmitterPropertySheetClass : public CPropertySheet
 
 // Construction
 public:
-	EmitterPropertySheetClass (EmitterInstanceListClass *emitter_list, UINT nIDCaption, CWnd* pParentWnd = NULL);
-	EmitterPropertySheetClass (EmitterInstanceListClass *emitter_list, LPCTSTR pszCaption, CWnd* pParentWnd = NULL);
+	EmitterPropertySheetClass (EmitterInstanceListClass *emitter_list, UINT nIDCaption, CWnd* pParentWnd = nullptr);
+	EmitterPropertySheetClass (EmitterInstanceListClass *emitter_list, LPCTSTR pszCaption, CWnd* pParentWnd = nullptr);
 
 // Attributes
 public:
@@ -93,11 +89,11 @@ protected:
 		//
 		//	Protected methods
 		//
-		void							Initialize (void);
-		ParticleEmitterClass *	Create_Emitter (void);
-		void							Update_Emitter (void);
-		void							Add_Emitter_To_Viewer (void);
-		void							Create_New_Emitter (void);
+		void							Initialize ();
+		ParticleEmitterClass *	Create_Emitter ();
+		void							Update_Emitter ();
+		void							Add_Emitter_To_Viewer ();
+		void							Create_New_Emitter ();
 
 	private:
 
@@ -124,5 +120,3 @@ protected:
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
-
-#endif // !defined(AFX_EMITTERPROPERTYSHEET_H__83A8B844_BA3B_11D2_9FFA_00104B791122__INCLUDED_)

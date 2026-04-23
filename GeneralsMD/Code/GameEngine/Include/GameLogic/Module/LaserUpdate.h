@@ -30,9 +30,6 @@
 
 #pragma once
 
-#ifndef __LASER_UPDATE_H
-#define __LASER_UPDATE_H
-
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common/ClientUpdateModule.h"
 
@@ -112,7 +109,7 @@ public:
 	void setDirty( Bool dirty ) { m_dirty = dirty; }
 	Bool isDirty() const { return m_dirty; }
 
-	virtual void clientUpdate();
+	virtual void clientUpdate() override;
 
 protected:
 
@@ -133,7 +130,3 @@ protected:
 
 	LaserRadiusUpdate m_laserRadius;
 };
-
-
-#endif
-

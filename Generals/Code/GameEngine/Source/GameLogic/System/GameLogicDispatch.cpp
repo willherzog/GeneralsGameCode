@@ -28,9 +28,10 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
-#include "PreRTS.h"	// This must go first in EVERY cpp file int the GameEngine
+#include "PreRTS.h"	// This must go first in EVERY cpp file in the GameEngine
 
 #include "Common/CRCDebug.h"
+#include "Common/FramePacer.h"
 #include "Common/GameAudio.h"
 #include "Common/GameEngine.h"
 #include "Common/GlobalData.h"
@@ -91,7 +92,7 @@
 static Bool theBuildPlan = false;
 static Object *thePlanSubject[ MAX_PATH_SUBJECTS ];
 static int thePlanSubjectCount = 0;
-//static WindowLayout *background = NULL;
+//static WindowLayout *background = nullptr;
 
 // ------------------------------------------------------------------------------------------------
 /** Issue the movement command to the object */
@@ -99,7 +100,7 @@ static int thePlanSubjectCount = 0;
 static void doMoveTo( Object *obj, const Coord3D *pos )
 {
 	AIUpdateInterface *ai = obj->getAIUpdateInterface();
-	DEBUG_ASSERTCRASH(ai, ("Attemped doMoveTo() on an Object with no AI"));
+	DEBUG_ASSERTCRASH(ai, ("Attempted doMoveTo() on an Object with no AI"));
 	if (ai)
 	{
 		if (theBuildPlan)
@@ -148,7 +149,7 @@ static void doSetRallyPoint( Object *obj, const Coord3D& pos )
 	NameKeyType key = NAMEKEY( "BasicHumanLocomotor" );
 	LocomotorSet locomotorSet;
 	locomotorSet.addLocomotor( TheLocomotorStore->findLocomotorTemplate( key ) );
-	if( TheAI->pathfinder()->quickDoesPathExist( locomotorSet, obj->getPosition(), &pos ) == FALSE )
+	if( TheAI->pathfinder()->clientSafeQuickDoesPathExist( locomotorSet, obj->getPosition(), &pos ) == FALSE )
 	{
 
 		// user feedback
@@ -164,11 +165,11 @@ static void doSetRallyPoint( Object *obj, const Coord3D& pos )
 			rallyNotSet.setPlayerIndex(obj->getControllingPlayer()->getPlayerIndex());
 			TheAudio->addAudioEvent(&rallyNotSet);
 
-		}  // end if
+		}
 
 		return;
 
-	}  // end if
+	}
 
 	// feedback to the player
 	if( isLocalPlayer )
@@ -191,7 +192,7 @@ static void doSetRallyPoint( Object *obj, const Coord3D& pos )
 		if( draw && draw->isSelected() )
 			TheControlBar->markUIDirty();
 
-	}  // end if
+	}
 
 	// if this object has a ProductionExitUpdate interface, we are setting a rally point
 	ExitInterface *exitInterface = obj->getObjectExitInterface();
@@ -206,19 +207,19 @@ static void doSetRallyPoint( Object *obj, const Coord3D& pos )
 
 static Object * getSingleObjectFromSelection(const AIGroup *currentlySelectedGroup)
 {
-	if( currentlySelectedGroup )
+	if( currentlySelectedGroup && !currentlySelectedGroup->isEmpty() )
 	{
 		const VecObjectID& selectedObjects = currentlySelectedGroup->getAllIDs();
 		DEBUG_ASSERTCRASH(selectedObjects.size() == 1, ("Trying to get single object from multiple selection!"));
 		VecObjectID::const_iterator it = selectedObjects.begin();
 		return TheGameLogic->findObjectByID(*it);
 	}
-	return NULL;
+	return nullptr;
 }
 
 // ------------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------------------
-void GameLogic::closeWindows( void )
+void GameLogic::closeWindows()
 {
 	HideDiplomacy();
 	ResetDiplomacy();
@@ -230,8 +231,8 @@ void GameLogic::closeWindows( void )
 
 	// hide the options menu
 	NameKeyType buttonID = TheNameKeyGenerator->nameToKey( "OptionsMenu.wnd:ButtonBack" );
-	GameWindow *button = TheWindowManager->winGetWindowFromId( NULL, buttonID );
-	GameWindow *window = TheWindowManager->winGetWindowFromId( NULL, TheNameKeyGenerator->nameToKey("OptionsMenu.wnd:OptionsMenuParent") );
+	GameWindow *button = TheWindowManager->winGetWindowFromId( nullptr, buttonID );
+	GameWindow *window = TheWindowManager->winGetWindowFromId( nullptr, TheNameKeyGenerator->nameToKey("OptionsMenu.wnd:OptionsMenuParent") );
 	if(window)
 		TheWindowManager->winSendSystemMsg( window, GBM_SELECTED,
 																			(WindowMsgData)button, buttonID );
@@ -246,6 +247,8 @@ void GameLogic::clearGameData( Bool showScoreScreen )
 		DEBUG_CRASH(("We tried to clear the game data when we weren't in a game"));
 		return;
 	}
+
+	setClearingGameData( TRUE );
 
 //	m_background = TheWindowManager->winCreateLayout("Menus/BlankWindow.wnd");
 //	DEBUG_ASSERTCRASH(m_background,("We Couldn't Load Menus/BlankWindow.wnd"));
@@ -264,7 +267,7 @@ void GameLogic::clearGameData( Bool showScoreScreen )
 		TheShell->push("Menus/ScoreScreen.wnd");
 		TheShell->showShell(FALSE); // by passing in false, we don't want to run the Init on the shell screen we just pushed on
 
-		void FixupScoreScreenMovieWindow( void );
+		void FixupScoreScreenMovieWindow();
 		FixupScoreScreenMovieWindow();
 	}
 
@@ -288,8 +291,10 @@ void GameLogic::clearGameData( Bool showScoreScreen )
 	{
 		m_background->destroyWindows();
 		deleteInstance(m_background);
-		m_background = NULL;
+		m_background = nullptr;
 	}
+
+	setClearingGameData( FALSE );
 
 }
 
@@ -298,10 +303,9 @@ void GameLogic::clearGameData( Bool showScoreScreen )
 // ------------------------------------------------------------------------------------------------
 void GameLogic::prepareNewGame( GameMode gameMode, GameDifficulty diff, Int rankPoints )
 {
-	//Added By Sadullah Nader
-	//Fix for loading game scene
-	setGameLoading(TRUE);
-	//
+	//Kris: Commented this out, but leaving it around incase it bites us later. I cleaned up the
+	//      nomenclature. Look for setLoadingMap() and setLoadingSave()
+	//setGameLoading(TRUE);
 
 	TheScriptEngine->setGlobalDifficulty(diff);
 
@@ -313,7 +317,7 @@ void GameLogic::prepareNewGame( GameMode gameMode, GameDifficulty diff, Int rank
 		m_background->bringForward();
 	}
 	m_background->getFirstWindow()->winClearStatus(WIN_STATUS_IMAGE);
-	TheGameLogic->setGameMode( gameMode );
+	setGameMode( gameMode );
 	if (!TheGlobalData->m_pendingFile.isEmpty())
 	{
 		TheWritableGlobalData->m_mapName = TheGlobalData->m_pendingFile;
@@ -324,12 +328,12 @@ void GameLogic::prepareNewGame( GameMode gameMode, GameDifficulty diff, Int rank
 	DEBUG_LOG(("GameLogic::prepareNewGame() - m_rankPointsToAddAtGameStart = %d", m_rankPointsToAddAtGameStart));
 
 	// If we're about to start a game, hide the shell.
-	if(!TheGameLogic->isInShellGame())
+	if(!isInShellGame())
 		TheShell->hideShell();
 
 	m_startNewGame = FALSE;
 
-}  // end prepareNewGame
+}
 
 //-------------------------------------------------------------------------------------------------
 /** This message handles dispatches object command messages to the
@@ -339,14 +343,17 @@ void GameLogic::prepareNewGame( GameMode gameMode, GameDifficulty diff, Int rank
 void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 {
 #ifdef RTS_DEBUG
-	DEBUG_ASSERTCRASH(msg != NULL && msg != (GameMessage*)0xdeadbeef, ("bad msg"));
+	DEBUG_ASSERTCRASH(msg != nullptr && msg != (GameMessage*)0xdeadbeef, ("bad msg"));
 #endif
 
-	Player *thisPlayer = ThePlayerList->getNthPlayer( msg->getPlayerIndex() );
-	DEBUG_ASSERTCRASH( thisPlayer, ("logicMessageDispatcher: Processing message from unknown player (player index '%d')",
-																	msg->getPlayerIndex()) );
+	Player *msgPlayer = ThePlayerList->getNthPlayer( msg->getPlayerIndex() );
+	if (msgPlayer == nullptr)
+	{
+		DEBUG_CRASH(("logicMessageDispatcher: Processing message from unknown player (player index '%d')", msg->getPlayerIndex()));
+		return;
+	}
 
-	AIGroupPtr currentlySelectedGroup = NULL;
+	AIGroupPtr currentlySelectedGroup = nullptr;
 
 	if (isInGame())
 	{
@@ -357,9 +364,9 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 				currentlySelectedGroup = TheAI->createGroup(); // can't do this outside a game - it'll cause sync errors galore.
 				CRCGEN_LOG(( "Creating AIGroup %d in GameLogic::logicMessageDispatcher()", currentlySelectedGroup?currentlySelectedGroup->getID():0 ));
 #if RETAIL_COMPATIBLE_AIGROUP
-				thisPlayer->getCurrentSelectionAsAIGroup(currentlySelectedGroup);
+				msgPlayer->getCurrentSelectionAsAIGroup(currentlySelectedGroup);
 #else
-				thisPlayer->getCurrentSelectionAsAIGroup(currentlySelectedGroup.Peek());
+				msgPlayer->getCurrentSelectionAsAIGroup(currentlySelectedGroup.Peek());
 #endif
 
 				// We can't issue commands to groups that contain units that don't belong to the issuing player, so pretend like
@@ -370,13 +377,13 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 #if RETAIL_COMPATIBLE_AIGROUP
 					TheAI->destroyGroup(currentlySelectedGroup);
 #endif
-					currentlySelectedGroup = NULL;
+					currentlySelectedGroup = nullptr;
 				}
 
 				// If there are any units that the player doesn't own, then remove them from the "currentlySelectedGroup"
 				if (currentlySelectedGroup)
-					if (currentlySelectedGroup->removeAnyObjectsNotOwnedByPlayer(thisPlayer))
-						currentlySelectedGroup = NULL;
+					if (currentlySelectedGroup->removeAnyObjectsNotOwnedByPlayer(msgPlayer))
+						currentlySelectedGroup = nullptr;
 
 				if(TheStatsCollector)
 					TheStatsCollector->collectMsgStats(msg);
@@ -400,7 +407,7 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 	if (commandName.isNotEmpty() /*&& msg->getType() != GameMessage::MSG_FRAME_TICK*/)
 	{
 		DEBUG_LOG(("Frame %d: GameLogic::logicMessageDispatcher() saw a %s from player %d (%ls)", getFrame(), commandName.str(),
-			msg->getPlayerIndex(), thisPlayer->getPlayerDisplayName().str()));
+			msgPlayer->getPlayerIndex(), msgPlayer->getPlayerDisplayName().str()));
 	}
 #endif
 #endif // DEBUG_LOGGING
@@ -412,6 +419,18 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 		//---------------------------------------------------------------------------------------------
 		case GameMessage::MSG_NEW_GAME:
 		{
+#if !RETAIL_COMPATIBLE_CRC
+			// TheSuperHackers @fix stephanmeesters 11/03/2026
+			// Make sure we're ready to start a new game. This prevents an issue where an infinite disconnect screen
+			// can be force-triggered in an online match by using cheats.
+			if ( isInGame() || isClearingGameData() || isLoadingMap() )
+			{
+				DEBUG_CRASH( ("Called MSG_NEW_GAME while game is not ready (inGame=%d, clearingData=%d, loadingMap=%d)",
+					isInGame(), isClearingGameData(), isLoadingMap()) );
+				break;
+			}
+#endif
+
 			//DEBUG_ASSERTCRASH(msg->getArgumentCount() == 1 || msg->getArgumentCount() == 2, ("%d arguments to MSG_NEW_GAME", msg->getArgumentCount()));
 			GameMode gameMode = (GameMode)msg->getArgument( 0 )->integer;
 			Int rankPoints = 0;
@@ -427,7 +446,7 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 				if (maxFPS < 1 || maxFPS > 1000)
 					maxFPS = TheGlobalData->m_framesPerSecondLimit;
 				DEBUG_LOG(("Setting max FPS limit to %d FPS", maxFPS));
-				TheGameEngine->setFramesPerSecondLimit(maxFPS);
+				TheFramePacer->setFramesPerSecondLimit(maxFPS);
 				TheWritableGlobalData->m_useFpsLimit = true;
 			}
 
@@ -439,7 +458,7 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 
 			break;
 
-		}  // end new game
+		}
 
 		//---------------------------------------------------------------------------------------------
 		case GameMessage::MSG_CLEAR_GAME_DATA:
@@ -458,11 +477,11 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 				currentlySelectedGroup->removeAll();
 #endif
 			}
-			currentlySelectedGroup = NULL;
-			TheGameLogic->clearGameData();
+			currentlySelectedGroup = nullptr;
+			clearGameData();
 			break;
 
-		}  // end clear game data
+		}
 
 		//---------------------------------------------------------------------------------------------
 		case GameMessage::MSG_META_BEGIN_PATH_BUILD:
@@ -502,10 +521,23 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 		//---------------------------------------------------------------------------------------------
 		case GameMessage::MSG_SET_RALLY_POINT:
 		{
-			Object *obj = TheGameLogic->findObjectByID( msg->getArgument( 0 )->objectID );
+			Object *obj = findObjectByID( msg->getArgument( 0 )->objectID );
 			Coord3D dest = msg->getArgument( 1 )->location;
+
 			if (obj)
 			{
+#if !RETAIL_COMPATIBLE_CRC
+				// TheSuperHackers @fix stephanmeesters 11/03/2026 Validate the owner of the source object
+				if ( obj->getControllingPlayer() != msgPlayer )
+				{
+					DEBUG_CRASH( ("MSG_SET_RALLY_POINT: Player '%ls' attempted to set the rally point of object '%s' owned by player '%ls'.",
+						 msgPlayer->getPlayerDisplayName().str(),
+						 obj->getTemplate()->getName().str(),
+						 obj->getControllingPlayer()->getPlayerDisplayName().str()) );
+					break;
+				}
+#endif
+
 				doSetRallyPoint( obj, dest );
 			}
 
@@ -522,7 +554,7 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 			// lock it just till the weapon is empty or the attack is "done"
 			if( currentlySelectedGroup && currentlySelectedGroup->setWeaponLockForGroup( weaponSlot, LOCKED_TEMPORARILY ))
 			{
-				currentlySelectedGroup->groupAttackPosition( NULL, maxShotsToFire, CMD_FROM_PLAYER );
+				currentlySelectedGroup->groupAttackPosition( nullptr, maxShotsToFire, CMD_FROM_PLAYER );
 			}
 
 			break;
@@ -531,10 +563,10 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 		//---------------------------------------------------------------------------------------------
 		case GameMessage::MSG_COMBATDROP_AT_OBJECT:
 		{
-			Object *targetObject = TheGameLogic->findObjectByID( msg->getArgument( 0 )->objectID );
+			Object *targetObject = findObjectByID( msg->getArgument( 0 )->objectID );
 
 			// issue command for either single object or for selected group
-			if( currentlySelectedGroup )
+			if( currentlySelectedGroup && targetObject )
 				currentlySelectedGroup->groupCombatDrop( targetObject,
 																								 *targetObject->getPosition(),
 																								 CMD_FROM_PLAYER );
@@ -552,7 +584,7 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 
 			break;
 
-		}  // end GameMessage::MSG_COMBATDROP_AT_OBJECT
+		}
 
 		//---------------------------------------------------------------------------------------------
 		case GameMessage::MSG_COMBATDROP_AT_LOCATION:
@@ -560,7 +592,7 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 			Coord3D targetLoc = msg->getArgument( 0 )->location;
 
 			if( currentlySelectedGroup )
-				currentlySelectedGroup->groupCombatDrop( NULL, targetLoc, CMD_FROM_PLAYER );
+				currentlySelectedGroup->groupCombatDrop( nullptr, targetLoc, CMD_FROM_PLAYER );
 
 /*
 			if( sourceObject )
@@ -568,14 +600,14 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 				AIUpdateInterface* sourceAI = sourceObject->getAIUpdateInterface();
 				if (sourceAI)
 				{
-					sourceAI->aiCombatDrop( NULL, targetLoc, CMD_FROM_PLAYER );
+					sourceAI->aiCombatDrop( nullptr, targetLoc, CMD_FROM_PLAYER );
 				}
 			}
 */
 
 			break;
 
-		}  // end GameMessage::MSG_COMBATDROP_AT_LOCATION
+		}
 
 		//---------------------------------------------------------------------------------------------
 		case GameMessage::MSG_DO_WEAPON_AT_OBJECT:
@@ -583,11 +615,11 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 			// Lock the weapon choice to the right weapon, then give an attack command
 
 			WeaponSlotType weaponSlot = (WeaponSlotType)msg->getArgument( 0 )->integer;
-			Object *targetObject = TheGameLogic->findObjectByID( msg->getArgument( 1 )->objectID );
+			Object *targetObject = findObjectByID( msg->getArgument( 1 )->objectID );
 			Int maxShotsToFire = msg->getArgument( 2 )->integer;
 
 			// sanity
-			if( targetObject == NULL )
+			if( targetObject == nullptr )
 				break;
 
 
@@ -597,10 +629,10 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 					// lock it just till the weapon is empty or the attack is "done"
 				if (currentlySelectedGroup->setWeaponLockForGroup( weaponSlot, LOCKED_TEMPORARILY ))
 					currentlySelectedGroup->groupAttackObject( targetObject, maxShotsToFire, CMD_FROM_PLAYER );
-			}  // end if, command for group
+			}
 			break;
 
-		}  // end do weapon at object
+		}
 
 		//---------------------------------------------------------------------------------------------
 		case GameMessage::MSG_SWITCH_WEAPONS:
@@ -638,11 +670,11 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
  					currentlySelectedGroup->groupAttackPosition( &targetLoc, maxShotsToFire, CMD_FROM_PLAYER );
 
 
-			}  // end if, command for group
+			}
 
 			break;
 
-		}  //end do weapon at location
+		}
 
 		//---------------------------------------------------------------------------------------------
 		case GameMessage::MSG_DO_SPECIAL_POWER:
@@ -656,9 +688,21 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 
 			// check for possible specific source, ignoring selection.
 			ObjectID sourceID = msg->getArgument(2)->objectID;
-			Object* source = TheGameLogic->findObjectByID(sourceID);
-			if (source != NULL)
+			Object* source = findObjectByID(sourceID);
+			if (source != nullptr)
 			{
+#if !RETAIL_COMPATIBLE_CRC
+				// TheSuperHackers @fix stephanmeesters 01/03/2026 Validate the origin of the source object
+				if ( source->getControllingPlayer() != msgPlayer )
+				{
+					DEBUG_CRASH( ("MSG_DO_SPECIAL_POWER: Player '%ls' attempted to control the object '%s' owned by player '%ls'.",
+						 msgPlayer->getPlayerDisplayName().str(),
+						 source->getTemplate()->getName().str(),
+						 source->getControllingPlayer()->getPlayerDisplayName().str()) );
+					break;
+				}
+#endif
+
 				AIGroupPtr theGroup = TheAI->createGroup();
 				theGroup->add(source);
 				theGroup->groupDoSpecialPower( specialPowerID, options );
@@ -678,7 +722,7 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 			}
 			break;
 
-		}  // end do special
+		}
 
 		//---------------------------------------------------------------------------------------------
 		case GameMessage::MSG_DO_SPECIAL_POWER_AT_LOCATION:
@@ -691,16 +735,28 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 
 			// Object in way -- if applicable (some specials care, others don't)
 			ObjectID objectID = msg->getArgument( 2 )->objectID;
-			Object *objectInWay = TheGameLogic->findObjectByID( objectID );
+			Object *objectInWay = findObjectByID( objectID );
 
 			// Command button options -- special power may care about variance options
 			UnsignedInt options = msg->getArgument( 3 )->integer;
 
 			// check for possible specific source, ignoring selection.
 			ObjectID sourceID = msg->getArgument(4)->objectID;
-			Object* source = TheGameLogic->findObjectByID(sourceID);
-			if (source != NULL)
+			Object* source = findObjectByID(sourceID);
+			if (source != nullptr)
 			{
+#if !RETAIL_COMPATIBLE_CRC
+				// TheSuperHackers @fix stephanmeesters 01/03/2026 Validate the origin of the source object
+				if ( source->getControllingPlayer() != msgPlayer )
+				{
+					DEBUG_CRASH( ("MSG_DO_SPECIAL_POWER_AT_LOCATION: Player '%ls' attempted to control the object '%s' owned by player '%ls'.",
+						 msgPlayer->getPlayerDisplayName().str(),
+						 source->getTemplate()->getName().str(),
+						 source->getControllingPlayer()->getPlayerDisplayName().str()) );
+					break;
+				}
+#endif
+
 				AIGroupPtr theGroup = TheAI->createGroup();
 				theGroup->add(source);
 				theGroup->groupDoSpecialPowerAtLocation( specialPowerID, &targetCoord, INVALID_ANGLE, objectInWay, options );
@@ -720,7 +776,7 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 			}
 			break;
 
-		}  // end do special at location
+		}
 
 		//---------------------------------------------------------------------------------------------
 		case GameMessage::MSG_DO_SPECIAL_POWER_AT_OBJECT:
@@ -730,7 +786,7 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 
 			// argument 2 is target object
 			ObjectID targetID = msg->getArgument(1)->objectID;
-			Object *target = TheGameLogic->findObjectByID( targetID );
+			Object *target = findObjectByID( targetID );
 			if( !target )
 			{
 				break;
@@ -741,9 +797,21 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 
 			// check for possible specific source, ignoring selection.
 			ObjectID sourceID = msg->getArgument(3)->objectID;
-			Object* source = TheGameLogic->findObjectByID(sourceID);
-			if (source != NULL)
+			Object* source = findObjectByID(sourceID);
+			if (source != nullptr)
 			{
+#if !RETAIL_COMPATIBLE_CRC
+				// TheSuperHackers @fix stephanmeesters 01/03/2026 Validate the origin of the source object
+				if ( source->getControllingPlayer() != msgPlayer )
+				{
+					DEBUG_CRASH( ("MSG_DO_SPECIAL_POWER_AT_OBJECT: Player '%ls' attempted to control the object '%s' owned by player '%ls'.",
+						 msgPlayer->getPlayerDisplayName().str(),
+						 source->getTemplate()->getName().str(),
+						 source->getControllingPlayer()->getPlayerDisplayName().str()) );
+					break;
+				}
+#endif
+
 				AIGroupPtr theGroup = TheAI->createGroup();
 				theGroup->add(source);
 				theGroup->groupDoSpecialPowerAtObject( specialPowerID, target, options );
@@ -762,7 +830,7 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 			}
 			break;
 
-		}  // end do special at object
+		}
 
 		//---------------------------------------------------------------------------------------------
 		case GameMessage::MSG_DO_ATTACKMOVETO:
@@ -840,7 +908,7 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 		//---------------------------------------------------------------------------------------------
 		case GameMessage::MSG_DO_GUARD_OBJECT:
 		{
-			Object* obj = TheGameLogic->findObjectByID( msg->getArgument( 0 )->objectID );
+			Object* obj = findObjectByID( msg->getArgument( 0 )->objectID );
 			if (!obj)
 				break;
 
@@ -974,10 +1042,10 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 		//---------------------------------------------------------------------------------------------
 		case GameMessage::MSG_ENTER:
 		{
-			Object *enter = TheGameLogic->findObjectByID( msg->getArgument( 1 )->objectID );
+			Object *enter = findObjectByID( msg->getArgument( 1 )->objectID );
 
 			// sanity
-			if( enter == NULL )
+			if( enter == nullptr )
 				break;
 
 			if( currentlySelectedGroup )
@@ -988,12 +1056,12 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 
 			break;
 
-		}  // end GameMessage::MSG_ENTER
+		}
 
 		//---------------------------------------------------------------------------------------------
 		case GameMessage::MSG_EXIT:
 		{
-			Object *objectWantingToExit = TheGameLogic->findObjectByID( msg->getArgument( 0 )->objectID );
+			Object *objectWantingToExit = findObjectByID( msg->getArgument( 0 )->objectID );
 #if RETAIL_COMPATIBLE_AIGROUP
 			Object *objectContainingExiter = getSingleObjectFromSelection(currentlySelectedGroup);
 #else
@@ -1001,14 +1069,14 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 #endif
 
 			// sanity
-			if( objectWantingToExit == NULL )
+			if( objectWantingToExit == nullptr )
 				break;
 
-			if( objectContainingExiter == NULL )
+			if( objectContainingExiter == nullptr )
 				break;
 
 			// sanity, the player must actually control this object
-			if( objectWantingToExit->getControllingPlayer() != thisPlayer )
+			if( objectWantingToExit->getControllingPlayer() != msgPlayer )
 				break;
 
 			objectWantingToExit->releaseWeaponLock(LOCKED_TEMPORARILY);	// release any temporary locks.
@@ -1023,7 +1091,7 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 
 			break;
 
-		}  // end GameMessage::MSG_EXIT
+		}
 
 		//---------------------------------------------------------------------------------------------
 		case GameMessage::MSG_EVACUATE:
@@ -1050,11 +1118,11 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 // no, this is bad, don't do here, do when POSTING message
 //			pickAndPlayUnitVoiceResponse( TheInGameUI->getAllSelectedDrawables(), GameMessage::MSG_EVACUATE );
 
-			}  // end if, command for group
+			}
 
 			break;
 
-		}  // end GameMessage::MSG_EVACUATE
+		}
 
 		// --------------------------------------------------------------------------------------------
 		case GameMessage::MSG_EXECUTE_RAILED_TRANSPORT:
@@ -1066,7 +1134,7 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 
 			break;
 
-		}  // end GameMessage::MSG_EXECUTE_RAILED_TRANSPORT
+		}
 
 		//---------------------------------------------------------------------------------------------
 		case GameMessage::MSG_INTERNET_HACK:
@@ -1083,10 +1151,10 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 		// --------------------------------------------------------------------------------------------
 		case GameMessage::MSG_GET_REPAIRED:
 		{
-			Object *repairDepot = TheGameLogic->findObjectByID( msg->getArgument( 0 )->objectID );
+			Object *repairDepot = findObjectByID( msg->getArgument( 0 )->objectID );
 
 			// sanity
-			if( repairDepot == NULL )
+			if( repairDepot == nullptr )
 				break;
 
 			// tell the currently selected group to go get repaired
@@ -1095,15 +1163,15 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 
 			break;
 
-		}  // end get repaired
+		}
 
 		// --------------------------------------------------------------------------------------------
 		case GameMessage::MSG_DOCK:
 		{
-			Object *dockBuilding = TheGameLogic->findObjectByID( msg->getArgument( 0 )->objectID );
+			Object *dockBuilding = findObjectByID( msg->getArgument( 0 )->objectID );
 
 			// sanity
-			if( dockBuilding == NULL )
+			if( dockBuilding == nullptr )
 				break;
 
 			// tell the currently selected group to go get repaired
@@ -1112,15 +1180,15 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 
 			break;
 
-		}  // end get repaired
+		}
 
 		// --------------------------------------------------------------------------------------------
 		case GameMessage::MSG_GET_HEALED:
 		{
-			Object *healDest = TheGameLogic->findObjectByID( msg->getArgument( 0 )->objectID );
+			Object *healDest = findObjectByID( msg->getArgument( 0 )->objectID );
 
 			// sanity
-			if( healDest == NULL )
+			if( healDest == nullptr )
 				break;
 
 			// tell the currently selected group to enter the building for healing
@@ -1129,15 +1197,15 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 
 			break;
 
-		}  // end get repaired
+		}
 
 		// --------------------------------------------------------------------------------------------
 		case GameMessage::MSG_DO_REPAIR:
 		{
-			Object *repairTarget = TheGameLogic->findObjectByID( msg->getArgument( 0 )->objectID );
+			Object *repairTarget = findObjectByID( msg->getArgument( 0 )->objectID );
 
 			// sanity
-			if( repairTarget == NULL )
+			if( repairTarget == nullptr )
 				break;
 
 			//
@@ -1149,15 +1217,15 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 
 			break;
 
-		}  // end get repaired
+		}
 
 		// --------------------------------------------------------------------------------------------
 		case GameMessage::MSG_RESUME_CONSTRUCTION:
 		{
-			Object *constructTarget = TheGameLogic->findObjectByID( msg->getArgument( 0 )->objectID );
+			Object *constructTarget = findObjectByID( msg->getArgument( 0 )->objectID );
 
 			// sanity
-			if( constructTarget == NULL )
+			if( constructTarget == nullptr )
 				break;
 
 			//
@@ -1173,7 +1241,7 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 
 			break;
 
-		}  // end resume construction
+		}
 
 		// --------------------------------------------------------------------------------------------
 		case GameMessage::MSG_DO_SPECIAL_POWER_OVERRIDE_DESTINATION:
@@ -1182,9 +1250,21 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 			SpecialPowerType spType = (SpecialPowerType)msg->getArgument( 1 )->integer;
 
 			ObjectID sourceID = msg->getArgument(2)->objectID;
-			Object* source = TheGameLogic->findObjectByID(sourceID);
-			if (source != NULL)
+			Object* source = findObjectByID(sourceID);
+			if (source != nullptr)
 			{
+#if !RETAIL_COMPATIBLE_CRC
+				// TheSuperHackers @fix stephanmeesters 01/03/2026 Validate the origin of the source object
+				if ( source->getControllingPlayer() != msgPlayer )
+				{
+					DEBUG_CRASH( ("MSG_DO_SPECIAL_POWER_OVERRIDE_DESTINATION: Player '%ls' attempted to control the object '%s' owned by player '%ls'.",
+						 msgPlayer->getPlayerDisplayName().str(),
+						 source->getTemplate()->getName().str(),
+						 source->getControllingPlayer()->getPlayerDisplayName().str()) );
+					break;
+				}
+#endif
+
 				AIGroupPtr theGroup = TheAI->createGroup();
 				theGroup->add(source);
 				theGroup->groupOverrideSpecialPowerDestination( spType, loc, CMD_FROM_PLAYER );
@@ -1204,12 +1284,12 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 
 			break;
 
-		}  // end GameMessage::MSG_DO_SPECIAL_POWER_OVERRIDE_DESTINATION
+		}
 
 		//---------------------------------------------------------------------------------------------
 		case GameMessage::MSG_DO_ATTACK_OBJECT:
 		{
-			Object *enemy = TheGameLogic->findObjectByID( msg->getArgument( 0 )->objectID );
+			Object *enemy = findObjectByID( msg->getArgument( 0 )->objectID );
 
 			// Check enemy, as it is possible that he died this frame.
 			if (enemy)
@@ -1226,12 +1306,12 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 
 			break;
 
-		}  // end GameMessage::MSG_DO_ATTACK_OBJECT
+		}
 
 		//---------------------------------------------------------------------------------------------
 		case GameMessage::MSG_DO_FORCE_ATTACK_OBJECT:
 		{
-			Object *enemy = TheGameLogic->findObjectByID( msg->getArgument( 0 )->objectID );
+			Object *enemy = findObjectByID( msg->getArgument( 0 )->objectID );
 
 			// Check enemy, as it is possible that he died this frame.
 			if (enemy)
@@ -1246,7 +1326,7 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 
 			break;
 
-		}  // end GameMessage::MSG_DO_FORCE_ATTACK_OBJECT
+		}
 
 		//---------------------------------------------------------------------------------------------
 		case GameMessage::MSG_DO_FORCE_ATTACK_GROUND:
@@ -1285,7 +1365,7 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 
 			break;
 
-		}  // end GameMessage::MSG_DO_FORCE_ATTACK_GROUND
+		}
 
 		//---------------------------------------------------------------------------------------------
 		case GameMessage::MSG_QUEUE_UPGRADE:
@@ -1299,7 +1379,7 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 
 			break;
 
-		}  // end queue upgrade
+		}
 
 		//---------------------------------------------------------------------------------------------
 		case GameMessage::MSG_CANCEL_UPGRADE:
@@ -1312,16 +1392,16 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 			const UpgradeTemplate *upgradeT = TheUpgradeCenter->findUpgradeByKey( (NameKeyType)(msg->getArgument( 0 )->integer) );
 
 			// sanity
-			if( producer == NULL || upgradeT == NULL )
+			if( producer == nullptr || upgradeT == nullptr )
 				break;
 
 			// the player must actually control the producer object
-			if( producer->getControllingPlayer() != thisPlayer )
+			if( producer->getControllingPlayer() != msgPlayer )
 				break;
 
 			// producer must have a production update
 				ProductionUpdateInterface *pu = producer->getProductionUpdateInterface();
-				if( pu == NULL )
+				if( pu == nullptr )
 				break;
 
 			// cancel the upgrade
@@ -1329,7 +1409,7 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 
 			break;
 
-		}  // end cancel upgrade
+		}
 
 		//---------------------------------------------------------------------------------------------
 		case GameMessage::MSG_QUEUE_UNIT_CREATE:
@@ -1347,26 +1427,26 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 			productionID = (ProductionID)msg->getArgument( 1 )->integer;
 
 			// sanity
-			if ( producer == NULL || whatToCreate == NULL )
+			if ( producer == nullptr || whatToCreate == nullptr )
 				break;
 
 			// get the production interface for the producer
 			ProductionUpdateInterface *pu = producer->getProductionUpdateInterface();
-			if( pu == NULL )
+			if( pu == nullptr )
 			{
 
-				DEBUG_ASSERTCRASH( 0, ("MSG_QUEUE_UNIT_CREATE: Producer '%s' doesn't have a unit production interface",
+				DEBUG_CRASH( ("MSG_QUEUE_UNIT_CREATE: Producer '%s' doesn't have a unit production interface",
 															producer->getTemplate()->getName().str()) );
 				break;
 
-			}  // end if
+			}
 
 			// queue the build
 			pu->queueCreateUnit( whatToCreate, productionID );
 
 			break;
 
-		}  // end GameMessage::MSG_QUEUE_UNIT_CREATE
+		}
 
 		//-------------------------------------------------------------------------------------------------
 		case GameMessage::MSG_CANCEL_UNIT_CREATE:
@@ -1379,24 +1459,24 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 			ProductionID productionID = (ProductionID)msg->getArgument( 0 )->integer;
 
 			// sanity
-			if( producer == NULL )
+			if( producer == nullptr )
 				break;
 
 			// sanity, the player must control the producer
-			if( producer->getControllingPlayer() != thisPlayer )
+			if( producer->getControllingPlayer() != msgPlayer )
 				break;
 
 			// get the unit production interface
 			ProductionUpdateInterface *pu = producer->getProductionUpdateInterface();
-			if( pu == NULL )
-				return;
+			if( pu == nullptr )
+				break;
 
 			// cancel the production
 			pu->cancelUnitCreate( productionID );
 
 			break;
 
-		}  // end GameMessage::MSG_CANCEL_UNIT_CREATE
+		}
 
 		//---------------------------------------------------------------------------------------------
 		case GameMessage::MSG_DOZER_CONSTRUCT:
@@ -1416,7 +1496,7 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 			loc = msg->getArgument( 1 )->location;
 			angle = msg->getArgument( 2 )->real;
 
-			if( place == NULL || constructorObject == NULL )
+			if( place == nullptr || constructorObject == nullptr )
 				break;  //These are not crashes, as the object may have died before this message came in
 
 			if( msg->getType() == GameMessage::MSG_DOZER_CONSTRUCT )
@@ -1425,7 +1505,7 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 				TheBuildAssistant->buildObjectNow( constructorObject, place, &loc, angle,
 																					 constructorObject->getControllingPlayer() );
 
-			}  // end if
+			}
 			else
 			{
 				Coord3D locEnd;
@@ -1437,11 +1517,11 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 				TheBuildAssistant->buildObjectLineNow( constructorObject, place, &loc, &locEnd, angle,
 																							 constructorObject->getControllingPlayer() );
 
-			}  // end else
+			}
 
 			// place the sound for putting a building down
 
-			static AudioEventRTS placeBuilding(AsciiString("PlaceBuilding"));
+			static AudioEventRTS placeBuilding("PlaceBuilding");
 			placeBuilding.setObjectID(constructorObject->getID());
 			TheAudio->addAudioEvent( &placeBuilding );
 
@@ -1451,7 +1531,7 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 
 			break;
 
-		}  // end build start
+		}
 
 		//---------------------------------------------------------------------------------------------
 		case GameMessage::MSG_DOZER_CANCEL_CONSTRUCT:
@@ -1463,11 +1543,11 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 #else
 			Object *building = getSingleObjectFromSelection(currentlySelectedGroup.Peek());
 #endif
-			if( building == NULL )
+			if( building == nullptr )
 				break;
 
 			// the player sending this message must actually control this building
-			if( building->getControllingPlayer() != thisPlayer )
+			if( building->getControllingPlayer() != msgPlayer )
 				break;
 
 			// Check to make sure it is actually under construction
@@ -1477,9 +1557,9 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 			// OK, refund the money to the player, unless it is a rebuilding Hole.
 			if( !building->testStatus(OBJECT_STATUS_RECONSTRUCTING))
 			{
-				Money *money = thisPlayer->getMoney();
-				UnsignedInt amount = building->getTemplate()->calcCostToBuild( thisPlayer );
-				money->deposit( amount );
+				Money *money = msgPlayer->getMoney();
+				UnsignedInt amount = building->getTemplate()->calcCostToBuild( msgPlayer );
+				money->deposit( amount, TRUE, FALSE );
 			}
 
 			//
@@ -1491,7 +1571,7 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 
 			break;
 
-		}  // end cancel dozer construction
+		}
 
 		// --------------------------------------------------------------------------------------------
 		case GameMessage::MSG_SELL:
@@ -1503,7 +1583,7 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 
 			break;
 
-		}  // end sell
+		}
 
 		// --------------------------------------------------------------------------------------------
 		case GameMessage::MSG_TOGGLE_OVERCHARGE:
@@ -1515,7 +1595,7 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 
 			break;
 
-		}  // end toggle overcharge
+		}
 
 #ifdef ALLOW_SURRENDER
 		// --------------------------------------------------------------------------------------------
@@ -1530,11 +1610,11 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 				if( currentlySelectedGroup )
 					currentlySelectedGroup->groupPickUpPrisoner( prisoner, CMD_FROM_PLAYER );
 
-			}  // end if
+			}
 
 			break;
 
-		}  // end pick up prisoner
+		}
 #endif
 
 #ifdef ALLOW_SURRENDER
@@ -1544,11 +1624,11 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 
 			// use selected group
 			if( currentlySelectedGroup )
-				currentlySelectedGroup->groupReturnToPrison( NULL, CMD_FROM_PLAYER );
+				currentlySelectedGroup->groupReturnToPrison( nullptr, CMD_FROM_PLAYER );
 
 			break;
 
-		}  // end return to prison
+		}
 #endif
 
 		//---------------------------------------------------------------------------------------------
@@ -1557,65 +1637,47 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 		case GameMessage::MSG_CREATE_SELECTED_GROUP:
 		{
 			Bool createNewGroup = msg->getArgument( 0 )->boolean;
-			Player *player = ThePlayerList->getNthPlayer(msg->getPlayerIndex());
-
-			if (player == NULL) {
-				DEBUG_CRASH(("GameLogicDispatch - MSG_CREATE_SELECTED_GROUP had an invalid player nubmer"));
-				break;
-			}
-
 			Bool firstObject = TRUE;
 
 			for (Int i = 1; i < msg->getArgumentCount(); ++i) {
-				Object *obj = TheGameLogic->findObjectByID( msg->getArgument( i )->objectID );
+				Object *obj = findObjectByID( msg->getArgument( i )->objectID );
 				if (!obj) {
 					continue;
 				}
 
-				TheGameLogic->selectObject(obj, createNewGroup && firstObject, player->getPlayerMask());
+				selectObject(obj, createNewGroup && firstObject, msgPlayer->getPlayerMask());
 				firstObject = FALSE;
 			}
 
 			break;
 
-		}  // end build start
+		}
 
 		//---------------------------------------------------------------------------------------------
 		case GameMessage::MSG_REMOVE_FROM_SELECTED_GROUP:
 		{
-			Player *player = ThePlayerList->getNthPlayer(msg->getPlayerIndex());
-
-			if (player == NULL) {
-				DEBUG_CRASH(("GameLogicDispatch - MSG_CREATE_SELECTED_GROUP had an invalid player nubmer"));
-				break;
-			}
-
 			for (Int i = 0; i < msg->getArgumentCount(); ++i) {
 				ObjectID objID = msg->getArgument(i)->objectID;
-				Object *objToRemove = TheGameLogic->findObjectByID(objID);
+				Object *objToRemove = findObjectByID(objID);
 				if (!objToRemove) {
 					continue;
 				}
 
-				TheGameLogic->deselectObject(objToRemove, player->getPlayerMask());
+				deselectObject(objToRemove, msgPlayer->getPlayerMask());
 			}
 
 			break;
 
-		}  // end MSG_REMOVE_FROM_SELECTED_GROUP
+		}
 
 		//---------------------------------------------------------------------------------------------
 		case GameMessage::MSG_DESTROY_SELECTED_GROUP:
 		{
-			Player *player = ThePlayerList->getNthPlayer(msg->getPlayerIndex());
-			if (player != NULL)
-			{
-				player->setCurrentlySelectedAIGroup(NULL);
-			}
+			msgPlayer->setCurrentlySelectedAIGroup(nullptr);
 
 			break;
 
-		}  // end build start
+		}
 
 		// --------------------------------------------------------------------------------------------
 		case GameMessage::MSG_SELECTED_GROUP_COMMAND:
@@ -1623,28 +1685,28 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 
 			break;
 
-		}  // end selected group command
+		}
 
 		// --------------------------------------------------------------------------------------------
 		case GameMessage::MSG_PLACE_BEACON:
 		{
-			if (thisPlayer->getPlayerTemplate() == NULL)
+			if (msgPlayer->getPlayerTemplate() == nullptr)
 				break;
 			Coord3D pos = msg->getArgument( 0 )->location;
 			Region3D r;
 			TheTerrainLogic->getExtent(&r);
 			if (!r.isInRegionNoZ(&pos))
 				pos = TheTerrainLogic->findClosestEdgePoint(&pos);
-			const ThingTemplate *thing = TheThingFactory->findTemplate( thisPlayer->getPlayerTemplate()->getBeaconTemplate() );
-			if (thing && !TheVictoryConditions->hasSinglePlayerBeenDefeated(thisPlayer))
+			const ThingTemplate *thing = TheThingFactory->findTemplate( msgPlayer->getPlayerTemplate()->getBeaconTemplate() );
+			if (thing && !TheVictoryConditions->hasSinglePlayerBeenDefeated(msgPlayer))
 			{
 				// how many does this player have active?
 				Int count;
-				thisPlayer->countObjectsByThingTemplate( 1, &thing, false, &count );
+				msgPlayer->countObjectsByThingTemplate( 1, &thing, false, &count );
 				DEBUG_LOG(("Player already has %d beacons active", count));
 				if (count >= TheMultiplayerSettings->getMaxBeaconsPerPlayer())
 				{
-					if (thisPlayer == ThePlayerList->getLocalPlayer())
+					if (msgPlayer == ThePlayerList->getLocalPlayer())
 					{
 						// tell the user
 						TheInGameUI->message( TheGameText->fetch("GUI:TooManyBeacons") );
@@ -1652,33 +1714,33 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 						// play a sound
 						static AudioEventRTS aSound("BeaconPlacementFailed");
 						aSound.setPosition(&pos);
-						aSound.setPlayerIndex(thisPlayer->getPlayerIndex());
+						aSound.setPlayerIndex(msgPlayer->getPlayerIndex());
 						TheAudio->addAudioEvent(&aSound);
 					}
 
 					break;
 				}
-				Object *object = TheThingFactory->newObject( thing, thisPlayer->getDefaultTeam() );
+				Object *object = TheThingFactory->newObject( thing, msgPlayer->getDefaultTeam() );
 				object->setPosition( &pos );
-				object->setProducer(NULL);
+				object->setProducer(nullptr);
 
-				if (thisPlayer->getRelationship( ThePlayerList->getLocalPlayer()->getDefaultTeam() ) == ALLIES || ThePlayerList->getLocalPlayer()->isPlayerObserver())
+				if (msgPlayer->getRelationship( ThePlayerList->getLocalPlayer()->getDefaultTeam() ) == ALLIES || ThePlayerList->getLocalPlayer()->isPlayerObserver())
 				{
 					// tell the user
 					UnicodeString s;
-					s.format(TheGameText->fetch("GUI:BeaconPlaced"), thisPlayer->getPlayerDisplayName().str());
+					s.format(TheGameText->fetch("GUI:BeaconPlaced"), msgPlayer->getPlayerDisplayName().str());
 					TheInGameUI->message( s );
 
 					// play a sound
 					static AudioEventRTS aSound("BeaconPlaced");
-					aSound.setPlayerIndex(thisPlayer->getPlayerIndex());
+					aSound.setPlayerIndex(msgPlayer->getPlayerIndex());
 					aSound.setPosition(&pos);
 					TheAudio->addAudioEvent(&aSound);
 
-					// beacons are a rare event; play a nifty radar event thingie
+					// beacons are a rare event; play a nifty radar event thingy
 					TheRadar->createEvent( object->getPosition(), RADAR_EVENT_INFORMATION );
 
-					if (ThePlayerList->getLocalPlayer()->getRelationship(thisPlayer->getDefaultTeam()) == ALLIES)
+					if (ThePlayerList->getLocalPlayer()->getRelationship(msgPlayer->getDefaultTeam()) == ALLIES)
 						TheEva->setShouldPlay(EVA_BeaconDetected);
 
 					TheControlBar->markUIDirty(); // check if we should grey out the button
@@ -1714,20 +1776,20 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 				// play a sound
 				static AudioEventRTS aSound("BeaconPlacementFailed");
 				aSound.setPosition(&pos);
-				aSound.setPlayerIndex(thisPlayer->getPlayerIndex());
+				aSound.setPlayerIndex(msgPlayer->getPlayerIndex());
 				TheAudio->addAudioEvent(&aSound);
 			}
 			break;
-		} // end beacon placement
+		}
 
 		// --------------------------------------------------------------------------------------------
 		case GameMessage::MSG_REMOVE_BEACON:
 		{
 			AIGroupPtr allSelectedObjects = TheAI->createGroup();
 #if RETAIL_COMPATIBLE_AIGROUP
-			thisPlayer->getCurrentSelectionAsAIGroup(allSelectedObjects); // need to act on all objects, so we can hide teammates' beacons.
+			msgPlayer->getCurrentSelectionAsAIGroup(allSelectedObjects); // need to act on all objects, so we can hide teammates' beacons.
 #else
-			thisPlayer->getCurrentSelectionAsAIGroup(allSelectedObjects.Peek()); // need to act on all objects, so we can hide teammates' beacons.
+			msgPlayer->getCurrentSelectionAsAIGroup(allSelectedObjects.Peek()); // need to act on all objects, so we can hide teammates' beacons.
 #endif
 			if( allSelectedObjects )
 			{
@@ -1745,13 +1807,13 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 						const ThingTemplate *thing = TheThingFactory->findTemplate( playerTemplate->getBeaconTemplate() );
 						if (thing && thing->isEquivalentTo(beacon->getTemplate()))
 						{
-							if (beacon->getControllingPlayer() == thisPlayer)
+							if (beacon->getControllingPlayer() == msgPlayer)
 							{
-								TheGameLogic->destroyObject(beacon); // the owner is telling it to go away.  such is life.
+								destroyObject(beacon); // the owner is telling it to go away.  such is life.
 
 								TheControlBar->markUIDirty(); // check if we should un-grey out the button
 							}
-							else if (thisPlayer == ThePlayerList->getLocalPlayer())
+							else if (msgPlayer == ThePlayerList->getLocalPlayer())
 							{
 								Drawable *beaconDrawable = beacon->getDrawable();
 								if (beaconDrawable)
@@ -1778,12 +1840,12 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 				if (allSelectedObjects->isEmpty())
 				{
 					TheAI->destroyGroup(allSelectedObjects);
-					allSelectedObjects = NULL;
+					allSelectedObjects = nullptr;
 				}
 #endif
 			}
 			break;
-		} // end beacon removal
+		}
 
 		// --------------------------------------------------------------------------------------------
 		case GameMessage::MSG_SET_BEACON_TEXT:
@@ -1814,7 +1876,7 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 				}
 			}
 			break;
-		} // end beacon text
+		}
 
 		// --------------------------------------------------------------------------------------------
 		case GameMessage::MSG_SELF_DESTRUCT:
@@ -1825,18 +1887,18 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 				Int i=0;
 				for (; i<ThePlayerList->getPlayerCount(); ++i)
 				{
-					if (i != msg->getPlayerIndex())
+					if (i != msgPlayer->getPlayerIndex())
 					{
 						Player *otherPlayer = ThePlayerList->getNthPlayer(i);
-						if (thisPlayer->getRelationship(otherPlayer->getDefaultTeam()) == ALLIES &&
-							otherPlayer->getRelationship(thisPlayer->getDefaultTeam()) == ALLIES)
+						if (msgPlayer->getRelationship(otherPlayer->getDefaultTeam()) == ALLIES &&
+							otherPlayer->getRelationship(msgPlayer->getDefaultTeam()) == ALLIES)
 						{
 							if (TheVictoryConditions->hasSinglePlayerBeenDefeated(otherPlayer))
 								continue;
 
 							// a living ally!  hooray!
-							otherPlayer->transferAssetsFromThat(thisPlayer);
-							thisPlayer->killPlayer(); // just to be safe (and to kill beacons etc that don't transfer)
+							otherPlayer->transferAssetsFromThat(msgPlayer);
+							msgPlayer->killPlayer(); // just to be safe (and to kill beacons etc that don't transfer)
 							break;
 						}
 					}
@@ -1844,12 +1906,12 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 				if (i == ThePlayerList->getPlayerCount())
 				{
 					// didn't find any allies.  die, loner!
-					thisPlayer->killPlayer();
+					msgPlayer->killPlayer();
 				}
 			}
 			else
 			{
-				thisPlayer->killPlayer();
+				msgPlayer->killPlayer();
 			}
 			// There is no reason to do any notification here, it now takes place in the victory conditions.
 			// bonehead.
@@ -1859,31 +1921,56 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 		// --------------------------------------------------------------------------------------------
 		case GameMessage::MSG_SET_REPLAY_CAMERA:
 		{
-			if (TheRecorder->isPlaybackMode() && TheGlobalData->m_useCameraInReplay && TheControlBar->getObserverLookAtPlayer() == thisPlayer)
+			if (TheRecorder->isPlaybackMode() && TheGlobalData->m_useCameraInReplay && TheControlBar->getObserverLookAtPlayer() == msgPlayer)
 			{
 				if (TheTacticalView->isCameraMovementFinished())
 				{
-					ViewLocation loc;
-					Coord3D pos;
-					Real pitch, angle, zoom;
-					pos = msg->getArgument( 0 )->location;
-					angle = msg->getArgument( 1 )->real;
-					pitch = msg->getArgument( 2 )->real;
-					zoom = msg->getArgument( 3 )->real;
-					loc.init(pos.x, pos.y, pos.z, angle, pitch, zoom);
-					TheTacticalView->setLocation( &loc );
+					const Coord3D pos = msg->getArgument( 0 )->location;
+					const Real angle = msg->getArgument( 1 )->real;
+					const Real pitch = msg->getArgument( 2 )->real;
+					const Real zoom = msg->getArgument( 3 )->real;
+					const Mouse::MouseCursor mouseCursor = static_cast<Mouse::MouseCursor>(msg->getArgument( 4 )->integer);
+					const ICoord2D mousePos = msg->getArgument( 5 )->pixel;
+
+					// TheSuperHackers @info Definitely call in user mode to ensure the camera operates with auto-zoom
+					// over terrain elevations, because the Replay Camera does not store the absolute camera location,
+					// but key parameters relative to the terrain height at the camera pivot.
+					TheTacticalView->userSetPosition(pos);
+					TheTacticalView->userSetAngle(angle);
+					TheTacticalView->userSetPitch(pitch);
+					TheTacticalView->userSetZoom(zoom);
+
+					// TheSuperHackers @fix Make sure there is no scrolling ever.
+					const Coord2D scroll = {0, 0};
+					TheTacticalView->userScrollBy(&scroll);
+
+					if (msg->getArgumentCount() >= 8)
+					{
+						// TheSuperHackers @feature Override all the settings above with real camera position and view direction.
+						// This ensures that the camera looks EXACTLY like it was at the time of recording, no matter how the
+						// View is configured or tweaked. Note that the above settings are still required to set regardless, because
+						// when the replay camera is exited, then the pivot position and angles will be needed to build the camera
+						// where it was left off.
+						const Coord3D camPos = msg->getArgument( 6 )->location;
+						const Coord3D camDir = msg->getArgument( 7 )->location;
+
+						TheTacticalView->setUserControlled(false);
+						TheTacticalView->set3DCameraLookAt(camPos, camDir, 0.0f);
+					}
+
+					// TheSuperHackers @fix Lock the new location to avoid user input from changing the camera in this frame.
+					TheTacticalView->lockUserControlUntilFrame( getFrame() + 1 );
 
 					if (!TheLookAtTranslator->hasMouseMovedRecently())
 					{
-						TheMouse->setCursor( (Mouse::MouseCursor)(msg->getArgument( 4 )->integer) );
-						ICoord2D mousePos = msg->getArgument( 5 )->pixel;
+						TheMouse->setCursor( mouseCursor );
 						TheMouse->setPosition( mousePos.x, mousePos.y );
 						TheLookAtTranslator->setCurrentPos( mousePos );
 					}
 				}
 			}
 			break;
-		} // end beacon text
+		}
 
 		//---------------------------------------------------------------------------------------------
 		case GameMessage::MSG_CREATE_TEAM0:
@@ -1897,18 +1984,12 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 		case GameMessage::MSG_CREATE_TEAM8:
 		case GameMessage::MSG_CREATE_TEAM9:
 		{
-			Int playerIndex = msg->getPlayerIndex();
-			Player *player = ThePlayerList->getNthPlayer(playerIndex);
-			DEBUG_ASSERTCRASH(player != NULL, ("Could not find player for create team message"));
+			// TheSuperHackers @tweak Stubbjax 17/08/2025 The local player processes this message in CommandXlat for immediate assignment.
+			if (!msgPlayer->isLocalPlayer())
+				msgPlayer->processCreateTeamGameMessage(msg->getType() - GameMessage::MSG_CREATE_TEAM0, msg);
 
-			if (player == NULL)
-			{
-				break;
-			}
-
-			player->processCreateTeamGameMessage(msg->getType() - GameMessage::MSG_CREATE_TEAM0, msg);
 			break;
-		} // end create team command
+		}
 
 		case GameMessage::MSG_SELECT_TEAM0:
 		case GameMessage::MSG_SELECT_TEAM1:
@@ -1921,16 +2002,7 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 		case GameMessage::MSG_SELECT_TEAM8:
 		case GameMessage::MSG_SELECT_TEAM9:
 		{
-			Int playerIndex = msg->getPlayerIndex();
-			Player *player = ThePlayerList->getNthPlayer(playerIndex);
-			DEBUG_ASSERTCRASH(player != NULL, ("Could not find player for select team message"));
-
-			if (player == NULL)
-			{
-				break;
-			}
-
-			player->processSelectTeamGameMessage(msg->getType() - GameMessage::MSG_SELECT_TEAM0, msg);
+			msgPlayer->processSelectTeamGameMessage(msg->getType() - GameMessage::MSG_SELECT_TEAM0, msg);
 			break;
 		}
 
@@ -1945,16 +2017,7 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 		case GameMessage::MSG_ADD_TEAM8:
 		case GameMessage::MSG_ADD_TEAM9:
 		{
-			Int playerIndex = msg->getPlayerIndex();
-			Player *player = ThePlayerList->getNthPlayer(playerIndex);
-			DEBUG_ASSERTCRASH(player != NULL, ("Could not find player for add team message"));
-
-			if (player == NULL)
-			{
-				break;
-			}
-
-			player->processAddTeamGameMessage(msg->getType() - GameMessage::MSG_ADD_TEAM0, msg);
+			msgPlayer->processAddTeamGameMessage(msg->getType() - GameMessage::MSG_ADD_TEAM0, msg);
 			break;
 		}
 
@@ -1967,7 +2030,7 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 				Int slotIndex = -1;
 				for (Int i=0; i<MAX_SLOTS; ++i)
 				{
-					if (thisPlayer->getPlayerType() == PLAYER_HUMAN && TheNetwork->getPlayerName(i) == thisPlayer->getPlayerDisplayName())
+					if (msgPlayer->getPlayerType() == PLAYER_HUMAN && TheNetwork->getPlayerName(i) == msgPlayer->getPlayerDisplayName())
 					{
 						slotIndex = i;
 						break;
@@ -1977,7 +2040,7 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 				if (slotIndex < 0 || !TheNetwork->isPlayerConnected(slotIndex))
 					break;
 
-				if (thisPlayer->isLocalPlayer())
+				if (msgPlayer->isLocalPlayer())
 				{
 #if defined(RTS_DEBUG)
 					// don't even put this in release, cause someone might hack it.
@@ -1990,23 +2053,22 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 #endif
 				}
 
-				//UnsignedInt oldCRC = m_cachedCRCs[msg->getPlayerIndex()];
 				UnsignedInt newCRC = msg->getArgument(0)->integer;
-				//DEBUG_LOG(("Recieved CRC of %8.8X from %ls on frame %d", newCRC,
-					//thisPlayer->getPlayerDisplayName().str(), m_frame));
-				m_cachedCRCs[msg->getPlayerIndex()] = newCRC; // to mask problem: = (oldCRC < newCRC)?newCRC:oldCRC;
+				//DEBUG_LOG(("Received CRC of %8.8X from %ls on frame %d", newCRC,
+					//msgPlayer->getPlayerDisplayName().str(), m_frame));
+				m_cachedCRCs[msgPlayer->getPlayerIndex()] = newCRC;
 			}
 			else if (TheRecorder && TheRecorder->isPlaybackMode())
 			{
 				UnsignedInt newCRC = msg->getArgument(0)->integer;
 				//DEBUG_LOG(("Saw CRC of %X from player %d.  Our CRC is %X.  Arg count is %d",
-					//newCRC, thisPlayer->getPlayerIndex(), getCRC(), msg->getArgumentCount()));
+					//newCRC, msgPlayer->getPlayerIndex(), getCRC(), msg->getArgumentCount()));
 
-				TheRecorder->handleCRCMessage(newCRC, thisPlayer->getPlayerIndex(), (msg->getArgument(1)->boolean));
+				TheRecorder->handleCRCMessage(newCRC, msgPlayer->getPlayerIndex(), (msg->getArgument(1)->boolean));
 			}
 			break;
 
-		}  // end CRC message
+		}
 
 		//---------------------------------------------------------------------------------------------
 		case GameMessage::MSG_PURCHASE_SCIENCE:
@@ -2014,16 +2076,16 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 			ScienceType science = (ScienceType)msg->getArgument( 0 )->integer;
 
 			// sanity
-			if( science == SCIENCE_INVALID || thisPlayer == NULL )
+			if( science == SCIENCE_INVALID )
 				break;
 
-			thisPlayer->attemptToPurchaseScience(science);
+			msgPlayer->attemptToPurchaseScience(science);
 
 			break;
 
-		}  // end pick specialized science
+		}
 
-	}  // end switch
+	}
 
 #if RETAIL_COMPATIBLE_AIGROUP
 	// TheSuperHackers @bugfix xezon 28/06/2025 This hack avoids crashing when players are selected during Replay playback.
@@ -2034,7 +2096,7 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 #endif
 
 	/**/ /// @todo: multiplayer semantics
-	if (currentlySelectedGroup && TheRecorder->isPlaybackMode() && TheGlobalData->m_useCameraInReplay && TheControlBar->getObserverLookAtPlayer() == thisPlayer /*&& !TheRecorder->isMultiplayer()*/)
+	if (currentlySelectedGroup && TheRecorder->isPlaybackMode() && TheGlobalData->m_useCameraInReplay && TheControlBar->getObserverLookAtPlayer() == msgPlayer /*&& !TheRecorder->isMultiplayer()*/)
 	{
 		const VecObjectID& selectedObjects = currentlySelectedGroup->getAllIDs();
 		TheInGameUI->deselectAllDrawables();
@@ -2051,7 +2113,7 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 	}
 	/**/
 
-	if( currentlySelectedGroup != NULL )
+	if( currentlySelectedGroup != nullptr )
 	{
 #if RETAIL_COMPATIBLE_AIGROUP
 		TheAI->destroyGroup(currentlySelectedGroup);
@@ -2060,4 +2122,4 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 #endif
 	}
 
-}  // end logicMessageDispatches
+}

@@ -33,9 +33,6 @@
 
 #pragma once
 
-#ifndef __AutoHealBehavior_H_
-#define __AutoHealBehavior_H_
-
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameClient/ParticleSys.h"
 #include "GameLogic/Module/BehaviorModule.h"
@@ -73,8 +70,8 @@ public:
 		m_healingDelay = UINT_MAX;
 		m_startHealingDelay = 0;
 		m_radius = 0.0f;
-		m_radiusParticleSystemTmpl = NULL;
-		m_unitHealPulseParticleSystemTmpl = NULL;
+		m_radiusParticleSystemTmpl = nullptr;
+		m_unitHealPulseParticleSystemTmpl = nullptr;
 		m_affectsWholePlayer = FALSE;
 		m_skipSelfForHealing = FALSE;
 		SET_ALL_KINDOFMASK_BITS( m_kindOf );
@@ -85,18 +82,18 @@ public:
 	{
 		static const FieldParse dataFieldParse[] =
 		{
-			{ "StartsActive",	INI::parseBool, NULL, offsetof( AutoHealBehaviorModuleData, m_initiallyActive ) },
-			{ "SingleBurst",	INI::parseBool, NULL, offsetof( AutoHealBehaviorModuleData, m_singleBurst ) },
-			{ "HealingAmount",		INI::parseInt,												NULL, offsetof( AutoHealBehaviorModuleData, m_healingAmount ) },
-			{ "HealingDelay",			INI::parseDurationUnsignedInt,				NULL, offsetof( AutoHealBehaviorModuleData, m_healingDelay ) },
-			{ "Radius",						INI::parseReal,												NULL, offsetof( AutoHealBehaviorModuleData, m_radius ) },
-			{ "KindOf",						KindOfMaskType::parseFromINI,											NULL, offsetof( AutoHealBehaviorModuleData, m_kindOf ) },
-			{ "ForbiddenKindOf",	KindOfMaskType::parseFromINI,											NULL, offsetof( AutoHealBehaviorModuleData, m_forbiddenKindOf ) },
-			{ "RadiusParticleSystemName",					INI::parseParticleSystemTemplate,	NULL, offsetof( AutoHealBehaviorModuleData, m_radiusParticleSystemTmpl ) },
-			{ "UnitHealPulseParticleSystemName",	INI::parseParticleSystemTemplate,	NULL, offsetof( AutoHealBehaviorModuleData, m_unitHealPulseParticleSystemTmpl ) },
-			{ "StartHealingDelay",			INI::parseDurationUnsignedInt,				NULL, offsetof( AutoHealBehaviorModuleData, m_startHealingDelay ) },
-			{ "AffectsWholePlayer",			INI::parseBool,												NULL, offsetof( AutoHealBehaviorModuleData, m_affectsWholePlayer ) },
-			{ "SkipSelfForHealing",			INI::parseBool,												NULL, offsetof( AutoHealBehaviorModuleData, m_skipSelfForHealing ) },
+			{ "StartsActive",	INI::parseBool, nullptr, offsetof( AutoHealBehaviorModuleData, m_initiallyActive ) },
+			{ "SingleBurst",	INI::parseBool, nullptr, offsetof( AutoHealBehaviorModuleData, m_singleBurst ) },
+			{ "HealingAmount",		INI::parseInt,												nullptr, offsetof( AutoHealBehaviorModuleData, m_healingAmount ) },
+			{ "HealingDelay",			INI::parseDurationUnsignedInt,				nullptr, offsetof( AutoHealBehaviorModuleData, m_healingDelay ) },
+			{ "Radius",						INI::parseReal,												nullptr, offsetof( AutoHealBehaviorModuleData, m_radius ) },
+			{ "KindOf",						KindOfMaskType::parseFromINI,											nullptr, offsetof( AutoHealBehaviorModuleData, m_kindOf ) },
+			{ "ForbiddenKindOf",	KindOfMaskType::parseFromINI,											nullptr, offsetof( AutoHealBehaviorModuleData, m_forbiddenKindOf ) },
+			{ "RadiusParticleSystemName",					INI::parseParticleSystemTemplate,	nullptr, offsetof( AutoHealBehaviorModuleData, m_radiusParticleSystemTmpl ) },
+			{ "UnitHealPulseParticleSystemName",	INI::parseParticleSystemTemplate,	nullptr, offsetof( AutoHealBehaviorModuleData, m_unitHealPulseParticleSystemTmpl ) },
+			{ "StartHealingDelay",			INI::parseDurationUnsignedInt,				nullptr, offsetof( AutoHealBehaviorModuleData, m_startHealingDelay ) },
+			{ "AffectsWholePlayer",			INI::parseBool,												nullptr, offsetof( AutoHealBehaviorModuleData, m_affectsWholePlayer ) },
+			{ "SkipSelfForHealing",			INI::parseBool,												nullptr, offsetof( AutoHealBehaviorModuleData, m_skipSelfForHealing ) },
 			{ 0, 0, 0, 0 }
 		};
 
@@ -126,57 +123,58 @@ public:
 	static Int getInterfaceMask() { return UpdateModule::getInterfaceMask() | MODULEINTERFACE_UPGRADE | MODULEINTERFACE_DAMAGE; }
 
 	// BehaviorModule
-	virtual UpgradeModuleInterface* getUpgrade() { return this; }
-	virtual DamageModuleInterface* getDamage() { return this; }
+	virtual UpgradeModuleInterface* getUpgrade() override { return this; }
+	virtual DamageModuleInterface* getDamage() override { return this; }
 
 	// DamageModuleInterface
-	virtual void onDamage( DamageInfo *damageInfo );
-	virtual void onHealing( DamageInfo *damageInfo ) { }
-	virtual void onBodyDamageStateChange(const DamageInfo* damageInfo, BodyDamageType oldState, BodyDamageType newState) { }
+	virtual void onDamage( DamageInfo *damageInfo ) override;
+	virtual void onHealing( DamageInfo *damageInfo ) override { }
+	virtual void onBodyDamageStateChange(const DamageInfo* damageInfo, BodyDamageType oldState, BodyDamageType newState) override { }
 
 	// UpdateModuleInterface
-	virtual UpdateSleepTime update();
-	virtual DisabledMaskType getDisabledTypesToProcess() const { return MAKE_DISABLED_MASK( DISABLED_HELD ); }
+	virtual UpdateSleepTime update() override;
+	virtual DisabledMaskType getDisabledTypesToProcess() const override { return MAKE_DISABLED_MASK( DISABLED_HELD ); }
 
 	void stopHealing();
 	void undoUpgrade(); ///<pretend like we have not been activated yet, so we can be reactivated later
 
 protected:
 
-	virtual void upgradeImplementation()
+	virtual void upgradeImplementation() override
 	{
 		setWakeFrame(getObject(), UPDATE_SLEEP_NONE);
 	}
 
-	virtual void getUpgradeActivationMasks(UpgradeMaskType& activation, UpgradeMaskType& conflicting) const
+	virtual void getUpgradeActivationMasks(UpgradeMaskType& activation, UpgradeMaskType& conflicting) const override
 	{
 		getAutoHealBehaviorModuleData()->m_upgradeMuxData.getUpgradeActivationMasks(activation, conflicting);
 	}
 
-	virtual void performUpgradeFX()
+	virtual void performUpgradeFX() override
 	{
 		getAutoHealBehaviorModuleData()->m_upgradeMuxData.performUpgradeFX(getObject());
 	}
 
-	virtual void processUpgradeRemoval()
+	virtual void processUpgradeRemoval() override
 	{
-		// I can't take it any more.  Let the record show that I think the UpgradeMux multiple inheritence is CRAP.
+		// I can't take it any more.  Let the record show that I think the UpgradeMux multiple inheritance is CRAP.
 		getAutoHealBehaviorModuleData()->m_upgradeMuxData.muxDataProcessUpgradeRemoval(getObject());
 	}
 
-	virtual Bool requiresAllActivationUpgrades() const
+	virtual Bool requiresAllActivationUpgrades() const override
 	{
 		return getAutoHealBehaviorModuleData()->m_upgradeMuxData.m_requiresAllTriggers;
 	}
 
-	inline Bool isUpgradeActive() const { return isAlreadyUpgraded(); }
+	Bool isUpgradeActive() const { return isAlreadyUpgraded(); }
 
-	virtual Bool isSubObjectsUpgrade() { return false; }
+	virtual Bool isSubObjectsUpgrade() override { return false; }
 
 
 private:
 
 	void pulseHealObject( Object *obj );
+	void createEmitters();
 
 	ParticleSystemID m_radiusParticleSystemID;
 
@@ -189,6 +187,3 @@ private:
 	Bool m_stopped;
 
 };
-
-#endif // __AutoHealBehavior_H_
-

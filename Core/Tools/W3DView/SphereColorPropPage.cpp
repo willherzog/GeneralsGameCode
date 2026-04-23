@@ -44,8 +44,8 @@ IMPLEMENT_DYNCREATE(SphereColorPropPageClass, CPropertyPage)
 SphereColorPropPageClass::SphereColorPropPageClass (SphereRenderObjClass *sphere)
 	:	m_RenderObj (sphere),
 		m_bValid (true),
-		m_ColorBar (NULL),
-		m_OpacityBar (NULL),
+		m_ColorBar (nullptr),
+		m_OpacityBar (nullptr),
 		m_EnableOpactiyVector (false),
 		m_InvertVector (false),
 		CPropertyPage(SphereColorPropPageClass::IDD)
@@ -55,7 +55,6 @@ SphereColorPropPageClass::SphereColorPropPageClass (SphereRenderObjClass *sphere
 	//}}AFX_DATA_INIT
 
 	Initialize ();
-	return ;
 }
 
 
@@ -64,9 +63,8 @@ SphereColorPropPageClass::SphereColorPropPageClass (SphereRenderObjClass *sphere
 //	~SphereColorPropPageClass
 //
 /////////////////////////////////////////////////////////////
-SphereColorPropPageClass::~SphereColorPropPageClass (void)
+SphereColorPropPageClass::~SphereColorPropPageClass ()
 {
-	return ;
 }
 
 
@@ -82,7 +80,6 @@ SphereColorPropPageClass::DoDataExchange (CDataExchange* pDX)
 	//{{AFX_DATA_MAP(SphereColorPropPageClass)
 		// NOTE: the ClassWizard will add DDX and DDV calls here
 	//}}AFX_DATA_MAP
-	return ;
 }
 
 
@@ -101,7 +98,7 @@ END_MESSAGE_MAP()
 //
 /////////////////////////////////////////////////////////////
 void
-SphereColorPropPageClass::Initialize (void)
+SphereColorPropPageClass::Initialize ()
 {
 	m_ColorChannel.Reset ();
 	m_OrigColorChannel.Reset ();
@@ -110,7 +107,7 @@ SphereColorPropPageClass::Initialize (void)
 	m_VectorChannel.Reset ();
 	m_OrigVectorChannel.Reset ();
 
-	if (m_RenderObj != NULL) {
+	if (m_RenderObj != nullptr) {
 
 		m_ColorChannel			= m_RenderObj->Get_Color_Channel ();
 		m_OrigColorChannel	= m_RenderObj->Get_Color_Channel ();
@@ -139,8 +136,6 @@ SphereColorPropPageClass::Initialize (void)
 			m_OrigVectorChannel.Add_Key (m_RenderObj->Get_Vector (), 0);
 		}
 	}
-
-	return ;
 }
 
 
@@ -150,7 +145,7 @@ SphereColorPropPageClass::Initialize (void)
 //
 /////////////////////////////////////////////////////////////
 BOOL
-SphereColorPropPageClass::OnInitDialog (void)
+SphereColorPropPageClass::OnInitDialog ()
 {
 	// Allow the base class to process this message
 	CPropertyPage::OnInitDialog ();
@@ -226,7 +221,7 @@ SphereColorPropPageClass::OnInitDialog (void)
 //
 /////////////////////////////////////////////////////////////
 BOOL
-SphereColorPropPageClass::OnApply (void)
+SphereColorPropPageClass::OnApply ()
 {
 	// Allow the base class to process this message
 	return CPropertyPage::OnApply ();
@@ -239,7 +234,7 @@ SphereColorPropPageClass::OnApply (void)
 //
 /////////////////////////////////////////////////////////////
 void
-SphereColorPropPageClass::OnDestroy (void)
+SphereColorPropPageClass::OnDestroy ()
 {
 	//
 	//	Free the alpha vectors associated with the keys...
@@ -247,14 +242,13 @@ SphereColorPropPageClass::OnDestroy (void)
 	int count = m_VectorBar->Get_Point_Count ();
 	for (int index = 0; index < count; index ++) {
 		AlphaVectorStruct *data = (AlphaVectorStruct *)m_VectorBar->Get_User_Data (index);
-		if (data != NULL) {
+		if (data != nullptr) {
 			delete data;
 			m_VectorBar->Set_User_Data (index, 0L);
 		}
 	}
 
 	CPropertyPage::OnDestroy();
-	return ;
 }
 
 
@@ -354,7 +348,7 @@ SphereColorPropPageClass::OnNotify
 			if (color_bar_hdr->hdr.code == CBRN_DBLCLK_POINT) {
 
 				AlphaVectorStruct *data = (AlphaVectorStruct *)m_VectorBar->Get_User_Data (color_bar_hdr->key_index);
-				if (data != NULL) {
+				if (data != nullptr) {
 
 					//
 					//	Set-up the dialog so the user can edit this keyframe
@@ -385,7 +379,7 @@ SphereColorPropPageClass::OnNotify
 				AlphaVectorStruct *next_data	= (AlphaVectorStruct *)m_VectorBar->Get_User_Data (color_bar_hdr->key_index + 1);
 				AlphaVectorStruct *new_data	= new AlphaVectorStruct;
 
-				if (next_data == NULL) {
+				if (next_data == nullptr) {
 					(*new_data) = (*prev_data);
 				} else {
 
@@ -436,7 +430,7 @@ SphereColorPropPageClass::OnNotify
 //
 /////////////////////////////////////////////////////////////
 void
-SphereColorPropPageClass::OnCancel (void)
+SphereColorPropPageClass::OnCancel ()
 {
 	//
 	//	Reset the object to its original state
@@ -449,7 +443,6 @@ SphereColorPropPageClass::OnCancel (void)
 	m_RenderObj->Set_Flag (SphereRenderObjClass::USE_INVERSE_ALPHA, m_InvertVector);
 
 	CPropertyPage::OnCancel ();
-	return ;
 }
 
 
@@ -459,7 +452,7 @@ SphereColorPropPageClass::OnCancel (void)
 //
 /////////////////////////////////////////////////////////////
 void
-SphereColorPropPageClass::Update_Opacities (void)
+SphereColorPropPageClass::Update_Opacities ()
 {
 	m_AlphaChannel.Reset ();
 
@@ -482,7 +475,6 @@ SphereColorPropPageClass::Update_Opacities (void)
 	//
 	m_RenderObj->Set_Alpha_Channel (m_AlphaChannel);
 	m_RenderObj->Restart_Animation ();
-	return ;
 }
 
 
@@ -492,7 +484,7 @@ SphereColorPropPageClass::Update_Opacities (void)
 //
 /////////////////////////////////////////////////////////////
 void
-SphereColorPropPageClass::Update_Colors (void)
+SphereColorPropPageClass::Update_Colors ()
 {
 	m_ColorChannel.Reset ();
 
@@ -515,7 +507,6 @@ SphereColorPropPageClass::Update_Colors (void)
 	//
 	m_RenderObj->Set_Color_Channel (m_ColorChannel);
 	m_RenderObj->Restart_Animation ();
-	return ;
 }
 
 
@@ -525,7 +516,7 @@ SphereColorPropPageClass::Update_Colors (void)
 //
 /////////////////////////////////////////////////////////////
 void
-SphereColorPropPageClass::Update_Vectors (void)
+SphereColorPropPageClass::Update_Vectors ()
 {
 	m_VectorChannel.Reset ();
 
@@ -542,7 +533,7 @@ SphereColorPropPageClass::Update_Vectors (void)
 		m_VectorBar->Get_Point (index, &position, &red, &green, &blue);
 
 		AlphaVectorStruct *data = (AlphaVectorStruct *)m_VectorBar->Get_User_Data (index);
-		if (data != NULL) {
+		if (data != nullptr) {
 			m_VectorChannel.Add_Key (*data, position);
 		}
 	}
@@ -552,7 +543,6 @@ SphereColorPropPageClass::Update_Vectors (void)
 	//
 	m_RenderObj->Set_Vector_Channel (m_VectorChannel);
 	m_RenderObj->Restart_Animation ();
-	return ;
 }
 
 
@@ -562,7 +552,7 @@ SphereColorPropPageClass::Update_Vectors (void)
 //
 /////////////////////////////////////////////////////////////
 void
-SphereColorPropPageClass::OnOpacityVectorCheck (void)
+SphereColorPropPageClass::OnOpacityVectorCheck ()
 {
 	bool is_checked = (IsDlgButtonChecked (IDC_OPACITY_VECTOR_CHECK) == 1);
 
@@ -577,7 +567,6 @@ SphereColorPropPageClass::OnOpacityVectorCheck (void)
 	//
 	m_RenderObj->Set_Flag (SphereRenderObjClass::USE_ALPHA_VECTOR, is_checked);
 	SetModified ();
-	return ;
 }
 
 /////////////////////////////////////////////////////////////
@@ -586,7 +575,7 @@ SphereColorPropPageClass::OnOpacityVectorCheck (void)
 //
 /////////////////////////////////////////////////////////////
 void
-SphereColorPropPageClass::OnInvertVectorCheck (void)
+SphereColorPropPageClass::OnInvertVectorCheck ()
 {
 	bool is_checked = (IsDlgButtonChecked (IDC_INVERT_VECTOR_CHECK) == 1);
 
@@ -600,5 +589,4 @@ SphereColorPropPageClass::OnInvertVectorCheck (void)
 	//
 	m_RenderObj->Set_Flag (SphereRenderObjClass::USE_INVERSE_ALPHA, is_checked);
 	SetModified ();
-	return ;
 }

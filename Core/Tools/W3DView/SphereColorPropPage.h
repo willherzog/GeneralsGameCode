@@ -16,12 +16,8 @@
 **	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if !defined(AFX_SPHERECOLORPROPPAGE_H__E86BBE86_F527_11D3_A08F_00104B791122__INCLUDED_)
-#define AFX_SPHERECOLORPROPPAGE_H__E86BBE86_F527_11D3_A08F_00104B791122__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
+
 // SphereColorPropPage.h : header file
 //
 
@@ -40,7 +36,7 @@ class SphereColorPropPageClass : public CPropertyPage
 
 // Construction
 public:
-	SphereColorPropPageClass (SphereRenderObjClass *sphere = NULL);
+	SphereColorPropPageClass (SphereRenderObjClass *sphere = nullptr);
 	~SphereColorPropPageClass ();
 
 // Dialog Data
@@ -84,20 +80,20 @@ public:
 	//	Inline accessors
 	//
 
-	SphereRenderObjClass *		Get_Sphere (void) const							{ return m_RenderObj; }
+	SphereRenderObjClass *		Get_Sphere () const							{ return m_RenderObj; }
 	void								Set_Sphere (SphereRenderObjClass *sphere)	{ m_RenderObj = sphere; Initialize (); }
-	bool								Is_Data_Valid (void) const						{ return m_bValid; }
+	bool								Is_Data_Valid () const						{ return m_bValid; }
 
 protected:
 
 	/////////////////////////////////////////////////////////
 	//	Protected methods
 	/////////////////////////////////////////////////////////
-	void				Initialize (void);
-	void				Update_Colors (void);
-	void				Update_Opacities (void);
-	void				Update_Vectors (void);
-	void				Update_Vector_Bar_Enabled_Status (void);
+	void				Initialize ();
+	void				Update_Colors ();
+	void				Update_Opacities ();
+	void				Update_Vectors ();
+	void				Update_Vector_Bar_Enabled_Status ();
 
 private:
 
@@ -122,6 +118,3 @@ private:
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
-
-#endif // !defined(AFX_SPHERECOLORPROPPAGE_H__E86BBE86_F527_11D3_A08F_00104B791122__INCLUDED_)
-

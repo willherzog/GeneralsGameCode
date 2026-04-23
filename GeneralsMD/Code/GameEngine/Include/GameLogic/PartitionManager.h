@@ -46,9 +46,6 @@
 
 #pragma once
 
-#ifndef __PARTITIONMANAGER_H_
-#define __PARTITIONMANAGER_H_
-
 //-----------------------------------------------------------------------------
 //           Includes
 //-----------------------------------------------------------------------------
@@ -103,7 +100,6 @@ enum ValueOrThreat CPP_11(: Int)
 {
 	VOT_CashValue = 1,
 	VOT_ThreatValue,
-	VOT_NumItems
 };
 
 // ----------------------------------------------------------------------------------------------
@@ -126,16 +122,16 @@ const Real RANDOM_START_ANGLE = -99999.9f;			///< no start angle (an unlikely nu
 
 struct FindPositionOptions
 {
-	FindPositionOptions( void )
+	FindPositionOptions()
 	{
 		flags									= FPF_NONE;
 		minRadius							= 0.0f;
 		maxRadius							= 0.0f;
 		startAngle						= RANDOM_START_ANGLE;
 		maxZDelta							= 1e10f;	// ie, any z delta.
-		ignoreObject					= NULL;
-		sourceToPathToDest    = NULL;
-		relationshipObject		= NULL;
+		ignoreObject					= nullptr;
+		sourceToPathToDest    = nullptr;
+		relationshipObject		= nullptr;
 	};
 	FindPositionFlags flags;					///< flags for finding the legal position
 	Real minRadius;										///< min radius to search around
@@ -218,22 +214,22 @@ public:
 	/**
 		return the Cell for this COI (null if the COI is not in use)
 	*/
-	inline PartitionCell *getCell() { return m_cell; }
+	PartitionCell *getCell() { return m_cell; }
 
 	/**
 		return the Module for this COI (null if the COI is not in use)
 	*/
-	inline PartitionData *getModule() { return m_module; }
+	PartitionData *getModule() { return m_module; }
 
 	/**
 		return the previous COI in the Cell's list of COIs.
 	*/
-	inline CellAndObjectIntersection *getPrevCoi() { return m_prevCoi; }
+	CellAndObjectIntersection *getPrevCoi() { return m_prevCoi; }
 
 	/**
 		return the next COI in the Cell's list of COIs.
 	*/
-	inline CellAndObjectIntersection *getNextCoi() { return m_nextCoi; }
+	CellAndObjectIntersection *getNextCoi() { return m_nextCoi; }
 
 	// only for use by PartitionCell.
 	void friend_addToCellList(CellAndObjectIntersection **pListHead);
@@ -262,9 +258,9 @@ public:
 protected:
 
 	// snapshot method
-	virtual void crc( Xfer *xfer );
-	virtual void xfer( Xfer *xfer );
-	virtual void loadPostProcess();
+	virtual void crc( Xfer *xfer ) override;
+	virtual void xfer( Xfer *xfer ) override;
+	virtual void loadPostProcess() override;
 
 };
 
@@ -320,9 +316,9 @@ public:
 	~PartitionCell();
 
 	// --------------- inherited from Snapshot interface --------------
-	void crc( Xfer *xfer );
-	void xfer( Xfer *xfer );
-	void loadPostProcess( void );
+	virtual void crc( Xfer *xfer ) override;
+	virtual void xfer( Xfer *xfer ) override;
+	virtual void loadPostProcess() override;
 
 	Int getCoiCount() const { return m_coiCount; }		///< return number of COIs touching this cell.
 	Int getCellX() const { return m_cellX; }
@@ -346,13 +342,13 @@ public:
 	void invalidateShroudedStatusForAllCois(Int playerIndex);
 
 #ifdef PM_CACHE_TERRAIN_HEIGHT
-	inline Real getLoTerrain() const { return m_loTerrainZ; }
-	inline Real getHiTerrain() const { return m_hiTerrainZ; }
+	Real getLoTerrain() const { return m_loTerrainZ; }
+	Real getHiTerrain() const { return m_hiTerrainZ; }
 #endif
 
 	void getCellCenterPos(Real& x, Real& y);
 
-	inline CellAndObjectIntersection *getFirstCoiInCell() { return m_firstCoiInCell; }
+	CellAndObjectIntersection *getFirstCoiInCell() { return m_firstCoiInCell; }
 
 	#ifdef RTS_DEBUG
 	void validateCoiList();
@@ -469,6 +465,11 @@ private:
 	);
 
 	/**
+		A more advanced implementation of doCircleFill that is 100% accurate.
+	*/
+	void doCircleFillPrecise(Real centerX, Real centerY, Real radius);
+
+	/**
 		fill in the pixels covered by the given rectangular shape with the given
 		center, dimensions, and rotation.
 	*/
@@ -493,14 +494,14 @@ public:
 	PartitionData();
 
 	void attachToObject( Object* object );
-	void detachFromObject( void );
+	void detachFromObject();
 	void attachToGhostObject(GhostObject* object);
-	void detachFromGhostObject(void);
+	void detachFromGhostObject();
 
 	void setNext( PartitionData *next ) { m_next = next; }			///< set next pointer
-	PartitionData *getNext( void ) { return m_next; }						///< get the next pointer
+	PartitionData *getNext() { return m_next; }						///< get the next pointer
 	void setPrev( PartitionData *prev ) { m_prev = prev; }			///< set the prev pointer
-	PartitionData *getPrev( void ) { return m_prev; }						///< get the prev pointer
+	PartitionData *getPrev() { return m_prev; }						///< get the prev pointer
 
 	/// mark the given module as being "dirty", needing recalcing during next update phase.
 	// if needToUpdateCells is true, we'll recalc the partition cells it touches and do collision testing.
@@ -515,7 +516,7 @@ public:
 
 	ObjectShroudStatus getShroudedStatus(Int playerIndex);
 
-	inline Int wasSeenByAnyPlayers() const	///<check if a player in the game has seen the object but is now looking at fogged version.
+	Int wasSeenByAnyPlayers() const	///<check if a player in the game has seen the object but is now looking at fogged version.
 	{
 		Int i=0;
 		for (; i<MAX_PLAYER_COUNT; i++)
@@ -554,13 +555,13 @@ public:
 	Int friend_getDoneFlag() { return m_doneFlag; }
 	void friend_setDoneFlag(Int i) { m_doneFlag = i; }
 
-	inline Bool isInListDirtyModules(PartitionData* const* pListHead) const
+	Bool isInListDirtyModules(PartitionData* const* pListHead) const
 	{
 		Bool result = (*pListHead == this || m_prevDirty || m_nextDirty);
 		DEBUG_ASSERTCRASH(result == (m_dirtyStatus != NOT_DIRTY), ("dirty flag mismatch"));
 		return result;
 	}
-	inline void prependToDirtyModules(PartitionData** pListHead)
+	void prependToDirtyModules(PartitionData** pListHead)
 	{
 		DEBUG_ASSERTCRASH((m_dirtyStatus != NOT_DIRTY), ("dirty flag mismatch"));
 		m_nextDirty = *pListHead;
@@ -609,7 +610,7 @@ class PartitionFilterIsFlying : public PartitionFilter
 {
 public:
 	PartitionFilterIsFlying() { }
-	virtual Bool allow(Object *objOther);
+	virtual Bool allow(Object *objOther) override;
 #if defined(RTS_DEBUG)
 	virtual const char* debugGetName() { return "PartitionFilterIsFlying"; }
 #endif
@@ -625,7 +626,7 @@ private:
   Bool m_desiredCollisionResult;  // collision must match this for allow to return true
 public:
 	PartitionFilterWouldCollide(const Coord3D& pos, const GeometryInfo& geom, Real angle, Bool desired);
-	virtual Bool allow(Object *objOther);
+	virtual Bool allow(Object *objOther) override;
 #if defined(RTS_DEBUG)
 	virtual const char* debugGetName() { return "PartitionFilterWouldCollide"; }
 #endif
@@ -641,7 +642,7 @@ private:
 	const Player *m_player;
 public:
 	PartitionFilterSamePlayer(const Player *player) : m_player(player) { }
-	virtual Bool allow(Object *objOther);
+	virtual Bool allow(Object *objOther) override;
 #if defined(RTS_DEBUG)
 	virtual const char* debugGetName() { return "PartitionFilterSamePlayer"; }
 #endif
@@ -667,7 +668,7 @@ public:
 		ALLOW_NEUTRAL					= (1<<NEUTRAL)		///< allow objects that m_obj considers neutral
 	};
 	PartitionFilterRelationship(const Object *obj, Int flags) : m_obj(obj), m_flags(flags) { }
-	virtual Bool allow(Object *objOther);
+	virtual Bool allow(Object *objOther) override;
 #if defined(RTS_DEBUG)
 	virtual const char* debugGetName() { return "PartitionFilterRelationship"; }
 #endif
@@ -684,7 +685,7 @@ private:
 	const Team *m_team;
 public:
 	PartitionFilterAcceptOnTeam(const Team *team);
-	virtual Bool allow(Object *objOther);
+	virtual Bool allow(Object *objOther) override;
 #if defined(RTS_DEBUG)
 	virtual const char* debugGetName() { return "PartitionFilterAcceptOnTeam"; }
 #endif
@@ -701,7 +702,7 @@ private:
 	const Squad *m_squad;
 public:
 	PartitionFilterAcceptOnSquad(const Squad *squad);
-	virtual Bool allow(Object *objOther);
+	virtual Bool allow(Object *objOther) override;
 #if defined(RTS_DEBUG)
 	virtual const char* debugGetName() { return "PartitionFilterAcceptOnSquad"; }
 #endif
@@ -724,7 +725,7 @@ private:
 	const Object *m_obj;
 public:
 	PartitionFilterLineOfSight(const Object *obj);
-	virtual Bool allow(Object *objOther);
+	virtual Bool allow(Object *objOther) override;
 #if defined(RTS_DEBUG)
 	virtual const char* debugGetName() { return "PartitionFilterLineOfSight"; }
 #endif
@@ -742,7 +743,7 @@ private:
 	AbleToAttackType m_attackType;
 public:
 	PartitionFilterPossibleToAttack(AbleToAttackType t, const Object *obj, CommandSourceType commandSource);
-	virtual Bool allow(Object *objOther);
+	virtual Bool allow(Object *objOther) override;
 #if defined(RTS_DEBUG)
 	virtual const char* debugGetName() { return "PartitionFilterPossibleToAttack"; }
 #endif
@@ -760,7 +761,7 @@ private:
 
 public:
 	PartitionFilterPossibleToEnter(const Object *obj, CommandSourceType commandSource);
-	virtual Bool allow(Object *objOther);
+	virtual Bool allow(Object *objOther) override;
 #if defined(RTS_DEBUG)
 	virtual const char* debugGetName() { return "PartitionFilterPossibleToEnter"; }
 #endif
@@ -778,7 +779,7 @@ private:
 
 public:
 	PartitionFilterPossibleToHijack(const Object *obj, CommandSourceType commandSource);
-	virtual Bool allow(Object *objOther);
+	virtual Bool allow(Object *objOther) override;
 #if defined(RTS_DEBUG)
 	virtual const char* debugGetName() { return "PartitionFilterPossibleToHijack"; }
 #endif
@@ -794,7 +795,7 @@ private:
 	ObjectID m_lastAttackedBy;
 public:
 	PartitionFilterLastAttackedBy(Object *obj);
-	virtual Bool allow(Object *other);
+	virtual Bool allow(Object *other) override;
 #if defined(RTS_DEBUG)
 	virtual const char* debugGetName() { return "PartitionFilterLastAttackedBy"; }
 #endif
@@ -810,7 +811,7 @@ private:
 	ObjectStatusMaskType m_mustBeSet, m_mustBeClear;
 public:
 	PartitionFilterAcceptByObjectStatus( ObjectStatusMaskType mustBeSet, ObjectStatusMaskType mustBeClear) : m_mustBeSet(mustBeSet), m_mustBeClear(mustBeClear) { }
-	virtual Bool allow(Object *objOther);
+	virtual Bool allow(Object *objOther) override;
 #if defined(RTS_DEBUG)
 	virtual const char* debugGetName() { return "PartitionFilterAcceptByObjectStatus"; }
 #endif
@@ -830,7 +831,7 @@ public:
 		: m_mustBeSet(mustBeSet), m_mustBeClear(mustBeClear)
 	{
 	}
-	virtual Bool allow(Object *objOther);
+	virtual Bool allow(Object *objOther) override;
 #if defined(RTS_DEBUG)
 	virtual const char* debugGetName() { return "PartitionFilterRejectByObjectStatus"; }
 #endif
@@ -847,7 +848,7 @@ private:
 	Bool m_allow;
 public:
 	PartitionFilterStealthedAndUndetected( const Object *obj, Bool allow ) { m_obj = obj; m_allow = allow; }
-	virtual Bool allow(Object *objOther);
+	virtual Bool allow(Object *objOther) override;
 #if defined(RTS_DEBUG)
 	virtual const char* debugGetName() { return "PartitionFilterStealthedAndUndetected"; }
 #endif
@@ -863,7 +864,7 @@ private:
 	KindOfMaskType m_mustBeSet, m_mustBeClear;
 public:
 	PartitionFilterAcceptByKindOf(const KindOfMaskType& mustBeSet, const KindOfMaskType& mustBeClear) : m_mustBeSet(mustBeSet), m_mustBeClear(mustBeClear) { }
-	virtual Bool allow(Object *objOther);
+	virtual Bool allow(Object *objOther) override;
 #if defined(RTS_DEBUG)
 	virtual const char* debugGetName() { return "PartitionFilterAcceptByKindOf"; }
 #endif
@@ -883,7 +884,7 @@ public:
 		: m_mustBeSet(mustBeSet), m_mustBeClear(mustBeClear)
 	{
 	}
-	virtual Bool allow(Object *objOther);
+	virtual Bool allow(Object *objOther) override;
 #if defined(RTS_DEBUG)
 	virtual const char* debugGetName() { return "PartitionFilterRejectByKindOf"; }
 #endif
@@ -900,7 +901,7 @@ private:
 	Object *m_obj;
 public:
 	PartitionFilterRejectBehind( Object *obj );
-	virtual Bool allow( Object *other );
+	virtual Bool allow( Object *other ) override;
 #if defined(RTS_DEBUG)
 	virtual const char* debugGetName() { return "PartitionFilterRejectBehind"; }
 #endif
@@ -913,9 +914,9 @@ public:
 class PartitionFilterAlive : public PartitionFilter
 {
 public:
-	PartitionFilterAlive(void) { }
+	PartitionFilterAlive() { }
 protected:
-	virtual Bool allow(Object *objOther);
+	virtual Bool allow(Object *objOther) override;
 #if defined(RTS_DEBUG)
 	virtual const char* debugGetName() { return "PartitionFilterAlive"; }
 #endif
@@ -933,7 +934,7 @@ private:
 public:
 	PartitionFilterSameMapStatus(const Object *obj) : m_obj(obj) { }
 protected:
-	virtual Bool allow(Object *objOther);
+	virtual Bool allow(Object *objOther) override;
 #if defined(RTS_DEBUG)
 	virtual const char* debugGetName() { return "PartitionFilterSameMapStatus"; }
 #endif
@@ -948,7 +949,7 @@ class PartitionFilterOnMap : public PartitionFilter
 public:
 	PartitionFilterOnMap() { }
 protected:
-	virtual Bool allow(Object *objOther);
+	virtual Bool allow(Object *objOther) override;
 #if defined(RTS_DEBUG)
 	virtual const char* debugGetName() { return "PartitionFilterOnMap"; }
 #endif
@@ -968,7 +969,7 @@ private:
 public:
 	PartitionFilterRejectBuildings(const Object *o);
 protected:
-	virtual Bool allow( Object *other );
+	virtual Bool allow( Object *other ) override;
 #if defined(RTS_DEBUG)
 	virtual const char* debugGetName() { return "PartitionFilterRejectBuildings"; }
 #endif
@@ -988,7 +989,7 @@ public:
 	PartitionFilterInsignificantBuildings(Bool allowNonBuildings, Bool allowInsignificant) :
 			m_allowNonBuildings(allowNonBuildings), m_allowInsignificant(allowInsignificant) {}
 protected:
-	virtual Bool allow( Object *other );
+	virtual Bool allow( Object *other ) override;
 #if defined(RTS_DEBUG)
 	virtual const char* debugGetName() { return "PartitionFilterInsignificantBuildings"; }
 #endif
@@ -1006,7 +1007,7 @@ public:
 	PartitionFilterFreeOfFog(Int toWhom) :
 			m_comparisonIndex(toWhom){}
 protected:
-	virtual Bool allow( Object *other );
+	virtual Bool allow( Object *other ) override;
 #if defined(RTS_DEBUG)
 	virtual const char* debugGetName() { return "PartitionFilterFreeOfFog"; }
 #endif
@@ -1023,7 +1024,7 @@ private:
 public:
 	PartitionFilterRepulsor(const Object *o) : m_self(o) { }
 protected:
-	virtual Bool allow( Object *other );
+	virtual Bool allow( Object *other ) override;
 #if defined(RTS_DEBUG)
 	virtual const char* debugGetName() { return "PartitionFilterRepulsor"; }
 #endif
@@ -1044,7 +1045,7 @@ private:
 public:
 	PartitionFilterIrregularArea(Coord3D* area, Int numPointsInArea) : m_area(area), m_numPointsInArea(numPointsInArea) {}
 protected:
-	virtual Bool allow( Object *other );
+	virtual Bool allow( Object *other ) override;
 #if defined(RTS_DEBUG)
 	virtual const char* debugGetName() { return "PartitionFilterIrregularArea"; }
 #endif
@@ -1064,7 +1065,7 @@ private:
 public:
 	PartitionFilterPolygonTrigger(const PolygonTrigger *trigger) : m_trigger(trigger) {}
 protected:
-	virtual Bool allow( Object *other );
+	virtual Bool allow( Object *other ) override;
 #if defined(RTS_DEBUG)
 	virtual const char* debugGetName() { return "PartitionFilterPolygonTrigger"; }
 #endif
@@ -1084,7 +1085,7 @@ private:
 public:
 	PartitionFilterPlayer(const Player *player, Bool match) : m_player(player), m_match(match) {}
 protected:
-	virtual Bool allow( Object *other );
+	virtual Bool allow( Object *other ) override;
 #if defined(RTS_DEBUG)
 	virtual const char* debugGetName() { return "PartitionFilterPlayer"; }
 #endif
@@ -1109,7 +1110,7 @@ public:
 	{
 	}
 protected:
-	virtual Bool allow( Object *other );
+	virtual Bool allow( Object *other ) override;
 #if defined(RTS_DEBUG)
 	virtual const char* debugGetName() { return "PartitionFilterPlayerAffiliation"; }
 #endif
@@ -1128,10 +1129,10 @@ private:
 
 public:
 	PartitionFilterThing(const ThingTemplate *thing, Bool match) : m_tThing(thing), m_match(match) {
-		DEBUG_ASSERTCRASH(m_tThing != NULL, ("ThingTemplate for PartitionFilterThing is NULL"));
+		DEBUG_ASSERTCRASH(m_tThing != nullptr, ("ThingTemplate for PartitionFilterThing is null"));
 	}
 protected:
-	virtual Bool allow( Object *other );
+	virtual Bool allow( Object *other ) override;
 #if defined(RTS_DEBUG)
 	virtual const char* debugGetName() { return "PartitionFilterThing"; }
 #endif
@@ -1150,13 +1151,10 @@ private:
 public:
 	PartitionFilterGarrisonable( Bool match ) : m_match(match)
 	{
-		//Added By Sadullah Nader
-		//Initializations
-		m_player = NULL;
-		//
+		m_player = nullptr;
 	}
 protected:
-	virtual Bool allow( Object *other );
+	virtual Bool allow( Object *other ) override;
 #if defined(RTS_DEBUG)
 	virtual const char* debugGetName() { return "PartitionFilterGarrisonable"; }
 #endif
@@ -1179,7 +1177,7 @@ public:
 	{
 	}
 protected:
-	virtual Bool allow( Object *other );
+	virtual Bool allow( Object *other ) override;
 #if defined(RTS_DEBUG)
 	virtual const char* debugGetName() { return "PartitionFilterGarrisonableByPlayer"; }
 #endif
@@ -1197,7 +1195,7 @@ private:
 public:
 	PartitionFilterUnmannedObject( Bool match ) : m_match(match) {}
 protected:
-	virtual Bool allow( Object *other );
+	virtual Bool allow( Object *other ) override;
 #if defined(RTS_DEBUG)
 	virtual const char* debugGetName() { return "PartitionFilterUnmannedObject"; }
 #endif
@@ -1219,7 +1217,7 @@ public:
 	PartitionFilterValidCommandButtonTarget( Object *source, const CommandButton *commandButton, Bool match, CommandSourceType commandSource) :
 		m_source(source), m_commandButton(commandButton), m_match(match), m_commandSource(commandSource) {}
 protected:
-	virtual Bool allow( Object *other );
+	virtual Bool allow( Object *other ) override;
 #if defined(RTS_DEBUG)
 	virtual const char* debugGetName() { return "PartitionFilterValidCommandButtonTarget"; }
 #endif
@@ -1277,7 +1275,7 @@ protected:
 		Coord3D *closestVecArg
 	);
 
-	void shutdown( void );
+	void shutdown();
 
 	/// used to validate the positions for findPositionAround family of methods
 	Bool tryPosition( const Coord3D *center, Real dist, Real angle,
@@ -1309,26 +1307,26 @@ protected:
 	friend void hLineAddValue(Int x1, Int x2, Int y, void *threatValueParms);
 	friend void hLineRemoveValue(Int x1, Int x2, Int y, void *threatValueParms);
 
-	void processPendingUndoShroudRevealQueue(Bool considerTimestamp = TRUE);				///< keep popping and processing untill you get to one that is in the future
+	void processPendingUndoShroudRevealQueue(Bool considerTimestamp = TRUE);				///< keep popping and processing until you get to one that is in the future
 	void resetPendingUndoShroudRevealQueue();					///< Just delete everything in the queue without doing anything with them
 
 public:
 
-	PartitionManager( void );
-	virtual ~PartitionManager( void );
+	PartitionManager();
+	virtual ~PartitionManager() override;
 
 	// --------------- inherited from Subsystem interface -------------
-	virtual void init( void );			///< initialize
-	virtual void reset( void );			///< system reset
-	virtual void update( void );		///< system update
+	virtual void init() override;			///< initialize
+	virtual void reset() override;			///< system reset
+	virtual void update() override;		///< system update
 	// ----------------------------------------------------------------
 
 	// --------------- inherited from Snapshot interface --------------
-	void crc( Xfer *xfer );
-	void xfer( Xfer *xfer );
-	void loadPostProcess( void );
+	virtual void crc( Xfer *xfer ) override;
+	virtual void xfer( Xfer *xfer ) override;
+	virtual void loadPostProcess() override;
 
-	inline Bool getUpdatedSinceLastReset( void ) const { return m_updatedSinceLastReset; }
+	Bool getUpdatedSinceLastReset() const { return m_updatedSinceLastReset; }
 
 	void registerObject( Object *object );				///< add thing to system
 	void unRegisterObject( Object *object );			///< remove thing from system
@@ -1347,8 +1345,8 @@ public:
 	PartitionCell *getCellAt(Int x, Int y);
 	const PartitionCell *getCellAt(Int x, Int y) const;
 
-	/// A convenience funtion to reveal shroud at some location
-	// Queueing does not give you control of the timestamp to enforce the queue.  I own the delay, you don't.
+	/// A convenience function to reveal shroud at some location
+	// Queuing does not give you control of the timestamp to enforce the queue.  I own the delay, you don't.
 	void doShroudReveal( Real centerX, Real centerY, Real radius, PlayerMaskType playerMask);
 	void undoShroudReveal( Real centerX, Real centerY, Real radius, PlayerMaskType playerMask);
 	void queueUndoShroudReveal( Real centerX, Real centerY, Real radius, PlayerMaskType playerMask );
@@ -1365,7 +1363,7 @@ public:
 	void getCellCenterPos(Int x, Int y, Real& xx, Real& yy);
 
 	// find the cell that covers the world coords (wx,wy) and return its coords.
-	void worldToCell(Real wx, Real wy, Int *cx, Int *cy);
+	void worldToCell(Real wx, Real wy, Int *cx, Int *cy) const;
 
 	// given a distance in world coords, return the number of cells needed to cover that distance (rounding up)
 	Int worldToCellDist(Real w);
@@ -1374,17 +1372,17 @@ public:
 		const Object *obj,
 		Real maxDist,
 		DistanceCalculationType dc,
-		PartitionFilter **filters = NULL,
-		Real *closestDist = NULL,
-		Coord3D *closestDistVec = NULL
+		PartitionFilter **filters = nullptr,
+		Real *closestDist = nullptr,
+		Coord3D *closestDistVec = nullptr
 	);
 	Object *getClosestObject(
 		const Coord3D *pos,
 		Real maxDist,
 		DistanceCalculationType dc,
-		PartitionFilter **filters = NULL,
-		Real *closestDist = NULL,
-		Coord3D *closestDistVec = NULL
+		PartitionFilter **filters = nullptr,
+		Real *closestDist = nullptr,
+		Coord3D *closestDistVec = nullptr
 	);
 
 	Real getRelativeAngle2D( const Object *obj, const Object *otherObj );
@@ -1394,12 +1392,12 @@ public:
 	void getVectorTo(const Object *obj, const Coord3D *pos, DistanceCalculationType dc, Coord3D& vec);
 
 	// just like 'getDistance', but return the dist-sqr, meaning we save a sqrt() call if you don't need it.
-	Real getDistanceSquared(const Object *obj, const Object *otherObj, DistanceCalculationType dc, Coord3D *vec = NULL);
-	Real getDistanceSquared(const Object *obj, const Coord3D *pos, DistanceCalculationType dc, Coord3D *vec = NULL);
+	Real getDistanceSquared(const Object *obj, const Object *otherObj, DistanceCalculationType dc, Coord3D *vec = nullptr);
+	Real getDistanceSquared(const Object *obj, const Coord3D *pos, DistanceCalculationType dc, Coord3D *vec = nullptr);
 
 	// just like 'getDistanceSquared', but return the dist-sqr where the obj is at goalPos.
-	Real getGoalDistanceSquared(const Object *obj, const Coord3D *goalPos, const Object *otherObj, DistanceCalculationType dc, Coord3D *vec = NULL);
-	Real getGoalDistanceSquared(const Object *obj, const Coord3D *goalPos, const Coord3D *otherPos, DistanceCalculationType dc, Coord3D *vec = NULL);
+	Real getGoalDistanceSquared(const Object *obj, const Coord3D *goalPos, const Object *otherObj, DistanceCalculationType dc, Coord3D *vec = nullptr);
+	Real getGoalDistanceSquared(const Object *obj, const Coord3D *goalPos, const Coord3D *otherPos, DistanceCalculationType dc, Coord3D *vec = nullptr);
 
 #ifdef PM_CACHE_TERRAIN_HEIGHT
 	// note that the 2d positions aren't guaranteed to be the actual spot within the cell where the terrain
@@ -1416,7 +1414,7 @@ public:
 		const Object *obj,
 		Real maxDist,
 		DistanceCalculationType dc,
-		PartitionFilter **filters = NULL,
+		PartitionFilter **filters = nullptr,
 		IterOrderType order = ITER_FASTEST
 	);
 
@@ -1424,11 +1422,11 @@ public:
 		const Coord3D *pos,
 		Real maxDist,
 		DistanceCalculationType dc,
-		PartitionFilter **filters = NULL,
+		PartitionFilter **filters = nullptr,
 		IterOrderType order = ITER_FASTEST
 	);
 
-	SimpleObjectIterator *iterateAllObjects(PartitionFilter **filters = NULL);
+	SimpleObjectIterator *iterateAllObjects(PartitionFilter **filters = nullptr);
 
 	/**
 		return the Objects that would (or would not) collide with the given
@@ -1470,19 +1468,19 @@ public:
 	*/
 	Bool isClearLineOfSightTerrain(const Object* obj, const Coord3D& objPos, const Object* other, const Coord3D& otherPos);
 
-	inline Bool isInListDirtyModules(PartitionData* o) const
+	Bool isInListDirtyModules(PartitionData* o) const
 	{
 		return o->isInListDirtyModules(&m_dirtyModules);
 	}
-	inline void prependToDirtyModules(PartitionData* o)
+	void prependToDirtyModules(PartitionData* o)
 	{
 		o->prependToDirtyModules(&m_dirtyModules);
 	}
-	inline void removeFromDirtyModules(PartitionData* o)
+	void removeFromDirtyModules(PartitionData* o)
 	{
 		o->removeFromDirtyModules(&m_dirtyModules);
 	}
-	inline void removeAllDirtyModules()
+	void removeAllDirtyModules()
 	{
 		while (m_dirtyModules)
 		{
@@ -1492,7 +1490,7 @@ public:
 	}
 
 	/**
-		Reveals the map for the given player, but does not override Shroud generation.  (Script)
+		virtual Reveals the map for the given player, but does not override Shroud generation.  (Script)
 		*/
 	void revealMapForPlayer( Int playerIndex );
 
@@ -1535,10 +1533,10 @@ public:
 	// If saveToFog is false, then we are writing STORE_PERMENANT_REVEAL
 	void storeFoggedCells(ShroudStatusStoreRestore &outPartitionStore, Bool storeToFog) const;
 	void restoreFoggedCells(const ShroudStatusStoreRestore &inPartitionStore, Bool restoreToFog);
-};  // end class PartitionManager
+};
 
 // -----------------------------------------------------------------------------
-inline void PartitionManager::worldToCell(Real wx, Real wy, Int *cx, Int *cy)
+inline void PartitionManager::worldToCell(Real wx, Real wy, Int *cx, Int *cy) const
 {
 	*cx = REAL_TO_INT_FLOOR((wx - m_worldExtents.lo.x) * m_cellSizeInv);
 	*cy = REAL_TO_INT_FLOOR((wy - m_worldExtents.lo.y) * m_cellSizeInv);
@@ -1553,13 +1551,13 @@ inline Int PartitionManager::worldToCellDist(Real w)
 //-----------------------------------------------------------------------------
 inline PartitionCell *PartitionManager::getCellAt(Int x, Int y)
 {
-	return (x < 0 || y < 0 || x >= m_cellCountX || y >= m_cellCountY) ? NULL : &m_cells[y * m_cellCountX + x];
+	return (x < 0 || y < 0 || x >= m_cellCountX || y >= m_cellCountY) ? nullptr : &m_cells[y * m_cellCountX + x];
 }
 
 //-----------------------------------------------------------------------------
 inline const PartitionCell *PartitionManager::getCellAt(Int x, Int y) const
 {
-	return (x < 0 || y < 0 || x >= m_cellCountX || y >= m_cellCountY) ? NULL : &m_cells[y * m_cellCountX + x];
+	return (x < 0 || y < 0 || x >= m_cellCountX || y >= m_cellCountY) ? nullptr : &m_cells[y * m_cellCountX + x];
 }
 
 //-----------------------------------------------------------------------------
@@ -1599,6 +1597,3 @@ public:
 //           Externals
 //-----------------------------------------------------------------------------
 extern PartitionManager *ThePartitionManager;  ///< object manager singleton
-
-#endif // __PARTITIONMANAGER_H_
-

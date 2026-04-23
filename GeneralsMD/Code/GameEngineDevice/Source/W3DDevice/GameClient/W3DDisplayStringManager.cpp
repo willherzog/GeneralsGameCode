@@ -42,36 +42,36 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 //-------------------------------------------------------------------------------------------------
-W3DDisplayStringManager::W3DDisplayStringManager( void )
+W3DDisplayStringManager::W3DDisplayStringManager()
 {
 	for (Int i = 0; i < MAX_GROUPS; ++i)
 	{
-		m_groupNumeralStrings[i] = NULL;
+		m_groupNumeralStrings[i] = nullptr;
 	}
 
-	m_formationLetterDisplayString = NULL;
+	m_formationLetterDisplayString = nullptr;
 
 }
 
 //-------------------------------------------------------------------------------------------------
-W3DDisplayStringManager::~W3DDisplayStringManager( void )
+W3DDisplayStringManager::~W3DDisplayStringManager()
 {
 	for (Int i = 0; i < MAX_GROUPS; ++i)
 	{
 		if (m_groupNumeralStrings[i])
 			freeDisplayString(m_groupNumeralStrings[i]);
-		m_groupNumeralStrings[i] = NULL;
+		m_groupNumeralStrings[i] = nullptr;
 	}
 
 	if (m_formationLetterDisplayString)
 		freeDisplayString( m_formationLetterDisplayString );
-	m_formationLetterDisplayString = NULL;
+	m_formationLetterDisplayString = nullptr;
 
 
 }
 
 //-------------------------------------------------------------------------------------------------
-void W3DDisplayStringManager::postProcessLoad( void )
+void W3DDisplayStringManager::postProcessLoad()
 {
 	// Get the font.
 	GameFont *font = TheFontLibrary->getFont(
@@ -83,16 +83,9 @@ void W3DDisplayStringManager::postProcessLoad( void )
 	{
 		m_groupNumeralStrings[i] = newDisplayString();
 		m_groupNumeralStrings[i]->setFont(font);
-
-#ifdef KRIS_BRUTAL_HACK_FOR_AIRCRAFT_CARRIER_DEBUGGING
-		UnicodeString displayNumber;
-		displayNumber.format( L"%d", i);
-		m_groupNumeralStrings[i]->setText( displayNumber );
-#else
  		AsciiString displayNumber;
  		displayNumber.format("NUMBER:%d", i);
  		m_groupNumeralStrings[i]->setText(TheGameText->fetch(displayNumber));
-#endif
 	}
 
 	m_formationLetterDisplayString = newDisplayString();
@@ -108,19 +101,19 @@ void W3DDisplayStringManager::postProcessLoad( void )
 /** Allocate a new display string and tie it to the master list so we
 	* can keep track of it */
 //-------------------------------------------------------------------------------------------------
-DisplayString *W3DDisplayStringManager::newDisplayString( void )
+DisplayString *W3DDisplayStringManager::newDisplayString()
 {
 	DisplayString *newString = newInstance(W3DDisplayString);
 
 	// sanity
-	if( newString == NULL )
+	if( newString == nullptr )
 	{
 
-		DEBUG_LOG(( "newDisplayString: Could not allcoate new W3D display string" ));
+		DEBUG_LOG(( "newDisplayString: Could not allocate new W3D display string" ));
 		assert( 0 );
-		return NULL;
+		return nullptr;
 
-	}  // end if
+	}
 
 	// assign a default font
 	if (TheGlobalLanguageData && TheGlobalLanguageData->m_defaultDisplayStringFont.name.isNotEmpty())
@@ -131,7 +124,7 @@ DisplayString *W3DDisplayStringManager::newDisplayString( void )
 			TheGlobalLanguageData->m_defaultDisplayStringFont.bold) );
 	}
 	else
-		newString->setFont( TheFontLibrary->getFont( AsciiString("Times New Roman"), 12, FALSE ) );
+		newString->setFont( TheFontLibrary->getFont( "Times New Roman", 12, FALSE ) );
 
 	// link string to list
 	link( newString );
@@ -139,7 +132,7 @@ DisplayString *W3DDisplayStringManager::newDisplayString( void )
 	// return our new string
 	return newString;
 
-}  // end newDisplayString
+}
 
 //-------------------------------------------------------------------------------------------------
 /** Remove a display string from the master list and delete the data */
@@ -148,7 +141,7 @@ void W3DDisplayStringManager::freeDisplayString( DisplayString *string )
 {
 
 	// sanity
-	if( string == NULL )
+	if( string == nullptr )
 		return;
 
 	// unlink
@@ -156,13 +149,13 @@ void W3DDisplayStringManager::freeDisplayString( DisplayString *string )
 
 	// if the string happens to fall where our current checkpoint was, set the checkpoint to null
 	if ( m_currentCheckpoint == string) {
-		m_currentCheckpoint = NULL;
+		m_currentCheckpoint = nullptr;
 	}
 
 	// free data
 	deleteInstance(string);
 
-}  // end freeDisplayString
+}
 
 //-------------------------------------------------------------------------------------------------
 /** Update method for our display string Manager ... if it's been too
@@ -171,7 +164,7 @@ void W3DDisplayStringManager::freeDisplayString( DisplayString *string )
 	* the DisplayString will have to rebuild the rendering data before
 	* the draw will work */
 //-------------------------------------------------------------------------------------------------
-void W3DDisplayStringManager::update( void )
+void W3DDisplayStringManager::update()
 {
 	// call base in case we add something later
 	DisplayStringManager::update();
@@ -217,16 +210,16 @@ void W3DDisplayStringManager::update( void )
 			//
 			string->m_lastResourceFrame = 0;
 
-		}  // end if
+		}
 
 		// move to next string
 		string = static_cast<W3DDisplayString *>(string->next());
 
-	}  // end while
+	}
 
 	// reset the starting point for our next search
 	m_currentCheckpoint = string;
-}  // end update
+}
 
 //-------------------------------------------------------------------------------------------------
 DisplayString *W3DDisplayStringManager::getGroupNumeralString( Int numeral )

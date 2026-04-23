@@ -34,13 +34,13 @@
 #include "Common/WellKnownKeys.h"
 #include "LayersList.h"
 
-WaypointOptions *WaypointOptions::m_staticThis = NULL;
+WaypointOptions *WaypointOptions::m_staticThis = nullptr;
 /////////////////////////////////////////////////////////////////////////////
-/// WaypointOptions dialog trivial construstor - Create does the real work.
+/// WaypointOptions dialog trivial constructor - Create does the real work.
 
 
-WaypointOptions::WaypointOptions(CWnd* pParent /*=NULL*/):
-m_moveUndoable(NULL)
+WaypointOptions::WaypointOptions(CWnd* pParent /*=nullptr*/):
+m_moveUndoable(nullptr)
 {
 	//{{AFX_DATA_INIT(WaypointOptions)
 		// NOTE: the ClassWizard will add member initialization here
@@ -56,9 +56,9 @@ void WaypointOptions::DoDataExchange(CDataExchange* pDX)
 	//}}AFX_DATA_MAP
 }
 
-MapObject *WaypointOptions::getSingleSelectedWaypoint(void)
+MapObject *WaypointOptions::getSingleSelectedWaypoint()
 {
-	MapObject *theMapObj = NULL;
+	MapObject *theMapObj = nullptr;
 //	Bool found = false;
 	Int selCount=0;
 	MapObject *pMapObj;
@@ -74,13 +74,13 @@ MapObject *WaypointOptions::getSingleSelectedWaypoint(void)
 		return theMapObj;
 	}
 
-	return(NULL);
+	return(nullptr);
 }
 
-PolygonTrigger *WaypointOptions::getSingleSelectedPolygon(void)
+PolygonTrigger *WaypointOptions::getSingleSelectedPolygon()
 {
 	CWorldBuilderDoc *pDoc = CWorldBuilderDoc::GetActiveDoc();
-	if (pDoc==NULL) return NULL;
+	if (pDoc==nullptr) return nullptr;
 	WbView3d *p3View = pDoc->GetActive3DView();
 	Bool showPoly = false;
 	if (p3View) {
@@ -93,10 +93,10 @@ PolygonTrigger *WaypointOptions::getSingleSelectedPolygon(void)
 			}
 		}
 	}
-	return(NULL);
+	return(nullptr);
 }
 
-void WaypointOptions::updateTheUI(void)
+void WaypointOptions::updateTheUI()
 {
 	Tool *curTool = ((CWorldBuilderApp*)AfxGetApp())->getCurTool();
 
@@ -273,7 +273,7 @@ void WaypointOptions::updateTheUI(void)
 	}
 }
 
-void WaypointOptions::update(void)
+void WaypointOptions::update()
 {
 	if (m_staticThis) {
 		m_staticThis->updateTheUI();
@@ -522,7 +522,7 @@ void WaypointOptions::OnEditchangeWaypointlabel1Edit()
 void WaypointOptions::changeWaypointLabel(Int editControlID, NameKeyType key)
 {
 	MapObject *theMapObj = getSingleSelectedWaypoint();
-	if (theMapObj==NULL) return;
+	if (theMapObj==nullptr) return;
 	CWorldBuilderDoc* pDoc = CWorldBuilderDoc::GetActiveDoc();
 	if (!pDoc->isWaypointLinked(theMapObj)) {
 		return;
@@ -552,7 +552,7 @@ void WaypointOptions::OnEditchangeWaypointlabel3Edit()
 void WaypointOptions::OnWaypointBidirectional()
 {
 	MapObject *theMapObj = getSingleSelectedWaypoint();
-	if (theMapObj==NULL) return;
+	if (theMapObj==nullptr) return;
 	CWorldBuilderDoc* pDoc = CWorldBuilderDoc::GetActiveDoc();
 	if (!pDoc->isWaypointLinked(theMapObj)) {
 		return;

@@ -35,7 +35,7 @@
 #include "light.h"
 #include "camera.h"
 #include "w3d_file.h"
-#include "WWFILE.H"
+#include "WWFILE.h"
 #include "bmp2d.h"
 #include "part_emt.h"
 #include "part_ldr.h"
@@ -48,7 +48,7 @@
 #include "hlod.h"
 #include "RestrictedFileDialog.h"
 #include "ViewerScene.h"
-#include "INI.H"
+#include "INI.h"
 #include "ww3d.h"
 #include "EmitterInstanceList.h"
 #include "mesh.h"
@@ -88,26 +88,26 @@ END_MESSAGE_MAP()
 //
 //  CW3DViewDoc
 //
-CW3DViewDoc::CW3DViewDoc (void)
-    : m_pCScene (NULL),
-      m_pC2DScene (NULL),
-		m_pCursorScene (NULL),
-      m_pCBackObjectScene (NULL),
-		m_pDazzleLayer (NULL),
-      m_pCBackObjectCamera (NULL),
-      m_pCBackgroundObject (NULL),
-      m_pC2DCamera (NULL),
-      m_pCSceneLight (NULL),
-      m_pCRenderObj (NULL),
-      m_pCAnimation (NULL),
-		m_pCAnimCombo (NULL),
-		m_pCBackgroundBMP (NULL),
+CW3DViewDoc::CW3DViewDoc ()
+    : m_pCScene (nullptr),
+      m_pC2DScene (nullptr),
+		m_pCursorScene (nullptr),
+      m_pCBackObjectScene (nullptr),
+		m_pDazzleLayer (nullptr),
+      m_pCBackObjectCamera (nullptr),
+      m_pCBackgroundObject (nullptr),
+      m_pC2DCamera (nullptr),
+      m_pCSceneLight (nullptr),
+      m_pCRenderObj (nullptr),
+      m_pCAnimation (nullptr),
+		m_pCAnimCombo (nullptr),
+		m_pCBackgroundBMP (nullptr),
       m_CurrentFrame (0),
       m_bAnimBlend (TRUE),
 		m_bAnimateCamera (false),
 		m_bAutoCameraReset (true),
 		m_bOneTimeReset (true),
-		m_pCursor (NULL),
+		m_pCursor (nullptr),
       m_backgroundColor (0.5F, 0.5F, 0.5F),
 		m_ManualFOV (false),
 		m_ManualClipPlanes (false),
@@ -119,7 +119,6 @@ CW3DViewDoc::CW3DViewDoc (void)
 	// Read the camera animation settings from the registry
 	m_bAnimateCamera = ((BOOL)theApp.GetProfileInt ("Config", "AnimateCamera", 0)) == TRUE;
 	m_bAutoCameraReset = ((BOOL)theApp.GetProfileInt ("Config", "ResetCamera", 1)) == TRUE;
-	return ;
 }
 
 ///////////////////////////////////////////////////////////////
@@ -127,11 +126,10 @@ CW3DViewDoc::CW3DViewDoc (void)
 //  ~CW3DViewDoc
 //
 ///////////////////////////////////////////////////////////////
-CW3DViewDoc::~CW3DViewDoc (void)
+CW3DViewDoc::~CW3DViewDoc ()
 {
     CleanupResources ();
-	 MEMBER_RELEASE (m_pCursor);
-    return ;
+	 REF_PTR_RELEASE (m_pCursor);
 }
 
 
@@ -141,7 +139,7 @@ CW3DViewDoc::~CW3DViewDoc (void)
 //
 ///////////////////////////////////////////////////////////////
 void
-CW3DViewDoc::CleanupResources (void)
+CW3DViewDoc::CleanupResources ()
 {
     if (m_pC2DScene)
     {
@@ -153,7 +151,7 @@ CW3DViewDoc::CleanupResources (void)
 
         // Release the 2D scene we allocated to display background BMPs
         m_pC2DScene->Release_Ref ();
-        m_pC2DScene = NULL;
+        m_pC2DScene = nullptr;
     }
 
     if (m_pCBackObjectScene)
@@ -166,13 +164,13 @@ CW3DViewDoc::CleanupResources (void)
 
         // Release the scene we allocated to display background objects
         m_pCBackObjectScene->Release_Ref ();
-        m_pCBackObjectScene = NULL;
+        m_pCBackObjectScene = nullptr;
     }
 
-	if (m_pCursor != NULL) {
+	if (m_pCursor != nullptr) {
 		m_pCursor->Remove ();
 	}
-	MEMBER_RELEASE (m_pCursorScene);
+	REF_PTR_RELEASE (m_pCursorScene);
 
     if (m_pCScene)
     {
@@ -193,21 +191,19 @@ CW3DViewDoc::CleanupResources (void)
 
         // Release the scene object we allocated earlier
         m_pCScene->Release_Ref ();
-        m_pCScene = NULL;
+        m_pCScene = nullptr;
     }
 
 	 // Was there a dazzle layer?
-	 if (m_pDazzleLayer) {
-		 delete m_pDazzleLayer;
-		 m_pDazzleLayer = NULL;
-	 }
+	 delete m_pDazzleLayer;
+	 m_pDazzleLayer = nullptr;
 
     // Was there a valid scene object?
     if (m_pCBackObjectScene)
     {
         // Free the scene object
         m_pCBackObjectScene->Release_Ref ();
-        m_pCBackObjectScene = NULL;
+        m_pCBackObjectScene = nullptr;
     }
 
     // Was there a valid 2D camera?
@@ -215,7 +211,7 @@ CW3DViewDoc::CleanupResources (void)
     {
         // Free the camera object
         m_pC2DCamera->Release_Ref ();
-        m_pC2DCamera = NULL;
+        m_pC2DCamera = nullptr;
     }
 
     // Was there a valid background camera?
@@ -223,21 +219,21 @@ CW3DViewDoc::CleanupResources (void)
     {
         // Free the camera object
         m_pCBackObjectCamera->Release_Ref ();
-        m_pCBackObjectCamera = NULL;
+        m_pCBackObjectCamera = nullptr;
     }
 
     // Was there a valid background BMP?
     if (m_pCBackgroundBMP)
     {
         m_pCBackgroundBMP->Release_Ref ();
-        m_pCBackgroundBMP = NULL;
+        m_pCBackgroundBMP = nullptr;
     }
 
     // Was there a valid scene light?
     if (m_pCSceneLight)
     {
         m_pCSceneLight->Release_Ref ();
-        m_pCSceneLight = NULL;
+        m_pCSceneLight = nullptr;
     }
 
     // Was there a valid display object?
@@ -245,11 +241,9 @@ CW3DViewDoc::CleanupResources (void)
     {
         // Free the currently displayed object
 			SAFE_DELETE (m_pCAnimCombo);
-			MEMBER_RELEASE (m_pCAnimation);
-			MEMBER_RELEASE (m_pCRenderObj);
+			REF_PTR_RELEASE (m_pCAnimation);
+			REF_PTR_RELEASE (m_pCRenderObj);
     }
-
-    return ;
 }
 
 ///////////////////////////////////////////////////////////////
@@ -258,7 +252,7 @@ CW3DViewDoc::CleanupResources (void)
 //
 ///////////////////////////////////////////////////////////////
 BOOL
-CW3DViewDoc::OnNewDocument (void)
+CW3DViewDoc::OnNewDocument ()
 {
 	if (!CDocument::OnNewDocument())
 		return FALSE;
@@ -286,8 +280,8 @@ CW3DViewDoc::OnNewDocument (void)
     {
 			// Free the currently displayed object
 			SAFE_DELETE (m_pCAnimCombo);
-			MEMBER_RELEASE (m_pCAnimation);
-			MEMBER_RELEASE (m_pCRenderObj);
+			REF_PTR_RELEASE (m_pCAnimation);
+			REF_PTR_RELEASE (m_pCRenderObj);
     }
 
     CDataTreeView *pCDataTreeView = GetDataTreeView ();
@@ -326,8 +320,6 @@ CW3DViewDoc::Serialize(CArchive& ar)
 	{
 		// TODO: add loading code here
 	}
-
-	return ;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -352,9 +344,9 @@ void CW3DViewDoc::Dump(CDumpContext& dc) const
 //
 ///////////////////////////////////////////////////////////////
 void
-CW3DViewDoc::InitScene (void)
+CW3DViewDoc::InitScene ()
 {
-	if (m_pCScene == NULL) {
+	if (m_pCScene == nullptr) {
 
 		//
 		//	Make sure the emitters don't remove themselves from the scene
@@ -364,7 +356,7 @@ CW3DViewDoc::InitScene (void)
 
 		m_pCScene = new ViewerSceneClass;
 		ASSERT (m_pCScene);
-		if (m_pCScene != NULL) {
+		if (m_pCScene != nullptr) {
 
 			// Set some default ambient lighting
 			m_pCScene->Set_Ambient_Light (Vector3 (0.5F, 0.5F, 0.5F));
@@ -376,7 +368,7 @@ CW3DViewDoc::InitScene (void)
 			m_pCSceneLight = new LightClass;
 			ASSERT (m_pCSceneLight);
 
-			if (m_pCSceneLight != NULL) {
+			if (m_pCSceneLight != nullptr) {
 
 				// Create some default light settings
 				m_pCSceneLight->Set_Position (Vector3 (0, 5000, 3000));
@@ -464,7 +456,6 @@ CW3DViewDoc::InitScene (void)
 
 	Load_Camera_Settings ();
 	m_IsInitialized = true;
-	return ;
 }
 
 
@@ -483,7 +474,7 @@ CW3DViewDoc::OnOpenDocument (LPCTSTR lpszPathName)
 	//	Don't allow repaints while the load is going on
 	//
 	CGraphicView *current_view = ::Get_Graphic_View ();
-	if (current_view != NULL) {
+	if (current_view != nullptr) {
 		current_view->Allow_Update (false);
 	}
 
@@ -496,14 +487,14 @@ CW3DViewDoc::OnOpenDocument (LPCTSTR lpszPathName)
 	// Re-load the data list to include all new assets
 	//
 	CDataTreeView *data_view = GetDataTreeView ();
-	if (data_view != NULL) {
+	if (data_view != nullptr) {
 		data_view->LoadAssetsIntoTree ();
 	}
 
 	//
 	//	Turn repainting back on...
 	//
-	if (current_view != NULL) {
+	if (current_view != nullptr) {
 		current_view->Allow_Update (true);
 	}
 
@@ -519,7 +510,7 @@ CW3DViewDoc::OnOpenDocument (LPCTSTR lpszPathName)
 void
 CW3DViewDoc::LoadAssetsFromFile (LPCTSTR lpszPathName)
 {
-	if (m_pCScene == NULL) {
+	if (m_pCScene == nullptr) {
 		InitScene ();
 	}
 
@@ -537,7 +528,7 @@ CW3DViewDoc::LoadAssetsFromFile (LPCTSTR lpszPathName)
 	//	Don't allow repaints while the load is going on
 	//
 	CGraphicView *current_view = ::Get_Graphic_View ();
-	if (current_view != NULL) {
+	if (current_view != nullptr) {
 		current_view->Allow_Update (false);
 	}
 
@@ -557,7 +548,7 @@ CW3DViewDoc::LoadAssetsFromFile (LPCTSTR lpszPathName)
 
 		// Load the texture file into the asset manager
 		TextureClass *ptexture = WW3DAssetManager::Get_Instance()->Get_Texture (::Get_Filename_From_Path (lpszPathName));
-		if (ptexture != NULL) {
+		if (ptexture != nullptr) {
 			ptexture->Release_Ref();
 		}
 
@@ -568,11 +559,9 @@ CW3DViewDoc::LoadAssetsFromFile (LPCTSTR lpszPathName)
 	//
 	//	Turn repainting back on...
 	//
-	if (current_view != NULL) {
+	if (current_view != nullptr) {
 		current_view->Allow_Update (true);
 	}
-
-	return ;
 }
 
 
@@ -582,13 +571,12 @@ CW3DViewDoc::LoadAssetsFromFile (LPCTSTR lpszPathName)
 //
 ///////////////////////////////////////////////////////////////
 void
-CW3DViewDoc::Reload_Displayed_Object (void)
+CW3DViewDoc::Reload_Displayed_Object ()
 {
 	GetDataTreeView ()->Display_Asset ();
 	//SAFE_ADD_REF (m_pCRenderObj);
 	//DisplayObject (m_pCRenderObj, false, false);
 	//SAFE_RELEASE_REF (m_pCRenderObj);
-	return ;
 }
 
 
@@ -608,27 +596,27 @@ CW3DViewDoc::Display_Emitter
 	ASSERT (m_pCScene);
 
 	// Data OK?
-	if (m_pCScene != NULL) {
+	if (m_pCScene != nullptr) {
 
 		// Lose the animation
 		SAFE_DELETE (m_pCAnimCombo);
-		MEMBER_RELEASE (m_pCAnimation);
+		REF_PTR_RELEASE (m_pCAnimation);
 
-			if (m_pCRenderObj != NULL) {
+			if (m_pCRenderObj != nullptr) {
 
 				// Remove this object from the scene
 				Remove_Object_From_Scene (m_pCRenderObj);
 				m_pCRenderObj->Release_Ref ();
-				m_pCRenderObj = NULL;
+				m_pCRenderObj = nullptr;
 			}
 			m_pCScene->Clear_Lineup();
 
 		// Do we have a new emitter to display?
-		if (pemitter != NULL) {
+		if (pemitter != nullptr) {
 
 			// Add the emitter to the scene
 			pemitter->Set_Transform (Matrix3D (1));
-			MEMBER_ADD (m_pCRenderObj, pemitter);
+			REF_PTR_SET (m_pCRenderObj, pemitter);
 			m_pCScene->Add_Render_Object (m_pCRenderObj);
 			pemitter->Start ();
 
@@ -645,8 +633,6 @@ CW3DViewDoc::Display_Emitter
 			}
 		}
 	}
-
-	return ;
 }
 
 
@@ -671,7 +657,7 @@ CW3DViewDoc::DisplayObject
     {
         // Lose the animation
 		  SAFE_DELETE (m_pCAnimCombo);
-		  MEMBER_RELEASE (m_pCAnimation);
+		  REF_PTR_RELEASE (m_pCAnimation);
 
         // Do we have an old object to remove from the scene?
 		  if (add_ghost == false) {
@@ -680,7 +666,7 @@ CW3DViewDoc::DisplayObject
 					// Remove this object from the scene
 					Remove_Object_From_Scene (m_pCRenderObj);
 					m_pCRenderObj->Release_Ref ();
-					m_pCRenderObj = NULL;
+					m_pCRenderObj = nullptr;
 			  }
 		  }
 		  m_pCScene->Clear_Lineup();
@@ -759,8 +745,6 @@ CW3DViewDoc::DisplayObject
             }
 		  }
     }
-
-    return ;
 }
 
 
@@ -770,9 +754,9 @@ CW3DViewDoc::DisplayObject
 //
 ///////////////////////////////////////////////////////////////
 void
-CW3DViewDoc::ResetAnimation (void)
+CW3DViewDoc::ResetAnimation ()
 {
-	if (m_pCAnimation != NULL) {
+	if (m_pCAnimation != nullptr) {
 
 		//
 		// Reset the frame counter
@@ -790,8 +774,6 @@ CW3DViewDoc::ResetAnimation (void)
 																					m_pCAnimation->Get_Num_Frames () - 1,
 																					frame_rate * anim_speed);
 	}
-
-	return ;
 }
 
 
@@ -843,8 +825,6 @@ CW3DViewDoc::StepAnimation (int iFrameInc)
 
 		Update_Camera ();
 	}
-
-	return ;
 }
 
 
@@ -876,7 +856,7 @@ CW3DViewDoc::PlayAnimation
 
         // Get an instance of the animation object
 		  SAFE_DELETE (m_pCAnimCombo);
-		  MEMBER_RELEASE (m_pCAnimation);
+		  REF_PTR_RELEASE (m_pCAnimation);
         m_pCAnimation = WW3DAssetManager::Get_Instance()->Get_HAnim (pszAnimationName);
         ASSERT (m_pCAnimation);
 
@@ -908,8 +888,6 @@ CW3DViewDoc::PlayAnimation
 		  Update_Camera ();
 		  Play_Animation_Sound ();
     }
-
-    return ;
 }
 
 
@@ -919,24 +897,22 @@ CW3DViewDoc::PlayAnimation
 //
 ///////////////////////////////////////////////////////////////
 void
-CW3DViewDoc::Play_Animation_Sound (void)
+CW3DViewDoc::Play_Animation_Sound ()
 {
-	if (m_pCAnimation != NULL) {
+	if (m_pCAnimation != nullptr) {
 	  CString animation_name = m_pCAnimation->Get_Name ();
 
 	  //
 	  // Play a sound with the animation
 	  //
 	  const char *separator = ::strchr (animation_name , '.');
-	  if (separator != NULL) {
+	  if (separator != nullptr) {
 		  CString sound_filename = separator + 1;
 		  sound_filename += ".wav";
-		  ::PlaySound (NULL, NULL, SND_PURGE);
-		  ::PlaySound (sound_filename, NULL, SND_FILENAME | SND_ASYNC | SND_NODEFAULT);
+		  ::PlaySound (nullptr, nullptr, SND_PURGE);
+		  ::PlaySound (sound_filename, nullptr, SND_FILENAME | SND_ASYNC | SND_NODEFAULT);
 		}
 	}
-
-	return ;
 }
 
 
@@ -968,7 +944,7 @@ CW3DViewDoc::PlayAnimation
 
         // Get an instance of the animation object
 		  SAFE_DELETE (m_pCAnimCombo);
-		  MEMBER_RELEASE (m_pCAnimation);
+		  REF_PTR_RELEASE (m_pCAnimation);
 		  m_pCAnimCombo = pCAnimCombo;
 		  m_pCAnimation = m_pCAnimCombo->Get_Motion(0);	// ref added by get_motion
         ASSERT (m_pCAnimation);
@@ -1007,8 +983,6 @@ CW3DViewDoc::PlayAnimation
 		  Update_Camera ();
 		  Play_Animation_Sound ();
     }
-
-    return ;
 }
 
 
@@ -1022,13 +996,13 @@ Get_Camera_Transform (RenderObjClass *render_obj, Matrix3D &tm)
 {
 	bool retval = false;
 
-	if (render_obj != NULL) {
+	if (render_obj != nullptr) {
 		for (int index = 0; (index < render_obj->Get_Num_Sub_Objects ()) && !retval; index ++) {
 			RenderObjClass *psub_obj = render_obj->Get_Sub_Object (index);
-			if (psub_obj != NULL) {
+			if (psub_obj != nullptr) {
 				retval = Get_Camera_Transform (psub_obj, tm);
 			}
-			MEMBER_RELEASE (psub_obj);
+			REF_PTR_RELEASE (psub_obj);
 		}
 
 		if (!retval) {
@@ -1050,10 +1024,10 @@ Get_Camera_Transform (RenderObjClass *render_obj, Matrix3D &tm)
 //
 ///////////////////////////////////////////////////////////////
 void
-CW3DViewDoc::Update_Camera (void)
+CW3DViewDoc::Update_Camera ()
 {
 	// Should we update the camera's position as well?
-	if (m_bAnimateCamera && m_pCRenderObj != NULL) {
+	if (m_bAnimateCamera && m_pCRenderObj != nullptr) {
 
 		Matrix3D transform (1);
 		if (Get_Camera_Transform (m_pCRenderObj, transform)) {
@@ -1073,8 +1047,6 @@ CW3DViewDoc::Update_Camera (void)
 			pcamera->Set_Transform (new_transform);
 		}
 	}
-
-	return ;
 }
 
 
@@ -1127,8 +1099,6 @@ CW3DViewDoc::UpdateFrame (float relativeTimeSlice)
 
 		Update_Camera ();
 	}
-
-	return ;
 }
 
 
@@ -1138,9 +1108,9 @@ CW3DViewDoc::UpdateFrame (float relativeTimeSlice)
 //
 ///////////////////////////////////////////////////////////////
 CDataTreeView *
-CW3DViewDoc::GetDataTreeView (void)
+CW3DViewDoc::GetDataTreeView ()
 {
-    CDataTreeView *pCDataTreeView = NULL;
+    CDataTreeView *pCDataTreeView = nullptr;
 
     // Get a pointer to the main window
     CMainFrame *pCMainWnd = (CMainFrame *)::AfxGetMainWnd ();
@@ -1161,9 +1131,9 @@ CW3DViewDoc::GetDataTreeView (void)
 //
 ///////////////////////////////////////////////////////////////
 CGraphicView *
-CW3DViewDoc::GetGraphicView (void)
+CW3DViewDoc::GetGraphicView ()
 {
-    CGraphicView *pCGrephicView = NULL;
+    CGraphicView *pCGrephicView = nullptr;
 
     // Get a pointer to the main window
     CMainFrame *pCMainWnd = (CMainFrame *)::AfxGetMainWnd ();
@@ -1191,7 +1161,7 @@ CW3DViewDoc::GenerateLOD
 )
 {
 	// Assume failure
-	HLodPrototypeClass *plod_prototype = NULL;
+	HLodPrototypeClass *plod_prototype = nullptr;
 
 	// Get an iterator from the asset manager that we can
 	// use to enumerate the currently loaded assets
@@ -1227,8 +1197,8 @@ CW3DViewDoc::GenerateLOD
 
 		// Create an array of LOD models
 		RenderObjClass **plod_array = new RenderObjClass *[lod_count];
-		ASSERT (plod_array != NULL);
-		if (plod_array != NULL) {
+		ASSERT (plod_array != nullptr);
+		if (plod_array != nullptr) {
 
 			// Loop through all the levels-of-detail and add them to our array
 			int lod_index;
@@ -1250,11 +1220,11 @@ CW3DViewDoc::GenerateLOD
 			HLodDefClass *pdefinition = new HLodDefClass (*pnew_lod);
 			plod_prototype = new HLodPrototypeClass (pdefinition);
 
-			MEMBER_RELEASE (pnew_lod);
+			REF_PTR_RELEASE (pnew_lod);
 
 			// Loop through all the LOD definitions and free their names
 			for (lod_index = 0; lod_index < lod_count; lod_index ++) {
-				MEMBER_RELEASE (plod_array[lod_index]);
+				REF_PTR_RELEASE (plod_array[lod_index]);
 			}
 
 			// Free the LOD definition array
@@ -1287,7 +1257,7 @@ CW3DViewDoc::SetBackgroundBMP (LPCTSTR pszBackgroundBMP)
             // and release its pointer
 				m_pCBackgroundBMP->Remove ();
             m_pCBackgroundBMP->Release_Ref ();
-            m_pCBackgroundBMP = NULL;
+            m_pCBackgroundBMP = nullptr;
         }
 
         // Is this a new background BMP?
@@ -1309,8 +1279,6 @@ CW3DViewDoc::SetBackgroundBMP (LPCTSTR pszBackgroundBMP)
         // Remember what our current background BMP is
         m_stringBackgroundBMP = pszBackgroundBMP;
     }
-
-    return ;
 }
 
 
@@ -1326,8 +1294,8 @@ CW3DViewDoc::LoadSettings (LPCTSTR filename)
 	BOOL bReturn = FALSE;
 
 	// Params OK?
-	ASSERT (filename != NULL);
-	if (filename != NULL) {
+	ASSERT (filename != nullptr);
+	if (filename != nullptr) {
 
 		// Open the INI file
 		FileClass * pini_file = _TheFileFactory->Get_File (filename);
@@ -1507,25 +1475,25 @@ CW3DViewDoc::SaveSettings
     HANDLE hFile = ::CreateFile (pszFilename,
                                  0,
                                  0,
-                                 NULL,
+                                 nullptr,
                                  OPEN_ALWAYS,
                                  0L,
-                                 NULL);
+                                 nullptr);
 
-    ASSERT (hFile != NULL);
-    if (hFile == NULL)
+    ASSERT (hFile != nullptr);
+    if (hFile == nullptr)
     {
         // Invalid file, let the user know
         ::AfxGetMainWnd ()->MessageBox ("Unable to open file for writing.  Please select another filename.", "File Error", MB_ICONERROR | MB_OK);
     }
     else if (pszFilename &&
              (dwSettingsMask != 0L) &&
-             (m_pCScene != NULL))
+             (m_pCScene != nullptr))
     {
         CString stringCompleteFilename = pszFilename;
 
         // Does this filename contain a path?
-        if (::strrchr (pszFilename, '\\') == NULL)
+        if (::strrchr (pszFilename, '\\') == nullptr)
         {
             // Add the current directories path to the filename
             TCHAR szPath[MAX_PATH] = { 0 };
@@ -1534,7 +1502,7 @@ CW3DViewDoc::SaveSettings
             if (szPath[::lstrlen (szPath)-1] != '\\')
             {
                 // Ensure the path is directory delimited
-                ::strcat (szPath, "\\");
+                strlcat(szPath, "\\", ARRAY_SIZE(szPath));
             }
 
             // Prepend the filename with its new path
@@ -1727,13 +1695,13 @@ CW3DViewDoc::SaveSettings
 //
 ///////////////////////////////////////////////////////////////
 bool
-CW3DViewDoc::Save_Selected_LOD (void)
+CW3DViewDoc::Save_Selected_LOD ()
 {
 	// Assume failure
 	bool retval = false;
 
 	// Is this an emitter?
-	if ((m_pCRenderObj != NULL) &&
+	if ((m_pCRenderObj != nullptr) &&
 		 m_pCRenderObj->Class_ID () == RenderObjClass::CLASSID_HLOD) {
 
 		// Build the default filename from the name of the LOD
@@ -1773,15 +1741,15 @@ CW3DViewDoc::Save_Current_LOD (const CString &filename)
 	bool retval = false;
 
 	// Get the prototype for this aggregate
-	HLodPrototypeClass *proto = NULL;
+	HLodPrototypeClass *proto = nullptr;
 	proto = (HLodPrototypeClass *)WW3DAssetManager::Get_Instance ()->Find_Prototype (m_pCRenderObj->Get_Name ());
-	ASSERT (proto != NULL);
-	if (proto != NULL) {
+	ASSERT (proto != nullptr);
+	if (proto != nullptr) {
 
 		// Get the definition from the prototype
 		HLodDefClass *pdefinition = proto->Get_Definition ();
-		ASSERT (pdefinition != NULL);
-		if (pdefinition != NULL) {
+		ASSERT (pdefinition != nullptr);
+		if (pdefinition != nullptr) {
 
 			// Get a file object for the new file
 			FileClass *pfile = _TheFileFactory->Get_File (filename);
@@ -1829,7 +1797,7 @@ CW3DViewDoc::SetBackgroundObject (LPCTSTR pszBackgroundObjectName)
 
             // Free the object
             m_pCBackgroundObject->Release_Ref ();
-            m_pCBackgroundObject = NULL;
+            m_pCBackgroundObject = nullptr;
         }
 
         if (pszBackgroundObjectName)
@@ -1866,8 +1834,6 @@ CW3DViewDoc::SetBackgroundObject (LPCTSTR pszBackgroundObjectName)
         // Remember this for later...
         m_stringBackgroundObject = pszBackgroundObjectName;
     }
-
-    return ;
 }
 
 
@@ -1879,8 +1845,8 @@ CW3DViewDoc::SetBackgroundObject (LPCTSTR pszBackgroundObjectName)
 void
 CW3DViewDoc::Remove_Object_From_Scene (RenderObjClass *prender_obj)
 {
-	// If the render object is NULL, then remove the current render object
-	if (prender_obj == NULL) {
+	// If the render object is null, then remove the current render object
+	if (prender_obj == nullptr) {
 		prender_obj = m_pCRenderObj;
 	}
 
@@ -1888,14 +1854,14 @@ CW3DViewDoc::Remove_Object_From_Scene (RenderObjClass *prender_obj)
 	//for (int index = 0; index < prender_obj->Get_Num_Sub_Objects (); index ++) {
 	while (prender_obj->Get_Num_Sub_Objects () > 0) {
 		RenderObjClass *psub_obj = prender_obj->Get_Sub_Object (0);
-		if (psub_obj != NULL) {
+		if (psub_obj != nullptr) {
 			Remove_Object_From_Scene (psub_obj);
 		}
-		MEMBER_RELEASE (psub_obj);
+		REF_PTR_RELEASE (psub_obj);
 	}
 
 	// If this is an emitter, then remove its buffer
-	if ((prender_obj != NULL) &&
+	if ((prender_obj != nullptr) &&
 		 prender_obj->Class_ID () == RenderObjClass::CLASSID_PARTICLEEMITTER) {
 
 		// Attempt to remove this emitter's buffer
@@ -1905,11 +1871,9 @@ CW3DViewDoc::Remove_Object_From_Scene (RenderObjClass *prender_obj)
 	}
 
 	// Remove the render object from the scene (if we have a valid scene)
-	if (m_pCScene != NULL) {
+	if (m_pCScene != nullptr) {
 		prender_obj->Remove ();
 	}
-
-	return ;
 }
 
 
@@ -1919,13 +1883,13 @@ CW3DViewDoc::Remove_Object_From_Scene (RenderObjClass *prender_obj)
 //
 ///////////////////////////////////////////////////////////////
 bool
-CW3DViewDoc::Save_Selected_Primitive (void)
+CW3DViewDoc::Save_Selected_Primitive ()
 {
 	// Assume failure
 	bool retval = false;
 
 	// Is this an emitter?
-	if ((m_pCRenderObj != NULL) &&
+	if ((m_pCRenderObj != nullptr) &&
 		 (m_pCRenderObj->Class_ID () == RenderObjClass::CLASSID_SPHERE ||
 		  m_pCRenderObj->Class_ID () == RenderObjClass::CLASSID_RING)) {
 
@@ -1977,10 +1941,10 @@ CW3DViewDoc::Save_Current_Sphere (const CString &filename)
 	//
 	// Get the prototype for this object
 	//
-	SpherePrototypeClass *proto = NULL;
+	SpherePrototypeClass *proto = nullptr;
 	proto = (SpherePrototypeClass *)WW3DAssetManager::Get_Instance ()->Find_Prototype (m_pCRenderObj->Get_Name ());
-	ASSERT (proto != NULL);
-	if (proto != NULL) {
+	ASSERT (proto != nullptr);
+	if (proto != nullptr) {
 
 		//
 		// Get a file object for the new file
@@ -2020,10 +1984,10 @@ CW3DViewDoc::Save_Current_Ring (const CString &filename)
 	//
 	// Get the prototype for this object
 	//
-	RingPrototypeClass *proto = NULL;
+	RingPrototypeClass *proto = nullptr;
 	proto = (RingPrototypeClass *)WW3DAssetManager::Get_Instance ()->Find_Prototype (m_pCRenderObj->Get_Name ());
-	ASSERT (proto != NULL);
-	if (proto != NULL) {
+	ASSERT (proto != nullptr);
+	if (proto != nullptr) {
 
 		//
 		// Get a file object for the new file
@@ -2055,13 +2019,13 @@ CW3DViewDoc::Save_Current_Ring (const CString &filename)
 //
 ///////////////////////////////////////////////////////////////
 bool
-CW3DViewDoc::Save_Selected_Emitter (void)
+CW3DViewDoc::Save_Selected_Emitter ()
 {
 	// Assume failure
 	bool retval = false;
 
 	// Is this an emitter?
-	if ((m_pCRenderObj != NULL) &&
+	if ((m_pCRenderObj != nullptr) &&
 		 m_pCRenderObj->Class_ID () == RenderObjClass::CLASSID_PARTICLEEMITTER) {
 
 		// Build the default filename from the name of the emitter
@@ -2100,15 +2064,15 @@ CW3DViewDoc::Save_Current_Emitter (const CString &filename)
 	// Assume failure
 	bool retval = false;
 	// Get the prototype for this aggregate
-	ParticleEmitterPrototypeClass *proto = NULL;
+	ParticleEmitterPrototypeClass *proto = nullptr;
 	proto = (ParticleEmitterPrototypeClass *)WW3DAssetManager::Get_Instance ()->Find_Prototype (m_pCRenderObj->Get_Name ());
-	ASSERT (proto != NULL);
-	if (proto != NULL) {
+	ASSERT (proto != nullptr);
+	if (proto != nullptr) {
 
 		// Get the definition from the prototype
 		ParticleEmitterDefClass *pdefinition = proto->Get_Definition ();
-		ASSERT (pdefinition != NULL);
-		if (pdefinition != NULL) {
+		ASSERT (pdefinition != nullptr);
+		if (pdefinition != nullptr) {
 
 			// Get a file object for the new file
 			FileClass *pfile = _TheFileFactory->Get_File (filename);
@@ -2138,14 +2102,14 @@ CW3DViewDoc::Save_Current_Emitter (const CString &filename)
 //
 ///////////////////////////////////////////////////////////////
 bool
-CW3DViewDoc::Save_Selected_Sound_Object (void)
+CW3DViewDoc::Save_Selected_Sound_Object ()
 {
 	bool retval = false;
 
 	//
 	// Is this a sound render object?
 	//
-	if ((m_pCRenderObj != NULL) &&
+	if ((m_pCRenderObj != nullptr) &&
 		 m_pCRenderObj->Class_ID () == RenderObjClass::CLASSID_SOUND)
 	{
 		//
@@ -2191,18 +2155,18 @@ CW3DViewDoc::Save_Current_Sound_Object (const CString &filename)
 	//
 	// Get the prototype for this sound object
 	//
-	SoundRenderObjPrototypeClass *proto = NULL;
+	SoundRenderObjPrototypeClass *proto = nullptr;
 	proto = (SoundRenderObjPrototypeClass *)WW3DAssetManager::Get_Instance ()->Find_Prototype (m_pCRenderObj->Get_Name ());
 
-	ASSERT (proto != NULL);
-	if (proto != NULL) {
+	ASSERT (proto != nullptr);
+	if (proto != nullptr) {
 
 		//
 		// Get the definition from the prototype
 		//
 		SoundRenderObjDefClass *definition = proto->Peek_Definition ();
-		ASSERT (definition != NULL);
-		if (definition != NULL) {
+		ASSERT (definition != nullptr);
+		if (definition != nullptr) {
 
 			//
 			// Get a file object for the new file
@@ -2240,9 +2204,9 @@ CW3DViewDoc::Save_Current_Sound_Object (const CString &filename)
 //
 ///////////////////////////////////////////////////////////////
 void
-CW3DViewDoc::Auto_Assign_Bones (void)
+CW3DViewDoc::Auto_Assign_Bones ()
 {
-	if (m_pCRenderObj != NULL) {
+	if (m_pCRenderObj != nullptr) {
 		bool bupdate_prototype = false;
 
 		// Loop through all the bones in this render object
@@ -2256,7 +2220,7 @@ CW3DViewDoc::Auto_Assign_Bones (void)
 				// Add this render object to the bone
 				RenderObjClass *prender_obj = WW3DAssetManager::Get_Instance ()->Create_Render_Obj (pbone_name);
 				m_pCRenderObj->Add_Sub_Object_To_Bone (prender_obj, index);
-				MEMBER_RELEASE (prender_obj);
+				REF_PTR_RELEASE (prender_obj);
 				bupdate_prototype = true;
 			}
 		}
@@ -2265,8 +2229,6 @@ CW3DViewDoc::Auto_Assign_Bones (void)
 			Update_Aggregate_Prototype (*m_pCRenderObj);
 		}
 	}
-
-	return ;
 }
 
 
@@ -2276,13 +2238,13 @@ CW3DViewDoc::Auto_Assign_Bones (void)
 //
 ///////////////////////////////////////////////////////////////
 bool
-CW3DViewDoc::Save_Selected_Aggregate (void)
+CW3DViewDoc::Save_Selected_Aggregate ()
 {
 	// Assume failure
 	bool retval = false;
 
 	// Do we have a valid render object?
-	if (m_pCRenderObj != NULL) {
+	if (m_pCRenderObj != nullptr) {
 
 		// Build the default filename from the name of render object
 		CString default_filename = GetDataTreeView ()->GetCurrentSelectionName ();
@@ -2320,15 +2282,15 @@ CW3DViewDoc::Save_Current_Aggregate (const CString &filename)
 	// Assume failure
 	bool retval = false;
 	// Get the prototype for this aggregate
-	AggregatePrototypeClass *proto = NULL;
+	AggregatePrototypeClass *proto = nullptr;
 	proto = (AggregatePrototypeClass *)WW3DAssetManager::Get_Instance ()->Find_Prototype (m_pCRenderObj->Get_Name ());
-	ASSERT (proto != NULL);
-	if (proto != NULL) {
+	ASSERT (proto != nullptr);
+	if (proto != nullptr) {
 
 		// Get the definition from the prototype
 		AggregateDefClass *pdefinition = proto->Get_Definition ();
-		ASSERT (pdefinition != NULL);
-		if (pdefinition != NULL) {
+		ASSERT (pdefinition != nullptr);
+		if (pdefinition != nullptr) {
 
 			// Get a file object for the new file
 			FileClass *pfile = _TheFileFactory->Get_File (filename);
@@ -2367,7 +2329,6 @@ CW3DViewDoc::Update_Aggregate_Prototype (RenderObjClass &render_obj)
 	// Add this prototype to the asset manager
 	WW3DAssetManager::Get_Instance ()->Remove_Prototype (pdefinition->Get_Name ());
 	WW3DAssetManager::Get_Instance ()->Add_Prototype (pprototype);
-	return ;
 }
 
 
@@ -2386,7 +2347,6 @@ CW3DViewDoc::Update_LOD_Prototype (HLodClass &hlod)
 	// Add this prototype to the asset manager
 	WW3DAssetManager::Get_Instance ()->Remove_Prototype (pdefinition->Get_Name ());
 	WW3DAssetManager::Get_Instance ()->Add_Prototype (pprototype);
-	return ;
 }
 
 
@@ -2404,8 +2364,6 @@ CW3DViewDoc::Animate_Camera (bool banimate)
 	if (m_bAnimateCamera == false) {
 		::AfxGetMainWnd ()->SendMessage (WM_COMMAND, MAKEWPARAM (IDM_CAMERA_RESET, 0));
 	}
-
-	return ;
 }
 
 
@@ -2415,7 +2373,7 @@ CW3DViewDoc::Animate_Camera (bool banimate)
 //
 ///////////////////////////////////////////////////////////////
 void
-CW3DViewDoc::Make_Movie (void)
+CW3DViewDoc::Make_Movie ()
 {
 	// Hide the mouse cursor when we're making a movie.
 	bool restore_cursor = Is_Cursor_Shown();
@@ -2427,11 +2385,11 @@ CW3DViewDoc::Make_Movie (void)
 
 		// Get the directory where this executable was run from
 		TCHAR filename[MAX_PATH];
-		::GetModuleFileName (NULL, filename, sizeof (filename));
+		::GetModuleFileName (nullptr, filename, sizeof (filename));
 
 		// Strip the filename from the path
 		LPTSTR ppath = ::strrchr (filename, '\\');
-		if (ppath != NULL) {
+		if (ppath != nullptr) {
 			ppath[0] = 0;
 		}
 		::SetCurrentDirectory (filename);
@@ -2505,8 +2463,6 @@ CW3DViewDoc::Make_Movie (void)
 
 	// Restore the mouse cursor to its previous visibility state.
 	Show_Cursor(restore_cursor);
-
-	return ;
 }
 
 
@@ -2524,9 +2480,9 @@ CW3DViewDoc::Build_Emitter_List
 )
 {
 	//
-	// If the render object is NULL, then start from the current render object
+	// If the render object is null, then start from the current render object
 	//
-	if (render_obj == NULL) {
+	if (render_obj == nullptr) {
 		render_obj = m_pCRenderObj;
 	}
 
@@ -2535,23 +2491,21 @@ CW3DViewDoc::Build_Emitter_List
 	//
 	for (int index = 0; index < render_obj->Get_Num_Sub_Objects (); index ++) {
 		RenderObjClass *psub_obj = render_obj->Get_Sub_Object (index);
-		if (psub_obj != NULL) {
+		if (psub_obj != nullptr) {
 			Build_Emitter_List (emitter_list, emitter_name, psub_obj);
 		}
-		MEMBER_RELEASE (psub_obj);
+		REF_PTR_RELEASE (psub_obj);
 	}
 
 	//
 	// Is this the emitter we are requesting?
 	//
-	if ((render_obj != NULL) &&
+	if ((render_obj != nullptr) &&
 		 (render_obj->Class_ID () == RenderObjClass::CLASSID_PARTICLEEMITTER) &&
 		 (::lstrcmpi (emitter_name, render_obj->Get_Name ()) == 0)) {
 
 		emitter_list->Add_Emitter ((ParticleEmitterClass *)render_obj);
 	}
-
-	return ;
 }
 
 
@@ -2563,12 +2517,11 @@ CW3DViewDoc::Build_Emitter_List
 void
 CW3DViewDoc::Show_Cursor (bool onoff)
 {
-	if (m_pCursor == NULL) {
+	if (m_pCursor == nullptr) {
 		Create_Cursor ();
 	}
 
 	m_pCursor->Set_Hidden (!onoff);
-	return ;
 }
 
 
@@ -2578,9 +2531,9 @@ CW3DViewDoc::Show_Cursor (bool onoff)
 //
 ///////////////////////////////////////////////////////////////
 bool
-CW3DViewDoc::Is_Cursor_Shown (void) const
+CW3DViewDoc::Is_Cursor_Shown () const
 {
-	return m_pCursor != NULL && m_pCursor->Is_Not_Hidden_At_All ();
+	return m_pCursor != nullptr && m_pCursor->Is_Not_Hidden_At_All ();
 }
 
 
@@ -2593,7 +2546,6 @@ void
 CW3DViewDoc::Set_Cursor (LPCTSTR resource_name)
 {
 	m_pCursor->Set_Texture (::Load_RC_Texture (resource_name));
-	return ;
 }
 
 
@@ -2603,15 +2555,13 @@ CW3DViewDoc::Set_Cursor (LPCTSTR resource_name)
 //
 ///////////////////////////////////////////////////////////////
 void
-CW3DViewDoc::Create_Cursor (void)
+CW3DViewDoc::Create_Cursor ()
 {
-	if (m_pCursor == NULL) {
+	if (m_pCursor == nullptr) {
 		m_pCursor = new ScreenCursorClass;
 		m_pCursor->Set_Window (GetGraphicView ()->m_hWnd);
 		m_pCursor->Set_Texture (::Load_RC_Texture ("cursor.tga"));
 	}
-
-	return ;
 }
 
 
@@ -2626,22 +2576,22 @@ CW3DViewDoc::Count_Particles (RenderObjClass *render_obj)
 	int count = 0;
 
 	//
-	// If the render object is NULL, then start from the current render object
+	// If the render object is null, then start from the current render object
 	//
-	if (render_obj == NULL) {
+	if (render_obj == nullptr) {
 		render_obj = m_pCRenderObj;
 	}
 
 	//
 	// Recursively walk through the subobjects
 	//
-	if (render_obj != NULL) {
+	if (render_obj != nullptr) {
 		for (int index = 0; index < render_obj->Get_Num_Sub_Objects (); index ++) {
 			RenderObjClass *psub_obj = render_obj->Get_Sub_Object (index);
-			if (psub_obj != NULL) {
+			if (psub_obj != nullptr) {
 				count += Count_Particles (psub_obj);
 			}
-			MEMBER_RELEASE (psub_obj);
+			REF_PTR_RELEASE (psub_obj);
 		}
 
 
@@ -2653,7 +2603,7 @@ CW3DViewDoc::Count_Particles (RenderObjClass *render_obj)
 			//
 			ParticleEmitterClass *emitter = static_cast<ParticleEmitterClass *> (render_obj);
 			ParticleBufferClass *buffer = emitter->Peek_Buffer ();
-			if (buffer != NULL) {
+			if (buffer != nullptr) {
 				count += buffer->Get_Particle_Count ();
 			}
 		}
@@ -2669,11 +2619,10 @@ CW3DViewDoc::Count_Particles (RenderObjClass *render_obj)
 //
 ///////////////////////////////////////////////////////////////
 void
-CW3DViewDoc::Update_Particle_Count (void)
+CW3DViewDoc::Update_Particle_Count ()
 {
 	int particles = Count_Particles ();
 	((CMainFrame *)::AfxGetMainWnd ())->Update_Particle_Count (particles);
-	return ;
 }
 
 
@@ -2686,22 +2635,22 @@ void
 CW3DViewDoc::Switch_LOD (int increment, RenderObjClass *render_obj)
 {
 	//
-	// If the render object is NULL, then start from the current render object
+	// If the render object is null, then start from the current render object
 	//
-	if (render_obj == NULL) {
+	if (render_obj == nullptr) {
 		render_obj = m_pCRenderObj;
 	}
 
 	//
 	// Recursively walk through the subobjects
 	//
-	if (render_obj != NULL) {
+	if (render_obj != nullptr) {
 		for (int index = 0; index < render_obj->Get_Num_Sub_Objects (); index ++) {
 			RenderObjClass *psub_obj = render_obj->Get_Sub_Object (index);
-			if (psub_obj != NULL) {
+			if (psub_obj != nullptr) {
 				Switch_LOD (increment, psub_obj);
 			}
-			MEMBER_RELEASE (psub_obj);
+			REF_PTR_RELEASE (psub_obj);
 		}
 
 		//
@@ -2712,8 +2661,6 @@ CW3DViewDoc::Switch_LOD (int increment, RenderObjClass *render_obj)
 			((HLodClass *)render_obj)->Set_LOD_Level (current_lod + increment);
 		}
 	}
-
-	return ;
 }
 
 
@@ -2726,13 +2673,13 @@ void
 CW3DViewDoc::Toggle_Alternate_Materials(RenderObjClass * render_obj)
 {
 	//
-	// If the render object is NULL, start from the current render object
+	// If the render object is null, start from the current render object
 	//
-	if (render_obj == NULL) {
+	if (render_obj == nullptr) {
 		render_obj = m_pCRenderObj;
 	}
 
-	if (render_obj != NULL) {
+	if (render_obj != nullptr) {
 
 		//
 		// If this is a mesh, toggle the materials
@@ -2750,8 +2697,6 @@ CW3DViewDoc::Toggle_Alternate_Materials(RenderObjClass * render_obj)
 			Toggle_Alternate_Materials(sub_obj);
 		}
 	}
-
-	return;
 }
 
 
@@ -2795,7 +2740,7 @@ void
 CW3DViewDoc::Copy_Assets_To_Dir (LPCTSTR directory)
 {
 	CDataTreeView *data_tree = GetDataTreeView ();
-	SANITY_CHECK ((m_pCRenderObj != NULL && data_tree != NULL)) {
+	SANITY_CHECK ((m_pCRenderObj != nullptr && data_tree != nullptr)) {
 		return ;
 	}
 
@@ -2864,8 +2809,6 @@ CW3DViewDoc::Copy_Assets_To_Dir (LPCTSTR directory)
 		message.Format ("Unable to find file for asset: %s.", asset_name);
 		::MessageBox (::AfxGetMainWnd ()->m_hWnd, message, "File Not Found", MB_ICONEXCLAMATION | MB_OK);
 	}
-
-	return ;
 }
 
 
@@ -2889,8 +2832,6 @@ CW3DViewDoc::Set_Texture_Path1 (LPCTSTR path)
 		m_TexturePath1 = path;
 		theApp.WriteProfileString ("Config", "TexturePath1", m_TexturePath1);
 	}
-
-	return ;
 }
 
 
@@ -2913,8 +2854,6 @@ CW3DViewDoc::Set_Texture_Path2 (LPCTSTR path)
 		m_TexturePath2 = path;
 		theApp.WriteProfileString ("Config", "TexturePath2", m_TexturePath2);
 	}
-
-	return ;
 }
 
 
@@ -2972,11 +2911,9 @@ CW3DViewDoc::Import_Facial_Animation (const CString &heirarchy_name, const CStri
 		// Cleanup
 		//
 		anim_desc_file->Close ();
-		MEMBER_RELEASE (new_anim);
+		REF_PTR_RELEASE (new_anim);
 		SAFE_DELETE (anim_desc_file);
 	}
-
-	return ;
 }
 
 
@@ -2986,11 +2923,11 @@ CW3DViewDoc::Import_Facial_Animation (const CString &heirarchy_name, const CStri
 //
 ///////////////////////////////////////////////////////////////
 const HTreeClass *
-CW3DViewDoc::Get_Current_HTree (void) const
+CW3DViewDoc::Get_Current_HTree () const
 {
-	const HTreeClass *htree = NULL;
+	const HTreeClass *htree = nullptr;
 
-	if (m_pCRenderObj != NULL) {
+	if (m_pCRenderObj != nullptr) {
 		htree = m_pCRenderObj->Get_HTree ();
 	}
 
@@ -3004,14 +2941,14 @@ CW3DViewDoc::Get_Current_HTree (void) const
 //
 ///////////////////////////////////////////////////////////////
 void
-CW3DViewDoc::Save_Camera_Settings (void)
+CW3DViewDoc::Save_Camera_Settings ()
 {
 	theApp.WriteProfileInt ("Config", "UseManualFOV", m_ManualFOV);
 	theApp.WriteProfileInt ("Config", "UseManualClipPlanes", m_ManualClipPlanes);
 
 	CGraphicView *graphic_view	= ::Get_Graphic_View ();
 	CameraClass *camera			= graphic_view->GetCamera ();
-	if (camera != NULL) {
+	if (camera != nullptr) {
 
 		double hfov = camera->Get_Horizontal_FOV ();
 		double vfov = camera->Get_Vertical_FOV ();
@@ -3034,8 +2971,6 @@ CW3DViewDoc::Save_Camera_Settings (void)
 		theApp.WriteProfileString ("Config", "znear", znear_string);
 		theApp.WriteProfileString ("Config", "zfar", zfar_string);
 	}
-
-	return ;
 }
 
 
@@ -3045,15 +2980,15 @@ CW3DViewDoc::Save_Camera_Settings (void)
 //
 ///////////////////////////////////////////////////////////////
 void
-CW3DViewDoc::Load_Camera_Settings (void)
+CW3DViewDoc::Load_Camera_Settings ()
 {
 	m_ManualFOV				= (theApp.GetProfileInt ("Config", "UseManualFOV", 0) == TRUE);
 	m_ManualClipPlanes	= (theApp.GetProfileInt ("Config", "UseManualClipPlanes", 0) == TRUE);
 
 	CGraphicView *graphic_view	= GetGraphicView ();
-	if (graphic_view != NULL) {
+	if (graphic_view != nullptr) {
 		CameraClass *camera = graphic_view->GetCamera ();
-		if (camera != NULL) {
+		if (camera != nullptr) {
 
 			//
 			// Should we load the FOV settings from the registry?
@@ -3082,15 +3017,13 @@ CW3DViewDoc::Load_Camera_Settings (void)
 
 				camera->Set_Clip_Planes (znear, zfar);
 
-				if (m_pCScene != NULL) {
+				if (m_pCScene != nullptr) {
 					m_pCScene->Set_Fog_Range (znear, zfar);
 					m_pCScene->Recalculate_Fog_Planes();
 				}
 			}
 		}
 	}
-
-	return ;
 }
 
 ///////////////////////////////////////////////////////////////
@@ -3101,7 +3034,7 @@ CW3DViewDoc::Load_Camera_Settings (void)
 void
 CW3DViewDoc::Render_Dazzles (CameraClass * camera)
 {
-	if (m_pDazzleLayer != NULL) {
+	if (m_pDazzleLayer != nullptr) {
 		m_pDazzleLayer->Render(camera);
 	}
 }

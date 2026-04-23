@@ -87,11 +87,11 @@ static void helper_pickAllWaypointsInPath( Int sourceID, CWorldBuilderDoc *pDoc,
 //
 
 /// Constructor
-PointerTool::PointerTool(void) :
-	m_modifyUndoable(NULL),
-	m_curObject(NULL),
-	m_rotateCursor(NULL),
-	m_moveCursor(NULL)
+PointerTool::PointerTool() :
+	m_modifyUndoable(nullptr),
+	m_curObject(nullptr),
+	m_rotateCursor(nullptr),
+	m_moveCursor(nullptr)
 {
 	m_toolID = ID_POINTER_TOOL;
 	m_cursorID = IDC_POINTER;
@@ -99,7 +99,7 @@ PointerTool::PointerTool(void) :
 }
 
 /// Destructor
-PointerTool::~PointerTool(void)
+PointerTool::~PointerTool()
 {
 	REF_PTR_RELEASE(m_modifyUndoable); // belongs to pDoc now.
 	if (m_rotateCursor) {
@@ -111,7 +111,7 @@ PointerTool::~PointerTool(void)
 }
 
 /// See if a single obj is selected that has properties.
-void PointerTool::checkForPropertiesPanel(void)
+void PointerTool::checkForPropertiesPanel()
 {
 	MapObject *theMapObj = WaypointOptions::getSingleSelectedWaypoint();
 	PolygonTrigger *theTrigger = WaypointOptions::getSingleSelectedPolygon();
@@ -144,7 +144,7 @@ void PointerTool::checkForPropertiesPanel(void)
 }
 
 /// Clear the selection..
-void PointerTool::clearSelection(void) ///< Clears the selected objects selected flags.
+void PointerTool::clearSelection() ///< Clears the selected objects selected flags.
 {
 	// Clear selection.
 	MapObject *pObj = MapObject::getFirstMapObject();
@@ -164,7 +164,7 @@ void PointerTool::clearSelection(void) ///< Clears the selected objects selected
 			}
 		}
 	}
-	m_poly_curSelectedPolygon = NULL;
+	m_poly_curSelectedPolygon = nullptr;
 }
 
 /// Activate.
@@ -175,28 +175,28 @@ void PointerTool::activate()
 	m_mouseUpMove = false;
 	checkForPropertiesPanel();
 	CWorldBuilderDoc *pDoc = CWorldBuilderDoc::GetActiveDoc();
-	if (pDoc==NULL) return;
+	if (pDoc==nullptr) return;
 	WbView3d *p3View = pDoc->GetActive3DView();
-	p3View->setObjTracking(NULL, m_downPt3d, 0, false);
+	p3View->setObjTracking(nullptr, m_downPt3d, 0, false);
 }
 
 /// deactivate.
 void PointerTool::deactivate()
 {
-	m_curObject = NULL;
+	m_curObject = nullptr;
 	PolygonTool::deactivate();
 }
 
 /** Set the cursor. */
-void PointerTool::setCursor(void)
+void PointerTool::setCursor()
 {
 	if (m_mouseUpRotate) {
-		if (m_rotateCursor == NULL) {
+		if (m_rotateCursor == nullptr) {
 			m_rotateCursor = AfxGetApp()->LoadCursor(MAKEINTRESOURCE(IDC_ROTATE));
 		}
 		::SetCursor(m_rotateCursor);
 	} else 	if (m_mouseUpMove) {
-		if (m_moveCursor == NULL) {
+		if (m_moveCursor == nullptr) {
 			m_moveCursor = AfxGetApp()->LoadCursor(MAKEINTRESOURCE(IDC_MOVE_POINTER));
 		}
 		::SetCursor(m_moveCursor);
@@ -276,7 +276,7 @@ void PointerTool::mouseDown(TTrackingMode m, CPoint viewPt, WbView* pView, CWorl
 				PolygonTool::startMouseDown(m, viewPt, pView, pDoc);
 				return;
 			}
-			m_poly_curSelectedPolygon = NULL;
+			m_poly_curSelectedPolygon = nullptr;
 			m_poly_dragPointNdx = -1;
 		}
 	}
@@ -284,10 +284,10 @@ void PointerTool::mouseDown(TTrackingMode m, CPoint viewPt, WbView* pView, CWorl
 
 
 //	WorldHeightMapEdit *pMap = pDoc->GetHeightMap();
-	m_curObject = NULL;
+	m_curObject = nullptr;
 	MapObject *pObj = MapObject::getFirstMapObject();
 	MapObject *p3DObj = pView->picked3dObjectInView(viewPt);
-	MapObject *pClosestPicked = NULL;
+	MapObject *pClosestPicked = nullptr;
 	if (allowPick(p3DObj, pView)) {
 		pClosestPicked = p3DObj;
 	}
@@ -312,7 +312,7 @@ void PointerTool::mouseDown(TTrackingMode m, CPoint viewPt, WbView* pView, CWorl
 		}
 	}
 
-	Bool anySelected = (pClosestPicked!=NULL);
+	Bool anySelected = (pClosestPicked!=nullptr);
 	if (shiftKey) {
 		if (pClosestPicked && pClosestPicked->isSelected()) {
 			pClosestPicked->setSelected(false);
@@ -442,7 +442,7 @@ void PointerTool::mouseMoved(TTrackingMode m, CPoint viewPt, WbView* pView, CWor
 		return;
 	}
 
-	if (m_curObject == NULL) {
+	if (m_curObject == nullptr) {
 		return;
 	}
 	pView->viewToDocCoords(viewPt, &cpt, !m_rotating);

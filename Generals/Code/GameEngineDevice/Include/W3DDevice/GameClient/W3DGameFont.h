@@ -45,9 +45,6 @@
 
 #pragma once
 
-#ifndef __W3DGAMEFONT_H_
-#define __W3DGAMEFONT_H_
-
 // SYSTEM INCLUDES ////////////////////////////////////////////////////////////
 
 // USER INCLUDES //////////////////////////////////////////////////////////////
@@ -65,21 +62,18 @@ class W3DFontLibrary : public FontLibrary
 
 public:
 
-	W3DFontLibrary( void ) { }
-	~W3DFontLibrary( void ) { }
+	W3DFontLibrary() { }
+	virtual ~W3DFontLibrary() override { }
 
 protected:
 
 	/// load the font data pointer based on everything else we already have set
-	Bool loadFontData( GameFont *font );
+	virtual Bool loadFontData( GameFont *font ) override;
 	/// release the font data pointer
-	void releaseFontData( GameFont *font );
+	virtual void releaseFontData( GameFont *font ) override;
 
-};  // end W3DFontLibrary
+};
 
 // INLINING ///////////////////////////////////////////////////////////////////
 
 // EXTERNALS //////////////////////////////////////////////////////////////////
-
-#endif // __W3DGAMEFONT_H_
-

@@ -63,21 +63,21 @@
 // ImageInfo::ImageInfo =======================================================
 /** */
 //=============================================================================
-ImageInfo::ImageInfo( void )
+ImageInfo::ImageInfo()
 {
 
 	m_area = 0;
 	m_colorDepth = 0;
 	m_size.x = 0;
 	m_size.y = 0;
-	m_path = NULL;
-	m_filenameOnly = NULL;
-	m_filenameOnlyNoExt = NULL;
+	m_path = nullptr;
+	m_filenameOnly = nullptr;
+	m_filenameOnlyNoExt = nullptr;
 	m_status = UNPACKED;
 
-	m_page = NULL;
-	m_nextPageImage = NULL;
-	m_prevPageImage = NULL;
+	m_page = nullptr;
+	m_nextPageImage = nullptr;
+	m_prevPageImage = nullptr;
 	m_pagePos.lo.x = 0;
 	m_pagePos.lo.y = 0;
 	m_pagePos.hi.x = 0;
@@ -86,22 +86,16 @@ ImageInfo::ImageInfo( void )
 	m_gutterUsed.x = 0;
 	m_gutterUsed.y = 0;
 
-}  // end ImageInfo
+}
 
 // ImageInfo::~ImageInfo ======================================================
 /** */
 //=============================================================================
-ImageInfo::~ImageInfo( void )
+ImageInfo::~ImageInfo()
 {
 
-	// delete path name
-	if( m_path )
-		delete [] m_path;
+	delete [] m_path;
+	delete [] m_filenameOnly;
+	delete [] m_filenameOnlyNoExt;
 
-	if( m_filenameOnly )
-		delete [] m_filenameOnly;
-
-	if( m_filenameOnlyNoExt )
-		delete [] m_filenameOnlyNoExt;
-
-}  // end ~ImageInfo
+}

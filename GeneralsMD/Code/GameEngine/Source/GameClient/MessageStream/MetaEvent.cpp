@@ -28,8 +28,9 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
-#include "PreRTS.h"	// This must go first in EVERY cpp file int the GameEngine
+#include "PreRTS.h"	// This must go first in EVERY cpp file in the GameEngine
 
+#include "Common/GameUtility.h"
 #include "Common/INI.h"
 #include "Common/MessageStream.h"
 #include "Common/Player.h"
@@ -60,7 +61,7 @@
 #include "GameClient/Keyboard.h"
 #endif
 
-MetaMap *TheMetaMap = NULL;
+MetaMap *TheMetaMap = nullptr;
 
 
 
@@ -151,8 +152,13 @@ static const LookupListRec GameMessageMetaTypeNames[] =
 	{ "PLACE_BEACON",															GameMessage::MSG_META_PLACE_BEACON },
 	{ "DELETE_BEACON",														GameMessage::MSG_META_REMOVE_BEACON },
 	{ "OPTIONS",																	GameMessage::MSG_META_OPTIONS },
+	{ "INCREASE_MAX_RENDER_FPS",									GameMessage::MSG_META_INCREASE_MAX_RENDER_FPS },
+	{ "DECREASE_MAX_RENDER_FPS",									GameMessage::MSG_META_DECREASE_MAX_RENDER_FPS },
+	{ "INCREASE_LOGIC_TIME_SCALE",								GameMessage::MSG_META_INCREASE_LOGIC_TIME_SCALE },
+	{ "DECREASE_LOGIC_TIME_SCALE",								GameMessage::MSG_META_DECREASE_LOGIC_TIME_SCALE },
 	{ "TOGGLE_LOWER_DETAILS",											GameMessage::MSG_META_TOGGLE_LOWER_DETAILS },
 	{ "TOGGLE_CONTROL_BAR",												GameMessage::MSG_META_TOGGLE_CONTROL_BAR },
+	{ "TOGGLE_PLAYER_OBSERVER",										GameMessage::MSG_META_TOGGLE_PLAYER_OBSERVER },
 	{ "BEGIN_PATH_BUILD",													GameMessage::MSG_META_BEGIN_PATH_BUILD },
 	{ "END_PATH_BUILD",														GameMessage::MSG_META_END_PATH_BUILD },
 	{ "BEGIN_FORCEATTACK",												GameMessage::MSG_META_BEGIN_FORCEATTACK },
@@ -179,8 +185,10 @@ static const LookupListRec GameMessageMetaTypeNames[] =
 	{ "TOGGLE_CAMERA_TRACKING_DRAWABLE",					GameMessage::MSG_META_TOGGLE_CAMERA_TRACKING_DRAWABLE },
 	{ "TOGGLE_FAST_FORWARD_REPLAY",								GameMessage::MSG_META_TOGGLE_FAST_FORWARD_REPLAY },
 	{ "TOGGLE_PAUSE",															GameMessage::MSG_META_TOGGLE_PAUSE },
+	{ "TOGGLE_PAUSE_ALT",													GameMessage::MSG_META_TOGGLE_PAUSE_ALT },
 	{ "STEP_FRAME",																GameMessage::MSG_META_STEP_FRAME },
-  	{ "DEMO_INSTANT_QUIT",												GameMessage::MSG_META_DEMO_INSTANT_QUIT },
+	{ "STEP_FRAME_ALT",														GameMessage::MSG_META_STEP_FRAME_ALT },
+	{ "DEMO_INSTANT_QUIT",												GameMessage::MSG_META_DEMO_INSTANT_QUIT },
 
 #if defined(_ALLOW_DEBUG_CHEATS_IN_RELEASE)//may be defined in GameCommon.h
 	{ "CHEAT_RUNSCRIPT1",								        	GameMessage::MSG_CHEAT_RUNSCRIPT1 },
@@ -254,6 +262,8 @@ static const LookupListRec GameMessageMetaTypeNames[] =
 	{ "DEMO_PLAY_OBJECTIVE_MOVIE6",								GameMessage::MSG_META_DEMO_PLAY_OBJECTIVE_MOVIE6 },
 	{ "DEMO_BEGIN_ADJUST_PITCH",									GameMessage::MSG_META_DEMO_BEGIN_ADJUST_PITCH },
 	{ "DEMO_END_ADJUST_PITCH",										GameMessage::MSG_META_DEMO_END_ADJUST_PITCH },
+	{ "DEMO_BEGIN_ADJUST_DEFAULTPITCH",						GameMessage::MSG_META_DEMO_BEGIN_ADJUST_DEFAULTPITCH },
+	{ "DEMO_END_ADJUST_DEFAULTPITCH",							GameMessage::MSG_META_DEMO_END_ADJUST_DEFAULTPITCH },
 	{ "DEMO_BEGIN_ADJUST_FOV",										GameMessage::MSG_META_DEMO_BEGIN_ADJUST_FOV },
 	{ "DEMO_END_ADJUST_FOV",											GameMessage::MSG_META_DEMO_END_ADJUST_FOV },
 	{ "DEMO_LOCK_CAMERA_TO_PLANES",								GameMessage::MSG_META_DEMO_LOCK_CAMERA_TO_PLANES },
@@ -342,7 +352,7 @@ static const LookupListRec GameMessageMetaTypeNames[] =
 #endif//DUMP_PERF_STATS
 
 
-	{ NULL, 0	}// keep this last!
+	{ nullptr, 0	}
 };
 
 
@@ -357,10 +367,10 @@ static const FieldParse TheMetaMapFieldParseTable[] =
 	{ "Modifiers",					INI::parseLookupList,						ModifierNames, offsetof( MetaMapRec, m_modState ) },
 	{ "UseableIn",					INI::parseBitString32,					TheCommandUsableInNames, offsetof( MetaMapRec, m_usableIn ) },
 	{ "Category",						INI::parseLookupList,						CategoryListName, offsetof( MetaMapRec, m_category ) },
-	{ "Description",				INI::parseAndTranslateLabel,		0, offsetof( MetaMapRec, m_description ) },
-	{ "DisplayName",				INI::parseAndTranslateLabel,		0, offsetof( MetaMapRec, m_displayName ) },
+	{ "Description",				INI::parseAndTranslateLabel,		nullptr, offsetof( MetaMapRec, m_description ) },
+	{ "DisplayName",				INI::parseAndTranslateLabel,		nullptr, offsetof( MetaMapRec, m_displayName ) },
 
-	{ NULL,									NULL,														0, 0 }  // keep this last
+	{ nullptr,									nullptr,														nullptr, 0 }
 
 };
 
@@ -397,6 +407,35 @@ static const char * findGameMessageNameByType(GameMessage::Type type)
 }
 
 //-------------------------------------------------------------------------------------------------
+static Bool isMessageUsable(CommandUsableInType usableIn)
+{
+	// We will ignore all commands if the game client has not yet incremented to frame 1.
+	// It prevents the user from doing commands during a map load, which throws the input
+	// system into whack because there isn't a client frame for the input event, and in
+	// the case of a command that pauses the game, like the quit menu, the client frame
+	// will never get beyond 0 and we lose the ability to process any input.
+	if (TheGameClient->getFrame() == 0)
+		return false;
+
+	const Bool usableInShell = (usableIn & COMMANDUSABLE_SHELL);
+	const Bool usableInGame = (usableIn & COMMANDUSABLE_GAME);
+	const Bool usableAsObserver = (usableIn & COMMANDUSABLE_OBSERVER);
+	const Bool isShellActive = TheShell && TheShell->isShellActive();
+	const Bool isObserving = !ThePlayerList->getLocalPlayer()->isPlayerActive();
+
+	if (usableInShell && isShellActive)
+		return true;
+
+	if (usableInGame && !isShellActive)
+		return true;
+
+	if (usableAsObserver && isObserving)
+		return true;
+
+	return false;
+}
+
+//-------------------------------------------------------------------------------------------------
 GameMessageDisposition MetaEventTranslator::translateGameMessage(const GameMessage *msg)
 {
 	GameMessageDisposition disp = KEEP_MESSAGE;
@@ -427,33 +466,10 @@ GameMessageDisposition MetaEventTranslator::translateGameMessage(const GameMessa
 		}
 
 
-    for (const MetaMapRec *map = TheMetaMap->getFirstMetaMapRec(); map; map = map->m_next)
+		for (const MetaMapRec *map = TheMetaMap->getFirstMetaMapRec(); map; map = map->m_next)
 		{
-			DEBUG_ASSERTCRASH(map->m_meta > GameMessage::MSG_BEGIN_META_MESSAGES &&
-				map->m_meta < GameMessage::MSG_END_META_MESSAGES, ("hmm, expected only meta-msgs here"));
-
-			//
-			// if this command is *only* usable in the game, we will ignore it if the game client
-			// has not yet incremented to frame 1 (keeps us from doing in-game commands during
-			// a map load, which throws the input system into wack because there isn't a
-			// client frame for the input event, and in the case of a command that pauses the
-			// game, like the quit menu, the client frame will never get beyond 0 and we
-			// lose the ability to process any input
-			//
-			if( map->m_usableIn == COMMANDUSABLE_GAME && TheGameClient->getFrame() < 1 )
+			if (!isMessageUsable(map->m_usableIn))
 				continue;
-
-			// if the shell is active, and this command is not usable in shell, continue
-			if (TheShell && TheShell->isShellActive() && !(map->m_usableIn & COMMANDUSABLE_SHELL) )
-				continue;
-
-			// if the shell is not active and this command is not usable in the game, continue
-			if (TheShell && !TheShell->isShellActive() && !(map->m_usableIn & COMMANDUSABLE_GAME) )
-				continue;
-
-
-
-
 
 			// check for the special case of mods-only-changed.
 			if (
@@ -505,7 +521,10 @@ GameMessageDisposition MetaEventTranslator::translateGameMessage(const GameMessa
                 TheWritableGlobalData->m_TiVOFastMode = 1 - TheGlobalData->m_TiVOFastMode;
 
               if ( TheInGameUI )
-  				      TheInGameUI->message( TheGlobalData->m_TiVOFastMode ? TheGameText->fetch("GUI:FF_ON") : TheGameText->fetch("GUI:FF_OFF") );
+								TheInGameUI->messageNoFormat( TheGlobalData->m_TiVOFastMode
+									? TheGameText->FETCH_OR_SUBSTITUTE("GUI:FF_ON", L"Fast Forward is on")
+									: TheGameText->FETCH_OR_SUBSTITUTE("GUI:FF_OFF", L"Fast Forward is off")
+								);
 			      }
 			      disp = KEEP_MESSAGE; // cause for goodness sake, this key gets used a lot by non-replay hotkeys
 			      break;
@@ -547,77 +566,62 @@ GameMessageDisposition MetaEventTranslator::translateGameMessage(const GameMessa
 
 	if (t > GameMessage::MSG_RAW_MOUSE_BEGIN && t < GameMessage::MSG_RAW_MOUSE_END )
 	{
-		Int index = 0;
+		Int index = 3;
 		switch (t)
 		{
 			case GameMessage::MSG_RAW_MOUSE_LEFT_BUTTON_DOWN:
+				--index;
+				FALLTHROUGH;
 			case GameMessage::MSG_RAW_MOUSE_MIDDLE_BUTTON_DOWN:
+				--index;
+				FALLTHROUGH;
 			case GameMessage::MSG_RAW_MOUSE_RIGHT_BUTTON_DOWN:
 			{
-				// Fill out which the current mouse down position
-				if (t == GameMessage::MSG_RAW_MOUSE_MIDDLE_BUTTON_DOWN)
-					index = 1;
-				else if (t == GameMessage::MSG_RAW_MOUSE_RIGHT_BUTTON_DOWN)
-					index = 2;
-				// else index == 0
+				--index;
 				m_mouseDownPosition[index] = msg->getArgument(0)->pixel;
 				m_nextUpShouldCreateDoubleClick[index] = FALSE;
-
 				break;
 			}
 
 			case GameMessage::MSG_RAW_MOUSE_LEFT_DOUBLE_CLICK:
+				--index;
+				FALLTHROUGH;
 			case GameMessage::MSG_RAW_MOUSE_MIDDLE_DOUBLE_CLICK:
+				--index;
+				FALLTHROUGH;
 			case GameMessage::MSG_RAW_MOUSE_RIGHT_DOUBLE_CLICK:
 			{
-				if (t == GameMessage::MSG_RAW_MOUSE_MIDDLE_DOUBLE_CLICK)
-					index = 1;
-				else if (t == GameMessage::MSG_RAW_MOUSE_RIGHT_DOUBLE_CLICK)
-					index = 2;
-				// else index == 0
-
+				--index;
 				m_nextUpShouldCreateDoubleClick[index] = TRUE;
 				break;
 			}
 
 			case GameMessage::MSG_RAW_MOUSE_LEFT_BUTTON_UP:
+				--index;
+				FALLTHROUGH;
 			case GameMessage::MSG_RAW_MOUSE_MIDDLE_BUTTON_UP:
+				--index;
+				FALLTHROUGH;
 			case GameMessage::MSG_RAW_MOUSE_RIGHT_BUTTON_UP:
 			{
-				ICoord2D location = msg->getArgument(0)->pixel;
+				--index;
 
-				// Fill out which the current mouse down position
-				if (t == GameMessage::MSG_RAW_MOUSE_MIDDLE_BUTTON_UP)
-					index = 1;
-				else if (t == GameMessage::MSG_RAW_MOUSE_RIGHT_BUTTON_UP)
-					index = 2;
-				// else index == 0
+				constexpr const GameMessage::Type SingleClickMessages[3] =
+				{
+					GameMessage::MSG_MOUSE_LEFT_CLICK,
+					GameMessage::MSG_MOUSE_MIDDLE_CLICK,
+					GameMessage::MSG_MOUSE_RIGHT_CLICK,
+				};
+				constexpr const GameMessage::Type DoubleClickMessages[3] =
+				{
+					GameMessage::MSG_MOUSE_LEFT_DOUBLE_CLICK,
+					GameMessage::MSG_MOUSE_MIDDLE_DOUBLE_CLICK,
+					GameMessage::MSG_MOUSE_RIGHT_DOUBLE_CLICK,
+				};
 
-				GameMessage *newMessage = NULL;
-				if (t == GameMessage::MSG_RAW_MOUSE_LEFT_BUTTON_UP)
-				{
-					if (m_nextUpShouldCreateDoubleClick[index])
-						newMessage = TheMessageStream->insertMessage(GameMessage::MSG_MOUSE_LEFT_DOUBLE_CLICK, const_cast<GameMessage*>(msg));
-					else
-						newMessage = TheMessageStream->insertMessage(GameMessage::MSG_MOUSE_LEFT_CLICK, const_cast<GameMessage*>(msg));
-					m_nextUpShouldCreateDoubleClick[index] = FALSE;
-				}
-				else if (t == GameMessage::MSG_RAW_MOUSE_MIDDLE_BUTTON_UP)
-				{
-					if (m_nextUpShouldCreateDoubleClick[index])
-						newMessage = TheMessageStream->insertMessage(GameMessage::MSG_MOUSE_MIDDLE_DOUBLE_CLICK, const_cast<GameMessage*>(msg));
-					else
-						newMessage = TheMessageStream->insertMessage(GameMessage::MSG_MOUSE_MIDDLE_CLICK, const_cast<GameMessage*>(msg));
-					m_nextUpShouldCreateDoubleClick[index] = FALSE;
-				}
-				else if (t == GameMessage::MSG_RAW_MOUSE_RIGHT_BUTTON_UP)
-				{
-					if (m_nextUpShouldCreateDoubleClick[index])
-						newMessage = TheMessageStream->insertMessage(GameMessage::MSG_MOUSE_RIGHT_DOUBLE_CLICK, const_cast<GameMessage*>(msg));
-					else
-						newMessage = TheMessageStream->insertMessage(GameMessage::MSG_MOUSE_RIGHT_CLICK, const_cast<GameMessage*>(msg));
-					m_nextUpShouldCreateDoubleClick[index] = FALSE;
-				}
+				const ICoord2D location = msg->getArgument(0)->pixel;
+				const GameMessage::Type messageType = m_nextUpShouldCreateDoubleClick[index] ? DoubleClickMessages[index] : SingleClickMessages[index];
+				GameMessage *newMessage = TheMessageStream->insertMessage(messageType, const_cast<GameMessage*>(msg));
 
 				IRegion2D pixelRegion;
 				buildRegion( &m_mouseDownPosition[index], &location, &pixelRegion );
@@ -632,6 +636,9 @@ GameMessageDisposition MetaEventTranslator::translateGameMessage(const GameMessa
 
 				// append the modifier keys to the message.
 				newMessage->appendIntegerArgument( msg->getArgument(1)->integer );
+
+				// append the time to the message.
+				//newMessage->appendIntegerArgument( msg->getArgument(2)->integer );
 				break;
 			}
 
@@ -648,7 +655,7 @@ GameMessageDisposition MetaEventTranslator::translateGameMessage(const GameMessa
 
 //-------------------------------------------------------------------------------------------------
 MetaMap::MetaMap() :
-	m_metaMaps(NULL)
+	m_metaMaps(nullptr)
 {
 }
 
@@ -710,54 +717,131 @@ MetaMapRec *MetaMap::getMetaMapRec(GameMessage::Type t)
 		throw INI_INVALID_DATA;
 
 	MetaMapRec *map = TheMetaMap->getMetaMapRec(t);
-	if (map == NULL)
+	if (map == nullptr)
 		throw INI_INVALID_DATA;
 
 	ini->initFromINI(map, TheMetaMapFieldParseTable);
 }
 
 //-------------------------------------------------------------------------------------------------
-/*static */ void MetaMap::generateMetaMap()
+void MetaMap::generateMetaMap()
 {
 	// TheSuperHackers @info A default mapping for MSG_META_SELECT_ALL_AIRCRAFT would be useful for Generals
 	// but is not recommended, because it will cause key mapping conflicts with original game languages.
 
 	{
+		// Is useful for Generals and Zero Hour.
+		MetaMapRec *map = getMetaMapRec(GameMessage::MSG_META_INCREASE_MAX_RENDER_FPS);
+		if (map->m_key == MK_NONE)
+		{
+			map->m_key = MK_KPPLUS;
+			map->m_transition = DOWN;
+			map->m_modState = CTRL;
+			map->m_usableIn = COMMANDUSABLE_EVERYWHERE;
+		}
+	}
+	{
+		// Is useful for Generals and Zero Hour.
+		MetaMapRec *map = getMetaMapRec(GameMessage::MSG_META_DECREASE_MAX_RENDER_FPS);
+		if (map->m_key == MK_NONE)
+		{
+			map->m_key = MK_KPMINUS;
+			map->m_transition = DOWN;
+			map->m_modState = CTRL;
+			map->m_usableIn = COMMANDUSABLE_EVERYWHERE;
+		}
+	}
+	{
+		// Is useful for Generals and Zero Hour.
+		MetaMapRec *map = getMetaMapRec(GameMessage::MSG_META_INCREASE_LOGIC_TIME_SCALE);
+		if (map->m_key == MK_NONE)
+		{
+			map->m_key = MK_KPPLUS;
+			map->m_transition = DOWN;
+			map->m_modState = SHIFT_CTRL;
+			map->m_usableIn = COMMANDUSABLE_EVERYWHERE;
+		}
+	}
+	{
+		// Is useful for Generals and Zero Hour.
+		MetaMapRec *map = getMetaMapRec(GameMessage::MSG_META_DECREASE_LOGIC_TIME_SCALE);
+		if (map->m_key == MK_NONE)
+		{
+			map->m_key = MK_KPMINUS;
+			map->m_transition = DOWN;
+			map->m_modState = SHIFT_CTRL;
+			map->m_usableIn = COMMANDUSABLE_EVERYWHERE;
+		}
+	}
+	{
+		// Is useful for Generals and Zero Hour.
+		MetaMapRec *map = getMetaMapRec(GameMessage::MSG_META_TOGGLE_PLAYER_OBSERVER);
+		if (map->m_key == MK_NONE)
+		{
+			map->m_key = MK_M;
+			map->m_transition = DOWN;
+			map->m_modState = NONE;
+			map->m_usableIn = COMMANDUSABLE_OBSERVER;
+		}
+	}
+	{
 		// Is mostly useful for Generals.
-		MetaMapRec *map = TheMetaMap->getMetaMapRec(GameMessage::MSG_META_TOGGLE_FAST_FORWARD_REPLAY);
+		MetaMapRec *map = getMetaMapRec(GameMessage::MSG_META_TOGGLE_FAST_FORWARD_REPLAY);
 		if (map->m_key == MK_NONE)
 		{
 			map->m_key = MK_F;
 			map->m_transition = DOWN;
 			map->m_modState = NONE;
-			map->m_usableIn = COMMANDUSABLE_GAME;
+			map->m_usableIn = COMMANDUSABLE_GAME; // @todo COMMANDUSABLE_OBSERVER
 		}
 	}
 	{
 		// Is useful for Generals and Zero Hour.
-		MetaMapRec *map = TheMetaMap->getMetaMapRec(GameMessage::MSG_META_TOGGLE_PAUSE);
+		MetaMapRec *map = getMetaMapRec(GameMessage::MSG_META_TOGGLE_PAUSE);
 		if (map->m_key == MK_NONE)
 		{
 			map->m_key = MK_P;
 			map->m_transition = DOWN;
 			map->m_modState = NONE;
-			map->m_usableIn = COMMANDUSABLE_GAME;
+			map->m_usableIn = COMMANDUSABLE_OBSERVER;
 		}
 	}
 	{
 		// Is useful for Generals and Zero Hour.
-		MetaMapRec *map = TheMetaMap->getMetaMapRec(GameMessage::MSG_META_STEP_FRAME);
+		MetaMapRec *map = getMetaMapRec(GameMessage::MSG_META_TOGGLE_PAUSE_ALT);
+		if (map->m_key == MK_NONE)
+		{
+			map->m_key = MK_P;
+			map->m_transition = DOWN;
+			map->m_modState = SHIFT; // Requires modifier to avoid key conflicts as a player.
+			map->m_usableIn = COMMANDUSABLE_EVERYWHERE;
+		}
+	}
+	{
+		// Is useful for Generals and Zero Hour.
+		MetaMapRec *map = getMetaMapRec(GameMessage::MSG_META_STEP_FRAME);
 		if (map->m_key == MK_NONE)
 		{
 			map->m_key = MK_O;
 			map->m_transition = DOWN;
 			map->m_modState = NONE;
-			map->m_usableIn = COMMANDUSABLE_GAME;
+			map->m_usableIn = COMMANDUSABLE_OBSERVER;
 		}
 	}
 	{
 		// Is useful for Generals and Zero Hour.
-		MetaMapRec* map = TheMetaMap->getMetaMapRec(GameMessage::MSG_META_SELECT_NEXT_IDLE_WORKER);
+		MetaMapRec *map = getMetaMapRec(GameMessage::MSG_META_STEP_FRAME_ALT);
+		if (map->m_key == MK_NONE)
+		{
+			map->m_key = MK_O;
+			map->m_transition = DOWN;
+			map->m_modState = SHIFT; // Requires modifier to avoid key conflicts as a player.
+			map->m_usableIn = COMMANDUSABLE_EVERYWHERE;
+		}
+	}
+	{
+		// Is useful for Generals and Zero Hour.
+		MetaMapRec *map = getMetaMapRec(GameMessage::MSG_META_SELECT_NEXT_IDLE_WORKER);
 		if (map->m_key == MK_NONE) {
 			map->m_key = MK_I;
 			map->m_transition = DOWN;
@@ -768,11 +852,29 @@ MetaMapRec *MetaMap::getMetaMapRec(GameMessage::Type t)
 			map->m_displayName = TheGameText->FETCH_OR_SUBSTITUTE("GUI:SelectNextIdleWorker", L"Next Idle Worker");
 		}
 	}
+	{
+		MetaMapRec *map = getMetaMapRec(GameMessage::MSG_META_ALT_CAMERA_ROTATE_LEFT);
+		if (map->m_key == MK_NONE) {
+			map->m_key = MK_KP4;
+			map->m_transition = DOWN;
+			map->m_modState = CTRL;
+			map->m_usableIn = COMMANDUSABLE_GAME;
+		}
+	}
+	{
+		MetaMapRec *map = getMetaMapRec(GameMessage::MSG_META_ALT_CAMERA_ROTATE_RIGHT);
+		if (map->m_key == MK_NONE) {
+			map->m_key = MK_KP6;
+			map->m_transition = DOWN;
+			map->m_modState = CTRL;
+			map->m_usableIn = COMMANDUSABLE_GAME;
+		}
+	}
 
 #if defined(RTS_DEBUG)
 	{
 		// Is useful for Generals and Zero Hour.
-		MetaMapRec *map = TheMetaMap->getMetaMapRec(GameMessage::MSG_META_DEMO_REMOVE_PREREQ);
+		MetaMapRec *map = getMetaMapRec(GameMessage::MSG_META_DEMO_REMOVE_PREREQ);
 		if (map->m_key == MK_NONE)
 		{
 			map->m_key = MK_P;
@@ -783,7 +885,7 @@ MetaMapRec *MetaMap::getMetaMapRec(GameMessage::Type t)
 	}
 	{
 		// Is useful for Generals and Zero Hour.
-		MetaMapRec *map = TheMetaMap->getMetaMapRec(GameMessage::MSG_META_DEMO_FREE_BUILD);
+		MetaMapRec *map = getMetaMapRec(GameMessage::MSG_META_DEMO_FREE_BUILD);
 		if (map->m_key == MK_NONE)
 		{
 			map->m_key = MK_B;
@@ -792,7 +894,43 @@ MetaMapRec *MetaMap::getMetaMapRec(GameMessage::Type t)
 			map->m_usableIn = COMMANDUSABLE_GAME;
 		}
 	}
+	{
+		// Is useful for Generals and Zero Hour.
+		MetaMapRec *map = TheMetaMap->getMetaMapRec(GameMessage::MSG_META_DEMO_BEGIN_ADJUST_DEFAULTPITCH);
+		if (map->m_key == MK_NONE)
+		{
+			map->m_key = MK_COMMA;
+			map->m_transition = DOWN;
+			map->m_modState = CTRL;
+			map->m_usableIn = COMMANDUSABLE_GAME;
+		}
+	}
+	{
+		// Is useful for Generals and Zero Hour.
+		MetaMapRec *map = TheMetaMap->getMetaMapRec(GameMessage::MSG_META_DEMO_END_ADJUST_DEFAULTPITCH);
+		if (map->m_key == MK_NONE)
+		{
+			map->m_key = MK_COMMA;
+			map->m_transition = UP;
+			map->m_modState = CTRL;
+			map->m_usableIn = COMMANDUSABLE_GAME;
+		}
+	}
 #endif // defined(RTS_DEBUG)
+}
+
+//-------------------------------------------------------------------------------------------------
+void MetaMap::verifyMetaMap()
+{
+#ifdef DEBUG_CRASHING
+	for (const MetaMapRec *map = getFirstMetaMapRec(); map; map = map->m_next)
+	{
+		DEBUG_ASSERTCRASH(
+			map->m_meta > GameMessage::MSG_BEGIN_META_MESSAGES &&
+			map->m_meta < GameMessage::MSG_END_META_MESSAGES,
+			("hmm, expected only meta-msgs here"));
+	}
+#endif
 }
 
 //-------------------------------------------------------------------------------------------------

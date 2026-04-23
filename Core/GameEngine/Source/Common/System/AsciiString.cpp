@@ -42,19 +42,19 @@
 //
 //-----------------------------------------------------------------------------
 ///////////////////////////////////////////////////////////////////////////////
-#include "PreRTS.h"	// This must go first in EVERY cpp file int the GameEngine
+#include "PreRTS.h"	// This must go first in EVERY cpp file in the GameEngine
 
 #include "Common/CriticalSection.h"
 
 
 // -----------------------------------------------------
 
-/*static*/ AsciiString AsciiString::TheEmptyString;
+/*static*/ const AsciiString AsciiString::TheEmptyString;
 
 //-----------------------------------------------------------------------------
 inline char* skipSeps(char* p, const char* seps)
 {
-	while (*p && strchr(seps, *p) != NULL)
+	while (*p && strchr(seps, *p) != nullptr)
 		++p;
 	return p;
 }
@@ -62,7 +62,7 @@ inline char* skipSeps(char* p, const char* seps)
 //-----------------------------------------------------------------------------
 inline char* skipNonSeps(char* p, const char* seps)
 {
-	while (*p && strchr(seps, *p) == NULL)
+	while (*p && strchr(seps, *p) == nullptr)
 		++p;
 	return p;
 }
@@ -125,20 +125,26 @@ void AsciiString::ensureUniqueBufferOfSize(int numCharsNeeded, Bool preserveData
 {
 	validate();
 
+	const int usableNumChars = numCharsNeeded - 1;
+
 	if (m_data &&
 			m_data->m_refCount == 1 &&
 			m_data->m_numCharsAllocated >= numCharsNeeded)
 	{
 		// no buffer manhandling is needed (it's already large enough, and unique to us)
 		if (strToCopy)
+		{
 			// TheSuperHackers @fix Mauller 04/04/2025 Replace strcpy with safer memmove as memory regions can overlap when part of string is copied to itself
-			memmove(m_data->peek(), strToCopy, strlen(strToCopy) + 1);
+			DEBUG_ASSERTCRASH(usableNumChars <= strlen(strToCopy), ("strToCopy is too small"));
+			memmove(m_data->peek(), strToCopy, usableNumChars);
+			m_data->peek()[usableNumChars] = 0;
+		}
 		if (strToCat)
 			strcat(m_data->peek(), strToCat);
 		return;
 	}
 
-	DEBUG_ASSERTCRASH(TheDynamicMemoryAllocator != NULL, ("Cannot use dynamic memory allocator before its initialization. Check static initialization order."));
+	DEBUG_ASSERTCRASH(TheDynamicMemoryAllocator != nullptr, ("Cannot use dynamic memory allocator before its initialization. Check static initialization order."));
 	DEBUG_ASSERTCRASH(numCharsNeeded <= MAX_LEN, ("AsciiString::ensureUniqueBufferOfSize exceeds max string length %d with requested length %d", MAX_LEN, numCharsNeeded));
 	int minBytes = sizeof(AsciiStringData) + numCharsNeeded*sizeof(char);
 	int actualBytes = TheDynamicMemoryAllocator->getActualAllocationSize(minBytes);
@@ -157,7 +163,11 @@ void AsciiString::ensureUniqueBufferOfSize(int numCharsNeeded, Bool preserveData
 	// do these BEFORE releasing the old buffer, so that self-copies
 	// or self-cats will work correctly.
 	if (strToCopy)
-		strcpy(newData->peek(), strToCopy);
+	{
+		DEBUG_ASSERTCRASH(usableNumChars <= strlen(strToCopy), ("strToCopy is too small"));
+		strncpy(newData->peek(), strToCopy, usableNumChars);
+		newData->peek()[usableNumChars] = 0;
+	}
 	if (strToCat)
 		strcat(newData->peek(), strToCat);
 
@@ -180,19 +190,29 @@ void AsciiString::releaseBuffer()
 		{
 			TheDynamicMemoryAllocator->freeBytes(m_data);
 		}
-		m_data = 0;
+		m_data = nullptr;
 	}
 	validate();
 }
 
 // -----------------------------------------------------
-AsciiString::AsciiString(const char* s) : m_data(0)
+AsciiString::AsciiString(const char* s) : m_data(nullptr)
 {
 	//DEBUG_ASSERTCRASH(isMemoryManagerOfficiallyInited(), ("Initializing AsciiStrings prior to main (ie, as static vars) can cause memory leak reporting problems. Are you sure you want to do this?"));
-	int len = (s)?strlen(s):0;
-	if (len)
+	int len = s ? (int)strlen(s) : 0;
+	if (len > 0)
 	{
-		ensureUniqueBufferOfSize(len + 1, false, s, NULL);
+		ensureUniqueBufferOfSize(len + 1, false, s, nullptr);
+	}
+	validate();
+}
+
+// -----------------------------------------------------
+AsciiString::AsciiString(const char* s, int len) : m_data(nullptr)
+{
+	if (len > 0)
+	{
+		ensureUniqueBufferOfSize(len + 1, false, s, nullptr);
 	}
 	validate();
 }
@@ -216,13 +236,19 @@ void AsciiString::set(const AsciiString& stringSrc)
 // -----------------------------------------------------
 void AsciiString::set(const char* s)
 {
+	int len = s ? strlen(s) : 0;
+	set(s, len);
+}
+
+// -----------------------------------------------------
+void AsciiString::set(const char* s, int len)
+{
 	validate();
 	if (!m_data || s != peek())
 	{
-		int len = s ? strlen(s) : 0;
-		if (len)
+		if (len > 0)
 		{
-			ensureUniqueBufferOfSize(len + 1, false, s, NULL);
+			ensureUniqueBufferOfSize(len + 1, false, s, nullptr);
 		}
 		else
 		{
@@ -237,7 +263,7 @@ char*  AsciiString::getBufferForRead(Int len)
 {
 	validate();
 	DEBUG_ASSERTCRASH(len>0, ("No need to allocate 0 len strings."));
-	ensureUniqueBufferOfSize(len + 1, false, NULL, NULL);
+	ensureUniqueBufferOfSize(len + 1, false, nullptr, nullptr);
 	validate();
 	return peek();
 }
@@ -264,7 +290,7 @@ void AsciiString::concat(const char* s)
 
 	if (m_data)
 	{
-		ensureUniqueBufferOfSize(getLength() + addlen + 1, true, NULL, s);
+		ensureUniqueBufferOfSize(getLength() + addlen + 1, true, nullptr, s);
 	}
 	else
 	{
@@ -324,7 +350,7 @@ void AsciiString::trimEnd(const char c)
 
 	if (m_data)
 	{
-		// Clip trailing consecutive occurances of c from the string.
+		// Clip trailing consecutive occurrences of c from the string.
 		const int len = strlen(peek());
 		int index = len;
 		while (index > 0 && getCharAt(index - 1) == c)
@@ -375,7 +401,7 @@ void AsciiString::truncateBy(const Int charCount)
 		const size_t len = strlen(peek());
 		if (len > 0)
 		{
-			ensureUniqueBufferOfSize(len+1, true, NULL, NULL);
+			ensureUniqueBufferOfSize(len + 1, true, nullptr, nullptr);
 			size_t count = charCount;
 			if (charCount > len)
 			{
@@ -396,7 +422,7 @@ void AsciiString::truncateTo(const Int maxLength)
 		const size_t len = strlen(peek());
 		if (len > maxLength)
 		{
-			ensureUniqueBufferOfSize(len + 1, true, NULL, NULL);
+			ensureUniqueBufferOfSize(len + 1, true, nullptr, nullptr);
 			peek()[maxLength] = 0;
 		}
 	}
@@ -451,57 +477,25 @@ void AsciiString::format_va(const char* format, va_list args)
 // -----------------------------------------------------
 Bool AsciiString::startsWith(const char* p) const
 {
-	if (*p == 0)
-		return true;	// everything starts with the empty string
-
-	int lenThis = getLength();
-	int lenThat = strlen(p);
-	if (lenThis < lenThat)
-		return false;	// that must be smaller than this
-
-	return strncmp(peek(), p, lenThat) == 0;
+	return m_data && ::startsWith(peek(), p);
 }
 
 // -----------------------------------------------------
 Bool AsciiString::startsWithNoCase(const char* p) const
 {
-	if (*p == 0)
-		return true;	// everything starts with the empty string
-
-	int lenThis = getLength();
-	int lenThat = strlen(p);
-	if (lenThis < lenThat)
-		return false;	// that must be smaller than this
-
-	return strnicmp(peek(), p, lenThat) == 0;
+	return m_data && ::startsWithNoCase(peek(), p);
 }
 
 // -----------------------------------------------------
 Bool AsciiString::endsWith(const char* p) const
 {
-	if (*p == 0)
-		return true;	// everything ends with the empty string
-
-	int lenThis = getLength();
-	int lenThat = strlen(p);
-	if (lenThis < lenThat)
-		return false;	// that must be smaller than this
-
-	return strncmp(peek() + lenThis - lenThat, p, lenThat) == 0;
+	return m_data && ::endsWith(peek(), p);
 }
 
 // -----------------------------------------------------
 Bool AsciiString::endsWithNoCase(const char* p) const
 {
-	if (*p == 0)
-		return true;	// everything ends with the empty string
-
-	int lenThis = getLength();
-	int lenThat = strlen(p);
-	if (lenThis < lenThat)
-		return false;	// that must be smaller than this
-
-	return strnicmp(peek() + lenThis - lenThat, p, lenThat) == 0;
+	return m_data && ::endsWithNoCase(peek(), p);
 }
 
 //-----------------------------------------------------------------------------
@@ -516,7 +510,7 @@ Bool AsciiString::nextToken(AsciiString* tok, const char* seps)
 	if (this->isEmpty() || tok == this)
 		return false;
 
-	if (seps == NULL)
+	if (seps == nullptr)
 		seps = " \n\r\t";
 
 	char* start = skipSeps(peek(), seps);

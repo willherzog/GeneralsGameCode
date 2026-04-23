@@ -29,9 +29,6 @@
 
 #pragma once
 
-#ifndef __DEMO_TRAP_UPDATE_H_
-#define __DEMO_TRAP_UPDATE_H_
-
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common/KindOf.h"
 #include "GameLogic/Module/UpdateModule.h"
@@ -76,8 +73,8 @@ public:
 	DemoTrapUpdate( Thing *thing, const ModuleData* moduleData );
 	// virtual destructor prototype provided by memory pool declaration
 
-	virtual void onObjectCreated();
-	virtual UpdateSleepTime update();
+	virtual void onObjectCreated() override;
+	virtual UpdateSleepTime update() override;
 
 	void detonate();
 
@@ -86,7 +83,3 @@ protected:
 	Int m_nextScanFrames;
 	Bool m_detonated;
 };
-
-
-#endif
-

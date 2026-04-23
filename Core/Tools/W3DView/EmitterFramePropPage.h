@@ -16,12 +16,8 @@
 **	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if !defined(AFX_EMITTERFRAMEPROPPAGE_H__6F068804_EAD5_4A19_BE03_C9C7B534E6E8__INCLUDED_)
-#define AFX_EMITTERFRAMEPROPPAGE_H__6F068804_EAD5_4A19_BE03_C9C7B534E6E8__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
+
 // EmitterFramePropPage.h : header file
 //
 
@@ -80,15 +76,15 @@ public:
 	//
 	//	Inline accessors
 	//
-	EmitterInstanceListClass *	Get_Emitter (void) const { return m_pEmitterList; }
+	EmitterInstanceListClass *	Get_Emitter () const { return m_pEmitterList; }
 	void								Set_Emitter (EmitterInstanceListClass *pemitter_list) { m_pEmitterList = pemitter_list; Initialize (); }
-	bool								Is_Data_Valid (void) const { return m_bValid; }
+	bool								Is_Data_Valid () const { return m_bValid; }
 
 	void								Get_Frame_Keyframes (ParticlePropertyStruct<float> &frames)	{ frames = m_Frames; }
 	void								On_Lifetime_Changed (float lifetime);
 
-	void								Initialize (void);
-	void								Update_Frames (void);
+	void								Initialize ();
+	void								Update_Frames ();
 
 private:
 
@@ -130,5 +126,3 @@ inline float EmitterFramePropPageClass::Denormalize_Frame(float normalized_val)
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
-
-#endif // !defined(AFX_EMITTERFRAMEPROPPAGE_H__6F068804_EAD5_4A19_BE03_C9C7B534E6E8__INCLUDED_)

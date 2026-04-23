@@ -51,16 +51,15 @@
 //	ScreenCursorClass
 //
 ///////////////////////////////////////////////////////////////////
-ScreenCursorClass::ScreenCursorClass (void)
+ScreenCursorClass::ScreenCursorClass ()
 	:	m_ScreenPos (0, 0),
-		m_pTexture (NULL),
-		m_pVertMaterial (NULL),
+		m_pTexture (nullptr),
+		m_pVertMaterial (nullptr),
 		m_Width (0),
 		m_Height (0),
-		m_hWnd (NULL)
+		m_hWnd (nullptr)
 {
 	Initialize ();
-	return ;
 }
 
 
@@ -71,15 +70,14 @@ ScreenCursorClass::ScreenCursorClass (void)
 ///////////////////////////////////////////////////////////////////
 ScreenCursorClass::ScreenCursorClass (const ScreenCursorClass &src)
 	:	m_ScreenPos (0, 0),
-		m_pTexture (NULL),
-		m_hWnd (NULL),
-		m_pVertMaterial (NULL),
+		m_pTexture (nullptr),
+		m_hWnd (nullptr),
+		m_pVertMaterial (nullptr),
 		m_Width (0),
 		m_Height (0),
 		RenderObjClass (src)
 {
 	Initialize ();
-	return ;
 }
 
 
@@ -88,11 +86,10 @@ ScreenCursorClass::ScreenCursorClass (const ScreenCursorClass &src)
 //	~ScreenCursorClass
 //
 ///////////////////////////////////////////////////////////////////
-ScreenCursorClass::~ScreenCursorClass (void)
+ScreenCursorClass::~ScreenCursorClass ()
 {
 	REF_PTR_RELEASE (m_pTexture);
 	REF_PTR_RELEASE (m_pVertMaterial);
-	return ;
 }
 
 
@@ -102,7 +99,7 @@ ScreenCursorClass::~ScreenCursorClass (void)
 //
 ///////////////////////////////////////////////////////////////////
 void
-ScreenCursorClass::Initialize (void)
+ScreenCursorClass::Initialize ()
 {
 	REF_PTR_RELEASE(m_pVertMaterial);
 
@@ -141,7 +138,6 @@ ScreenCursorClass::Initialize (void)
 	m_UVs[2].Y = 1.0F;
 	m_UVs[3].X = 1.0F;
 	m_UVs[3].Y = 1.0F;
-	return ;
 }
 
 
@@ -153,15 +149,13 @@ ScreenCursorClass::Initialize (void)
 void
 ScreenCursorClass::Set_Texture (TextureClass *texture)
 {
-	MEMBER_ADD (m_pTexture, texture);
+	REF_PTR_SET (m_pTexture, texture);
 
 	// Find the dimensions of the texture:
-	if (m_pTexture != NULL) {
+	if (m_pTexture != nullptr) {
 		m_Width	= m_pTexture->Get_Width();
 		m_Height	= m_pTexture->Get_Height();
 	}
-
-	return ;
 }
 
 
@@ -171,7 +165,7 @@ ScreenCursorClass::Set_Texture (TextureClass *texture)
 //
 ///////////////////////////////////////////////////////////////////
 void
-ScreenCursorClass::On_Frame_Update (void)
+ScreenCursorClass::On_Frame_Update ()
 {
 	//
 	//	Get the current cursor position in screen coords
@@ -179,7 +173,7 @@ ScreenCursorClass::On_Frame_Update (void)
 	POINT point = { 0 };
 	::GetCursorPos (&point);
 
-	if (m_hWnd != NULL) {
+	if (m_hWnd != nullptr) {
 
 		//
 		//	Normalize the screen position
@@ -227,7 +221,7 @@ ScreenCursorClass::On_Frame_Update (void)
 	z_pos				= 0;
 
 	//
-	//	Build the verticies from the position and extents
+	//	Build the vertices from the position and extents
 	//
 	m_Verticies[0].X = x_pos;
 	m_Verticies[0].Y = y_pos;
@@ -244,7 +238,6 @@ ScreenCursorClass::On_Frame_Update (void)
 	m_Verticies[3].X = x_max;
 	m_Verticies[3].Y = y_max;
 	m_Verticies[3].Z = z_pos;
-	return ;
 }
 
 
@@ -319,8 +312,6 @@ ScreenCursorClass::Render (RenderInfoClass &rinfo)
 		FACE_COUNT*3,
 		0,
 		VERTEX_COUNT*2);
-
-	return ;
 }
 
 
@@ -359,11 +350,9 @@ ScreenCursorClass::Get_Obj_Space_Bounding_Box(AABoxClass & box) const
 void
 ScreenCursorClass::Notify_Added (SceneClass * scene)
 {
-	if (scene != NULL) {
+	if (scene != nullptr) {
 		scene->Register (this, SceneClass::ON_FRAME_UPDATE);
 	}
-
-	return ;
 }
 
 
@@ -375,9 +364,7 @@ ScreenCursorClass::Notify_Added (SceneClass * scene)
 void
 ScreenCursorClass::Notify_Removed (SceneClass * scene)
 {
-	if (scene != NULL) {
+	if (scene != nullptr) {
 		scene->Unregister (this, SceneClass::ON_FRAME_UPDATE);
 	}
-
-	return ;
 }

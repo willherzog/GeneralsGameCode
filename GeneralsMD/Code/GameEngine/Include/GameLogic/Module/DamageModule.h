@@ -29,9 +29,6 @@
 
 #pragma once
 
-#ifndef __DamageModule_H_
-#define __DamageModule_H_
-
 #include "Common/Module.h"
 #include "GameLogic/Damage.h"
 #include "GameLogic/Module/BehaviorModule.h"
@@ -73,7 +70,7 @@ public:
 
 		static const FieldParse dataFieldParse[] =
 		{
-//			{ "DamageTypes", INI::parseDamageTypeFlags, NULL, offsetof( DamageModuleData, m_damageTypes ) },
+//			{ "DamageTypes", INI::parseDamageTypeFlags, nullptr, offsetof( DamageModuleData, m_damageTypes ) },
 			{ 0, 0, 0, 0 }
 		};
 
@@ -98,7 +95,7 @@ public:
 	static Int getInterfaceMask() { return MODULEINTERFACE_DAMAGE; }
 
 	// BehaviorModule
-	virtual DamageModuleInterface* getDamage() { return this; }
+	virtual DamageModuleInterface* getDamage() override { return this; }
 
 	// damage module callbacks
 	virtual void onDamage( DamageInfo *damageInfo ) = 0;	///< damage callback
@@ -113,5 +110,3 @@ protected:
 inline DamageModule::DamageModule( Thing *thing, const ModuleData* moduleData ) : BehaviorModule( thing, moduleData ) { }
 inline DamageModule::~DamageModule() { }
 //-------------------------------------------------------------------------------------------------
-
-#endif

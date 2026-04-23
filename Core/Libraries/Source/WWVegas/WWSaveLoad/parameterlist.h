@@ -34,19 +34,10 @@
  * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-
-#if defined(_MSC_VER)
 #pragma once
-#endif
-
-
-
-
-#ifndef __PARAMETER_LIST_H
-#define __PARAMETER_LIST_H
 
 #include "always.h"
-#include "Vector.H"
+#include "Vector.h"
 #include "parameter.h"
 #include "wwdebug.h"
 
@@ -64,7 +55,7 @@ public:
 	/////////////////////////////////////////////////////////////////////
 	// Public constructurs/destructors
 	/////////////////////////////////////////////////////////////////////
-	~ParameterListClass (void);
+	virtual ~ParameterListClass () override;
 
 	/////////////////////////////////////////////////////////////////////
 	// Public methods
@@ -77,7 +68,7 @@ protected:
 	/////////////////////////////////////////////////////////////////////
 	// Protected methods
 	/////////////////////////////////////////////////////////////////////
-	void			Free_Parameters (void);
+	void			Free_Parameters ();
 
 private:
 
@@ -92,10 +83,9 @@ private:
 // ~ParameterListClass
 /////////////////////////////////////////////////////////////////////
 inline
-ParameterListClass::~ParameterListClass (void)
+ParameterListClass::~ParameterListClass ()
 {
 	Free_Parameters ();
-	return ;
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -110,14 +100,12 @@ ParameterListClass::Add (void *data, const char *param_name, ParameterClass::Typ
 	ParameterClass *new_param = ParameterClass::Construct (type, data, param_name);
 
 	//
-	//	Add the new paramter object to our list
+	//	Add the new parameter object to our list
 	//
-	WWASSERT (new_param != NULL);
-	if (new_param != NULL) {
+	WWASSERT (new_param != nullptr);
+	if (new_param != nullptr) {
 		DynamicVectorClass<ParameterClass *>::Add (new_param);
 	}
-
-	return ;
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -127,20 +115,18 @@ inline void
 ParameterListClass::Add (ParameterClass *new_param)
 {
 	//
-	//	Add the new paramter object to our list
+	//	Add the new parameter object to our list
 	//
-	if (new_param != NULL) {
+	if (new_param != nullptr) {
 		DynamicVectorClass<ParameterClass *>::Add (new_param);
 	}
-
-	return ;
 }
 
 /////////////////////////////////////////////////////////////////////
 // Free_Parameters
 /////////////////////////////////////////////////////////////////////
 inline void
-ParameterListClass::Free_Parameters (void)
+ParameterListClass::Free_Parameters ()
 {
 	for (int index = 0; index < Count (); index ++) {
 		ParameterClass *param = Vector[index];
@@ -148,16 +134,9 @@ ParameterListClass::Free_Parameters (void)
 		//
 		//	Free the parameter object
 		//
-		if (param != NULL) {
-			delete param;
-		}
+		delete param;
 	}
 
 	Delete_All();
 //	m_Parameters.Delete_All ();
-	return ;
 }
-
-
-#endif //__PARAMETER_LIST_H
-

@@ -28,10 +28,10 @@
 // Desc:      Name key system to translate between names and unique key ids
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "PreRTS.h"	// This must go first in EVERY cpp file int the GameEngine
+#include "PreRTS.h"	// This must go first in EVERY cpp file in the GameEngine
 
 // Public Data ////////////////////////////////////////////////////////////////////////////////////
-NameKeyGenerator *TheNameKeyGenerator = NULL;  ///< name key gen. singleton
+NameKeyGenerator *TheNameKeyGenerator = nullptr;  ///< name key gen. singleton
 
 //-------------------------------------------------------------------------------------------------
 NameKeyGenerator::NameKeyGenerator()
@@ -40,9 +40,9 @@ NameKeyGenerator::NameKeyGenerator()
 	m_nextID = (UnsignedInt)NAMEKEY_INVALID;  // uninitialized system
 
 	for (Int i = 0; i < SOCKET_COUNT; ++i)
-		m_sockets[i] = NULL;
+		m_sockets[i] = nullptr;
 
-}  // end NameKeyGenerator
+}
 
 //-------------------------------------------------------------------------------------------------
 NameKeyGenerator::~NameKeyGenerator()
@@ -51,7 +51,7 @@ NameKeyGenerator::~NameKeyGenerator()
 	// free all system data
 	freeSockets();
 
-}  // end ~NameKeyGenerator
+}
 
 //-------------------------------------------------------------------------------------------------
 void NameKeyGenerator::init()
@@ -62,7 +62,7 @@ void NameKeyGenerator::init()
 	freeSockets();
 	m_nextID = 1;
 
-}  // end init
+}
 
 //-------------------------------------------------------------------------------------------------
 void NameKeyGenerator::reset()
@@ -70,7 +70,7 @@ void NameKeyGenerator::reset()
 	freeSockets();
 	m_nextID = 1;
 
-}  // end reset
+}
 
 //-------------------------------------------------------------------------------------------------
 void NameKeyGenerator::freeSockets()
@@ -83,12 +83,12 @@ void NameKeyGenerator::freeSockets()
 			next = b->m_nextInSocket;
 			deleteInstance(b);
 		}
-		m_sockets[i] = NULL;
+		m_sockets[i] = nullptr;
 	}
 
-}  // end freeSockets
+}
 
-/* ------------------------------------------------------------------------ */
+//-------------------------------------------------------------------------------------------------
 inline UnsignedInt calcHashForString(const char* p)
 {
 	UnsignedInt result = 0;
@@ -98,7 +98,7 @@ inline UnsignedInt calcHashForString(const char* p)
 	return result;
 }
 
-/* ------------------------------------------------------------------------ */
+//-------------------------------------------------------------------------------------------------
 inline UnsignedInt calcHashForLowercaseString(const char* p)
 {
 	UnsignedInt result = 0;
@@ -123,71 +123,101 @@ AsciiString NameKeyGenerator::keyToName(NameKeyType key)
 }
 
 //-------------------------------------------------------------------------------------------------
-NameKeyType NameKeyGenerator::nameToKey(const char* nameString)
+#if RETAIL_COMPATIBLE_CRC
+#if RTS_ZEROHOUR
+// TheSuperHackers @bugfix Caball009 24/02/2026 Originally the game would hash three files
+// for the file exist cache of the file system in Zero Hour.
+// TheScienceStore and TheUpgradeCenter rely on having the exact same name key IDs across all clients.
+// That means that we still need to hash 3 dummy strings to keep the name key IDs synchronized with retail.
+void NameKeyGenerator::syncNameKeyID()
 {
-	Bucket *b;
-
-	UnsignedInt hash = calcHashForString(nameString) % SOCKET_COUNT;
-
-	// hmm, do we have it already?
-	for (b = m_sockets[hash]; b; b = b->m_nextInSocket)
-	{
-		if (strcmp(nameString, b->m_nameString.str()) == 0)
-			return b->m_key;
-	}
-
-	// nope, guess not. let's allocate it.
-	b = newInstance(Bucket);
-	b->m_key = (NameKeyType)m_nextID++;
-	b->m_nameString = nameString;
-	b->m_nextInSocket = m_sockets[hash];
-	m_sockets[hash] = b;
-
-	NameKeyType result = b->m_key;
-
-#if defined(RTS_DEBUG)
-	// reality-check to be sure our hasher isn't going bad.
-	const Int maxThresh = 3;
-	Int numOverThresh = 0;
-	for (Int i = 0; i < SOCKET_COUNT; ++i)
-	{
-		Int numInThisSocket = 0;
-		for (b = m_sockets[i]; b; b = b->m_nextInSocket)
-			++numInThisSocket;
-
-		if (numInThisSocket > maxThresh)
-			++numOverThresh;
-	}
-
-	// if more than a small percent of the sockets are getting deep, probably want to increase the socket count.
-	if (numOverThresh > SOCKET_COUNT/20)
-	{
-		DEBUG_CRASH(("hmm, might need to increase the number of bucket-sockets for NameKeyGenerator (numOverThresh %d = %f%%)",numOverThresh,(Real)numOverThresh/(Real)(SOCKET_COUNT/20)));
-	}
+	nameToLowercaseKey("Data\\English\\Language9x.ini");
+	nameToLowercaseKey("Data\\Audio\\Tracks\\English\\GLA_02.mp3");
+	nameToLowercaseKey("Data\\Audio\\Tracks\\GLA_02.mp3");
+}
 #endif
-
-	return result;
-
-}  // end nameToKey
+void NameKeyGenerator::verifyNameKeyID(UnsignedInt expectedNextID) const
+{
+	// this should only be called before the initialization of TheScienceStore and TheUpgradeCenter in GameEngine::init
+	DEBUG_ASSERTCRASH(expectedNextID == m_nextID,
+		("Retail client expects items to start with name key ID %d for unmodded files, but starts with %d", expectedNextID, m_nextID));
+}
+#endif
 
 //-------------------------------------------------------------------------------------------------
-NameKeyType NameKeyGenerator::nameToLowercaseKey(const char* nameString)
+NameKeyType NameKeyGenerator::nameToKey(const AsciiString& name)
 {
-	Bucket *b;
+	const UnsignedInt hash = calcHashForString(name.str()) % SOCKET_COUNT;
 
-	UnsignedInt hash = calcHashForLowercaseString(nameString) % SOCKET_COUNT;
-
-	// hmm, do we have it already?
+	// do we have it already?
+	const Bucket *b;
 	for (b = m_sockets[hash]; b; b = b->m_nextInSocket)
 	{
-		if (_stricmp(nameString, b->m_nameString.str()) == 0)
+		if (name.compare(b->m_nameString) == 0)
 			return b->m_key;
 	}
 
 	// nope, guess not. let's allocate it.
-	b = newInstance(Bucket);
+	return createNameKey(hash, name);
+}
+
+//-------------------------------------------------------------------------------------------------
+NameKeyType NameKeyGenerator::nameToLowercaseKey(const AsciiString& name)
+{
+	const UnsignedInt hash = calcHashForLowercaseString(name.str()) % SOCKET_COUNT;
+
+	// do we have it already?
+	const Bucket *b;
+	for (b = m_sockets[hash]; b; b = b->m_nextInSocket)
+	{
+		if (name.compareNoCase(b->m_nameString) == 0)
+			return b->m_key;
+	}
+
+	// nope, guess not. let's allocate it.
+	return createNameKey(hash, name);
+}
+
+//-------------------------------------------------------------------------------------------------
+NameKeyType NameKeyGenerator::nameToKey(const char* name)
+{
+	const UnsignedInt hash = calcHashForString(name) % SOCKET_COUNT;
+
+	// do we have it already?
+	const Bucket *b;
+	for (b = m_sockets[hash]; b; b = b->m_nextInSocket)
+	{
+		if (strcmp(name, b->m_nameString.str()) == 0)
+			return b->m_key;
+	}
+
+	// nope, guess not. let's allocate it.
+	return createNameKey(hash, name);
+}
+
+//-------------------------------------------------------------------------------------------------
+NameKeyType NameKeyGenerator::nameToLowercaseKey(const char *name)
+{
+	const UnsignedInt hash = calcHashForLowercaseString(name) % SOCKET_COUNT;
+
+	// do we have it already?
+	const Bucket *b;
+	for (b = m_sockets[hash]; b; b = b->m_nextInSocket)
+	{
+		if (_stricmp(name, b->m_nameString.str()) == 0)
+			return b->m_key;
+	}
+
+	// nope, guess not. let's allocate it.
+	return createNameKey(hash, name);
+}
+
+//-------------------------------------------------------------------------------------------------
+NameKeyType NameKeyGenerator::createNameKey(UnsignedInt hash, const AsciiString& name)
+{
+	Bucket *b = newInstance(Bucket);
 	b->m_key = (NameKeyType)m_nextID++;
-	b->m_nameString = nameString;
+	b->m_nameString = name;
 	b->m_nextInSocket = m_sockets[hash];
 	m_sockets[hash] = b;
 
@@ -215,8 +245,7 @@ NameKeyType NameKeyGenerator::nameToLowercaseKey(const char* nameString)
 #endif
 
 	return result;
-
-}  // end nameToLowercaseKey
+}
 
 //-------------------------------------------------------------------------------------------------
 // Get a string out of the INI. Store it into a NameKeyType

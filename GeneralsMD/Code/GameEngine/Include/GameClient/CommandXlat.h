@@ -27,9 +27,6 @@
 
 #pragma once
 
-#ifndef _H_CommandXlat
-#define _H_CommandXlat
-
 #include "GameClient/InGameUI.h"
 
 enum GUICommandType CPP_11(: Int);
@@ -40,7 +37,7 @@ class CommandTranslator : public GameMessageTranslator
 public:
 
 	CommandTranslator();
-	~CommandTranslator();
+	virtual ~CommandTranslator() override;
 
 	enum CommandEvaluateType { DO_COMMAND, DO_HINT, EVALUATE_ONLY };
 
@@ -53,7 +50,7 @@ private:
 	Int m_objective;
 	Bool m_teamExists;				///< is there a currently selected "team"?
 
-	// these are for determining if a drag occurred or it wasjust a sloppy click
+	// these are for determining if a drag occurred or it was just a sloppy click
 	ICoord2D m_mouseRightDragAnchor;		// the location of a possible mouse drag start
 	ICoord2D m_mouseRightDragLift;			// the location of a possible mouse drag end
 	UnsignedInt m_mouseRightDown;	// when the mouse down happened
@@ -68,7 +65,7 @@ private:
 	GameMessage::Type issueFireWeaponCommand( const CommandButton *command, CommandEvaluateType commandType, Drawable *target, const Coord3D *pos );
 	GameMessage::Type issueCombatDropCommand( const CommandButton *command, CommandEvaluateType commandType, Drawable *target, const Coord3D *pos );
 
-	virtual GameMessageDisposition translateGameMessage(const GameMessage *msg);
+	virtual GameMessageDisposition translateGameMessage(const GameMessage *msg) override;
 };
 
 
@@ -120,10 +117,8 @@ public:
 
 	Bool						m_air;					//Are we attacking an airborned target?
 	Drawable				*m_drawTarget;	//Do we have an override draw target?
-	WeaponSlotType	*m_weaponSlot;	//Are we forcing a specific weapon slot? NULL if unspecified.
+	WeaponSlotType	*m_weaponSlot;	//Are we forcing a specific weapon slot? nullptr if unspecified.
 	SpecialPowerType m_specialPowerType; //Which special power are use using? SPECIAL_INVALID if unspecified.
 };
 
-extern void pickAndPlayUnitVoiceResponse( const DrawableList *list, GameMessage::Type msgType, PickAndPlayInfo *info = NULL );
-
-#endif
+extern void pickAndPlayUnitVoiceResponse( const DrawableList *list, GameMessage::Type msgType, PickAndPlayInfo *info = nullptr );

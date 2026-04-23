@@ -34,14 +34,7 @@
  * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-
-#if defined(_MSC_VER)
 #pragma once
-#endif
-
-
-#ifndef __DIALOGTOOLBAR_H
-#define __DIALOGTOOLBAR_H
 
 #include "resource.h"
 
@@ -52,8 +45,8 @@
 class DialogToolbarClass : public CToolBar
 {
 	public:
-		DialogToolbarClass (void);
-		virtual ~DialogToolbarClass (void) {}
+		DialogToolbarClass ();
+		virtual ~DialogToolbarClass () {}
 
 // Form Data
 public:
@@ -99,7 +92,3 @@ protected:
 		//
 		void						Enable_Button (int id, bool benable = true);
 };
-
-
-#endif //__DIALOGTOOLBAR_H
-

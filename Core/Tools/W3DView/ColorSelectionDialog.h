@@ -16,12 +16,8 @@
 **	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if !defined(AFX_OLORSELECTIONDIALOG_H__C0BCECAE_B6EA_11D2_9FF8_00104B791122__INCLUDED_)
-#define AFX_OLORSELECTIONDIALOG_H__C0BCECAE_B6EA_11D2_9FF8_00104B791122__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
+
 // ColorSelectionDialog.h : header file
 //
 
@@ -37,7 +33,7 @@ class ColorSelectionDialogClass : public CDialog
 {
 // Construction
 public:
-	ColorSelectionDialogClass (const Vector3 &def_color, CWnd *pParent = NULL);   // standard constructor
+	ColorSelectionDialogClass (const Vector3 &def_color, CWnd *pParent = nullptr);   // standard constructor
 
 // Dialog Data
 	//{{AFX_DATA(ColorSelectionDialogClass)
@@ -81,7 +77,7 @@ protected:
 		//
 		//	Public methods
 		//
-		const Vector3 &		Get_Color (void) const				{ return m_Color; }
+		const Vector3 &		Get_Color () const				{ return m_Color; }
 		void						Set_Color (const Vector3 &color) { m_Color = color; }
 
 	protected:
@@ -90,7 +86,7 @@ protected:
 		//
 		//	Inline accessors
 		//
-		void						Paint_Color_Window (void);
+		void						Paint_Color_Window ();
 		void						Update_Sliders (int slider_id);
 
 	private:
@@ -105,5 +101,3 @@ protected:
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
-
-#endif // !defined(AFX_OLORSELECTIONDIALOG_H__C0BCECAE_B6EA_11D2_9FF8_00104B791122__INCLUDED_)

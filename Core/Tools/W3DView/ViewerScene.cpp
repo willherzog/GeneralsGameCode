@@ -53,10 +53,10 @@
 class ViewerSceneIterator : public SceneIterator
 {
 public:
-	virtual void					First(void);
-	virtual void					Next(void);
-	virtual bool					Is_Done(void);
-	virtual RenderObjClass *	Current_Item(void);
+	virtual void					First();
+	virtual void					Next();
+	virtual bool					Is_Done();
+	virtual RenderObjClass *	Current_Item();
 
 protected:
 
@@ -72,22 +72,22 @@ ViewerSceneIterator::ViewerSceneIterator(RefRenderObjListClass *list)
 {
 }
 
-void ViewerSceneIterator::First(void)
+void ViewerSceneIterator::First()
 {
 	RobjIterator.First();
 }
 
-void ViewerSceneIterator::Next(void)
+void ViewerSceneIterator::Next()
 {
 	RobjIterator.Next();
 }
 
-bool ViewerSceneIterator::Is_Done(void)
+bool ViewerSceneIterator::Is_Done()
 {
 	return RobjIterator.Is_Done();
 }
 
-RenderObjClass * ViewerSceneIterator::Current_Item(void)
+RenderObjClass * ViewerSceneIterator::Current_Item()
 {
 	return RobjIterator.Peek_Obj();
 }
@@ -105,7 +105,7 @@ RenderObjClass * ViewerSceneIterator::Current_Item(void)
 //
 //	Visibility_Check
 //
-//	Note: We overide this method to remove the LOD preparation.  We
+//	Note: We override this method to remove the LOD preparation.  We
 // need to be able to specify an LOD and not have it switch on us.
 //
 ////////////////////////////////////////////////////////////////////////
@@ -141,7 +141,6 @@ ViewerSceneClass::Visibility_Check (CameraClass *camera)
    Visibility_Checked = true;
 
 	//SimpleSceneClass::Visibility_Check (camera);
-	return ;
 }
 
 void
@@ -150,7 +149,7 @@ ViewerSceneClass::Add_To_Lineup (RenderObjClass *obj)
 	assert(obj);
 
 	// If this is an insignificant object (ie. we don't need to
-	// rearrange existing objects to accomodate it), don't bother
+	// rearrange existing objects to accommodate it), don't bother
 	// adding it to the lineup. Ex: Adding a light to the lineup
 	// is pretty silly.
 	if (!Can_Line_Up(obj))
@@ -212,17 +211,17 @@ ViewerSceneClass::Add_To_Lineup (RenderObjClass *obj)
 }
 
 void
-ViewerSceneClass::Clear_Lineup (void)
+ViewerSceneClass::Clear_Lineup ()
 {
 	// Remove every object in the lineup from the scene,
 	// and remove each object from the line up list.
-	RenderObjClass *obj = NULL;
+	RenderObjClass *obj = nullptr;
 	while (obj = LineUpList.Remove_Head())
 		Remove_Render_Object(obj);
 }
 
 SphereClass
-ViewerSceneClass::Get_Bounding_Sphere (void)
+ViewerSceneClass::Get_Bounding_Sphere ()
 {
 	// Iterate through every object in the scene, adding its
 	// bounding sphere to the current bounding sphere. The sum of
@@ -244,7 +243,7 @@ ViewerSceneClass::Get_Bounding_Sphere (void)
 }
 
 AABoxClass
-ViewerSceneClass::Get_Line_Up_Bounding_Box (void)
+ViewerSceneClass::Get_Line_Up_Bounding_Box ()
 {
 	// Iterate through each object in the lineup, adding its
 	// bounding box to the current bounding box. The sum
@@ -279,7 +278,7 @@ ViewerSceneClass::Can_Line_Up (int class_id)
 }
 
 SceneIterator *
-ViewerSceneClass::Create_Line_Up_Iterator (void)
+ViewerSceneClass::Create_Line_Up_Iterator ()
 {
 	return new ViewerSceneIterator(&LineUpList);
 }
@@ -302,7 +301,7 @@ void	ViewerSceneClass::Add_Render_Object(RenderObjClass * obj)
 	Recalculate_Fog_Planes();
 }
 
-void	ViewerSceneClass::Recalculate_Fog_Planes (void)
+void	ViewerSceneClass::Recalculate_Fog_Planes ()
 {
 	const float FOG_OPAQUE_MULTIPLE	= 8.0f;
 	const float FOG_MINIMUM_DEPTH	= 200.0f;

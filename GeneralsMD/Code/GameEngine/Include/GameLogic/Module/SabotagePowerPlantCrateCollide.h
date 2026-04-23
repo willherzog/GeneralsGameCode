@@ -32,9 +32,6 @@
 
 #pragma once
 
-#ifndef SABOTAGE_POWER_PLANT_CRATE_COLLIDE_H_
-#define SABOTAGE_POWER_PLANT_CRATE_COLLIDE_H_
-
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common/Module.h"
 #include "GameLogic/Module/CrateCollide.h"
@@ -59,7 +56,7 @@ public:
 
 		static const FieldParse dataFieldParse[] =
 		{
-			{ "SabotagePowerDuration", INI::parseDurationUnsignedInt, NULL, offsetof( SabotagePowerPlantCrateCollideModuleData, m_powerSabotageFrames ) },
+			{ "SabotagePowerDuration", INI::parseDurationUnsignedInt, nullptr, offsetof( SabotagePowerPlantCrateCollideModuleData, m_powerSabotageFrames ) },
 			{ 0, 0, 0, 0 }
 		};
 		p.add( dataFieldParse );
@@ -82,13 +79,11 @@ public:
 protected:
 
 	/// This allows specific vetoes to certain types of crates and their data
-	virtual Bool isValidToExecute( const Object *other ) const;
+	virtual Bool isValidToExecute( const Object *other ) const override;
 
 	/// This is the game logic execution function that all real CrateCollides will implement
-	virtual Bool executeCrateBehavior( Object *other );
+	virtual Bool executeCrateBehavior( Object *other ) override;
 
-	virtual Bool isSabotageBuildingCrateCollide() const { return TRUE; }
+	virtual Bool isSabotageBuildingCrateCollide() const override { return TRUE; }
 
 };
-
-#endif

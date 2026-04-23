@@ -24,13 +24,10 @@
 
 // FILE: RankInfo.h ////////////////////////////////////////////////////////////////////////////////
 // Author: Steven Johnson, Sep 2002
-// Desc:   RankInfo descriptoins
+// Desc:   RankInfo descriptions
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-
-#ifndef __RankInfo_H_
-#define __RankInfo_H_
 
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common/Science.h"
@@ -55,12 +52,12 @@ public:
 class RankInfoStore : public SubsystemInterface
 {
 public:
-	virtual ~RankInfoStore();
+	virtual ~RankInfoStore() override;
 
 public:
-	void init();
-	void reset();
-	void update() { }
+	virtual void init() override;
+	virtual void reset() override;
+	virtual void update() override { }
 
 	Int getRankLevelCount() const;
 
@@ -76,7 +73,3 @@ private:
 };
 
 extern RankInfoStore* TheRankInfoStore;
-
-
-#endif // __RankInfo_H_
-

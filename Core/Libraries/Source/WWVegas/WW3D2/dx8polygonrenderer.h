@@ -36,14 +36,7 @@
  * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-
-#if defined(_MSC_VER)
 #pragma once
-#endif
-
-#ifndef DX8_POLYGON_RENDERER_H
-#define DX8_POLYGON_RENDERER_H
-
 
 #include "always.h"
 #include "meshmdl.h"
@@ -83,15 +76,15 @@ public:
 		bool strip,
 		unsigned pass);
 	DX8PolygonRendererClass(const DX8PolygonRendererClass& src,MeshModelClass* mmc_);
-	~DX8PolygonRendererClass();
+	virtual ~DX8PolygonRendererClass() override;
 
 	void								Render(/*const Matrix3D & tm,*/int base_vertex_offset);
 	void								Render_Sorted(/*const Matrix3D & tm,*/int base_vertex_offset,const SphereClass & bounding_sphere);
 	void								Set_Vertex_Index_Range(unsigned min_vertex_index_,unsigned vertex_index_range_);
 
-	unsigned							Get_Vertex_Offset(void)	{ return vertex_offset; }
-	unsigned							Get_Index_Offset(void)	{ return index_offset; }
-	inline unsigned						Get_Pass(void)	{ return pass; }
+	unsigned							Get_Vertex_Offset()	{ return vertex_offset; }
+	unsigned							Get_Index_Offset()	{ return index_offset; }
+	unsigned						Get_Pass()	{ return pass; }
 
 	MeshModelClass*				Get_Mesh_Model_Class() { return mmc; }
 	DX8TextureCategoryClass*	Get_Texture_Category() { return texture_category; }
@@ -157,5 +150,3 @@ inline void DX8PolygonRendererClass::Render_Sorted(/*const Matrix3D & tm,*/int b
 		vertex_index_range);
 
 }
-
-#endif

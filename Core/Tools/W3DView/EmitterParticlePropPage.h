@@ -16,12 +16,8 @@
 **	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if !defined(AFX_EMITTERPARTICLEPROPPAGE_H__83A8B83D_BA3B_11D2_9FFA_00104B791122__INCLUDED_)
-#define AFX_EMITTERPARTICLEPROPPAGE_H__83A8B83D_BA3B_11D2_9FFA_00104B791122__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
+
 // EmitterParticlePropPage.h : header file
 //
 
@@ -42,7 +38,7 @@ class EmitterParticlePropPageClass : public CPropertyPage
 
 // Construction
 public:
-	EmitterParticlePropPageClass (EmitterInstanceListClass *pemitter_list = NULL);
+	EmitterParticlePropPageClass (EmitterInstanceListClass *pemitter_list = nullptr);
 	~EmitterParticlePropPageClass ();
 
 // Dialog Data
@@ -86,14 +82,14 @@ protected:
 		//
 		//	Inline accessors
 		//
-		EmitterInstanceListClass *	Get_Emitter (void) const { return m_pEmitterList; }
+		EmitterInstanceListClass *	Get_Emitter () const { return m_pEmitterList; }
 		void								Set_Emitter (EmitterInstanceListClass *pemitter_list) { m_pEmitterList = pemitter_list; Initialize (); }
-		bool								Is_Data_Valid (void) const { return m_bValid; }
+		bool								Is_Data_Valid () const { return m_bValid; }
 
-		float								Get_Rate (void) const				{ return m_Rate; }
-		int								Get_Burst_Size (void) const		{ return m_BurstSize; }
-		int								Get_Max_Particles (void) const	{ return m_MaxParticles; }
-		Vector3Randomizer *			Get_Creation_Volume (void) const	{ return m_Randomizer->Clone (); }
+		float								Get_Rate () const				{ return m_Rate; }
+		int								Get_Burst_Size () const		{ return m_BurstSize; }
+		int								Get_Max_Particles () const	{ return m_MaxParticles; }
+		Vector3Randomizer *			Get_Creation_Volume () const	{ return m_Randomizer->Clone (); }
 
 	protected:
 
@@ -101,7 +97,7 @@ protected:
 		//
 		//	Protected methods
 		//
-		void								Initialize (void);
+		void								Initialize ();
 
 	private:
 
@@ -119,6 +115,3 @@ protected:
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
-
-#endif // !defined(AFX_EMITTERPARTICLEPROPPAGE_H__83A8B83D_BA3B_11D2_9FFA_00104B791122__INCLUDED_)
-

@@ -50,7 +50,7 @@
 //-----------------------------------------------------------------------------
 // USER INCLUDES //////////////////////////////////////////////////////////////
 //-----------------------------------------------------------------------------
-#include "PreRTS.h"	// This must go first in EVERY cpp file int the GameEngine
+#include "PreRTS.h"	// This must go first in EVERY cpp file in the GameEngine
 
 #include "Common/BuildAssistant.h"
 #include "Common/Thing.h"
@@ -63,6 +63,7 @@
 #include "GameLogic/Module/AutoDepositUpdate.h"
 #include "GameLogic/Module/AIUpdate.h"
 #include "GameLogic/Object.h"
+#include "GameClient/Drawable.h"
 #include "GameClient/InGameUI.h"
 #include "GameClient/Color.h"
 #include "GameClient/GameText.h"
@@ -71,23 +72,19 @@
 void parseUpgradePair( INI *ini, void *instance, void *store, const void *userData )
 {
 	upgradePair info;
-	info.type = "";
 	info.amount = 0;
 
 	const char *token = ini->getNextToken( ini->getSepsColon() );
-
 	if ( stricmp(token, "UpgradeType") == 0 )
 	{
-		token = ini->getNextTokenOrNull( ini->getSepsColon() );
-		if (!token)	throw INI_INVALID_DATA;
-
+		token = ini->getNextToken( ini->getSepsColon() );
 		info.type = token;
 	}
 	else
 		throw INI_INVALID_DATA;
 
 
-	token = ini->getNextTokenOrNull( ini->getSepsColon() );
+	token = ini->getNextToken( ini->getSepsColon() );
 	if ( stricmp(token, "Boost") == 0 )
 		info.amount = INI::scanInt(ini->getNextToken( ini->getSepsColon() ));
 	else
@@ -97,7 +94,7 @@ void parseUpgradePair( INI *ini, void *instance, void *store, const void *userDa
 	std::list<upgradePair> * theList = (std::list<upgradePair>*)store;
 	theList->push_back(info);
 
-}  // end parseFactionObjectCreationList
+}
 
 //-----------------------------------------------------------------------------
 // PUBLIC FUNCTIONS ///////////////////////////////////////////////////////////
@@ -110,7 +107,7 @@ AutoDepositUpdate::AutoDepositUpdate( Thing *thing, const ModuleData* moduleData
 }
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
-AutoDepositUpdate::~AutoDepositUpdate( void )
+AutoDepositUpdate::~AutoDepositUpdate()
 {
 
 }
@@ -143,7 +140,7 @@ void AutoDepositUpdate::awardInitialCaptureBonus( Player *player )
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
-UpdateSleepTime AutoDepositUpdate::update( void )
+UpdateSleepTime AutoDepositUpdate::update()
 {
 	const AutoDepositUpdateModuleData *modData = getAutoDepositUpdateModuleData();
 /// @todo srj use SLEEPY_UPDATE here
@@ -172,18 +169,7 @@ UpdateSleepTime AutoDepositUpdate::update( void )
 			getObject()->getControllingPlayer()->getScoreKeeper()->addMoneyEarned( modData->m_depositAmount);
 		}
 
-		Bool displayMoney = moneyAmount > 0 ? TRUE : FALSE;
-		if( getObject()->testStatus(OBJECT_STATUS_STEALTHED) )
-		{
-			// OY LOOK!  I AM USING LOCAL PLAYER.  Do not put anything other than TheInGameUI->addFloatingText in the block this controls!!!
-			if( !getObject()->isLocallyControlled() && !getObject()->testStatus(OBJECT_STATUS_DETECTED) )
-			{
-				displayMoney = FALSE;
-			}
-
-		}
-
-		if( displayMoney )
+		if (moneyAmount > 0 && getObject()->isLogicallyVisible())
 		{
 
       const Object *owner = getObject();
@@ -250,7 +236,7 @@ void AutoDepositUpdate::crc( Xfer *xfer )
 	// extend base class
 	UpdateModule::crc( xfer );
 
-}  // end crc
+}
 
 // ------------------------------------------------------------------------------------------------
 /** Xfer method
@@ -277,15 +263,15 @@ void AutoDepositUpdate::xfer( Xfer *xfer )
 		xfer->xferBool(&m_initialized);
 	}
 
-}  // end xfer
+}
 
 // ------------------------------------------------------------------------------------------------
 /** Load post process */
 // ------------------------------------------------------------------------------------------------
-void AutoDepositUpdate::loadPostProcess( void )
+void AutoDepositUpdate::loadPostProcess()
 {
 
 	// extend base class
 	UpdateModule::loadPostProcess();
 
-}  // end loadPostProcess
+}

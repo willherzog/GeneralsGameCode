@@ -40,7 +40,7 @@
 #include "ScreenCursor.h"
 #include "mesh.h"
 #include "coltest.h"
-#include "MPU.H"
+#include "MPU.h"
 #include "dazzle.h"
 #include "SoundScene.h"
 #include "WWAudio.h"
@@ -69,9 +69,9 @@ IMPLEMENT_DYNCREATE(CGraphicView, CView)
 //  CGraphicView
 //
 ////////////////////////////////////////////////////////////////////////////
-CGraphicView::CGraphicView (void)
+CGraphicView::CGraphicView ()
     : m_bInitialized (FALSE),
-      m_pCamera (NULL),
+      m_pCamera (nullptr),
       m_TimerID (0),
       m_bMouseDown (FALSE),
       m_bRMouseDown (FALSE),
@@ -83,7 +83,7 @@ CGraphicView::CGraphicView (void)
       m_objectRotation (NoRotation),
 		m_LightRotation (NoRotation),
 		m_bLightMeshInScene (false),
-		m_pLightMesh (NULL),
+		m_pLightMesh (nullptr),
 		m_ParticleCountUpdate (0),
 		m_CameraBonePosX (false),
 		m_UpdateCounter (0),
@@ -93,7 +93,6 @@ CGraphicView::CGraphicView (void)
     // Get the windowed mode from the registry
     CString string_windowed = theApp.GetProfileString ("Config", "Windowed", "1");
 	 m_iWindowed = ::atoi ((LPCTSTR)string_windowed);
-    return ;
 }
 
 
@@ -104,7 +103,6 @@ CGraphicView::CGraphicView (void)
 ////////////////////////////////////////////////////////////////////////////
 CGraphicView::~CGraphicView ()
 {
-	return ;
 }
 
 
@@ -139,8 +137,6 @@ CGraphicView::OnDraw (CDC* pDC)
     if (!pDC->IsPrinting ())
     {
     }
-
-    return ;
 }
 
 
@@ -181,7 +177,7 @@ CGraphicView::OnCreate (LPCREATESTRUCT lpCreateStruct)
 //
 ////////////////////////////////////////////////////////////////////////////
 BOOL
-CGraphicView::InitializeGraphicView (void)
+CGraphicView::InitializeGraphicView ()
 {
 	// Assume failure
 	BOOL bReturn = FALSE;
@@ -213,11 +209,11 @@ CGraphicView::InitializeGraphicView (void)
 													m_iWindowed) == WW3D_ERROR_OK);
 
     ASSERT (bReturn);
-    if (bReturn && (m_pCamera == NULL))
+    if (bReturn && (m_pCamera == nullptr))
     {
         // Instantiate a new camera class
 	    m_pCamera = new CameraClass ();
-        bReturn = (m_pCamera != NULL);
+        bReturn = (m_pCamera != nullptr);
 
         // Were we successful in creating a camera?
         ASSERT (m_pCamera);
@@ -239,13 +235,13 @@ CGraphicView::InitializeGraphicView (void)
 
 	Reset_FOV ();
 
-	 if (m_pLightMesh == NULL)
+	 if (m_pLightMesh == nullptr)
 	 {
-		ResourceFileClass light_mesh_file (NULL, "Light.w3d");
+		ResourceFileClass light_mesh_file (nullptr, "Light.w3d");
 		WW3DAssetManager::Get_Instance()->Load_3D_Assets (light_mesh_file);
 
 		m_pLightMesh = WW3DAssetManager::Get_Instance()->Create_Render_Obj ("LIGHT");
-		ASSERT (m_pLightMesh != NULL);
+		ASSERT (m_pLightMesh != nullptr);
 		m_bLightMeshInScene = false;
 	 }
 
@@ -305,8 +301,6 @@ CGraphicView::OnSize
 		Reset_FOV ();
 		RepaintView ();
 	}
-
-	return ;
 }
 
 
@@ -316,7 +310,7 @@ CGraphicView::OnSize
 //
 ////////////////////////////////////////////////////////////////////////////
 void
-CGraphicView::OnDestroy (void)
+CGraphicView::OnDestroy ()
 {
 	// Allow the base class to process this message
 	CView::OnDestroy ();
@@ -324,13 +318,13 @@ CGraphicView::OnDestroy (void)
 	//
 	//	Remove the listener from the camera
 	//
-	WWAudioClass::Get_Instance ()->Get_Sound_Scene ()->Attach_Listener_To_Obj (NULL);
+	WWAudioClass::Get_Instance ()->Get_Sound_Scene ()->Attach_Listener_To_Obj (nullptr);
 
 	//
 	// Free the camera object
 	//
-	MEMBER_RELEASE (m_pCamera);
-	MEMBER_RELEASE (m_pLightMesh);
+	REF_PTR_RELEASE (m_pCamera);
+	REF_PTR_RELEASE (m_pLightMesh);
 
 	// Is there an update thread running?
 	if (m_TimerID == 0) {
@@ -347,7 +341,6 @@ CGraphicView::OnDestroy (void)
 
 	// We are no longer initialized
 	m_bInitialized = FALSE;
-	return ;
 }
 
 
@@ -357,7 +350,7 @@ CGraphicView::OnDestroy (void)
 //
 ////////////////////////////////////////////////////////////////////////////
 void
-CGraphicView::OnInitialUpdate (void)
+CGraphicView::OnInitialUpdate ()
 {
 	// Allow the base class to process this message
     CView::OnInitialUpdate ();
@@ -369,8 +362,6 @@ CGraphicView::OnInitialUpdate (void)
 		// already done so)
 		doc->InitScene ();
 	}
-
-	return ;
 }
 
 
@@ -382,13 +373,13 @@ CGraphicView::OnInitialUpdate (void)
 void
 Set_Lowest_LOD (RenderObjClass *render_obj)
 {
-	if (render_obj != NULL) {
+	if (render_obj != nullptr) {
 		for (int index = 0; index < render_obj->Get_Num_Sub_Objects (); index ++) {
 			RenderObjClass *psub_obj = render_obj->Get_Sub_Object (index);
-			if (psub_obj != NULL) {
+			if (psub_obj != nullptr) {
 				Set_Lowest_LOD (psub_obj);
 			}
-			MEMBER_RELEASE (psub_obj);
+			REF_PTR_RELEASE (psub_obj);
 		}
 
 		//
@@ -398,8 +389,6 @@ Set_Lowest_LOD (RenderObjClass *render_obj)
 			((HLodClass *)render_obj)->Set_LOD_Level (0);
 		}
 	}
-
-	return ;
 }
 
 
@@ -416,8 +405,6 @@ CGraphicView::Allow_Update (bool onoff)
 	} else {
 		m_UpdateCounter ++;
 	}
-
-	return ;
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -436,7 +423,8 @@ CGraphicView::RepaintView
 	//	Simple check to avoid re-entrance
 	//
 	static bool _already_painting = false;
-	if (_already_painting) return;
+	if (_already_painting)
+		return;
 	_already_painting = true;
 
 	 //
@@ -452,10 +440,15 @@ CGraphicView::RepaintView
 		m_dwLastFrameUpdate = cur_ticks;
 
 		// Update the W3D frame times according to our elapsed tick count
-		if (ticks_to_use == 0) {
-			WW3D::Sync (WW3D::Get_Sync_Time() + (ticks_elapsed * m_animationSpeed));
-		} else {
-			WW3D::Sync (WW3D::Get_Sync_Time() + ticks_to_use);
+		if (ticks_to_use == 0)
+		{
+			WW3D::Update_Logic_Frame_Time(ticks_elapsed * m_animationSpeed);
+			WW3D::Sync(WW3D::Get_Fractional_Sync_Milliseconds() >= WWSyncMilliseconds);
+		}
+		else
+		{
+			WW3D::Update_Logic_Frame_Time(ticks_to_use);
+			WW3D::Sync(true);
 		}
 
 		// Do we need to update the current animation?
@@ -483,7 +476,7 @@ CGraphicView::RepaintView
 
 		// Reset the current lod to be the lowest possible LOD...
 		RenderObjClass *prender_obj = doc->GetDisplayedObject ();
-		if ((prender_obj != NULL) &&
+		if ((prender_obj != nullptr) &&
 			 (doc->GetScene ()->Are_LODs_Switching ()))
 		{
 			Set_Lowest_LOD (prender_obj);
@@ -546,7 +539,7 @@ CGraphicView::RepaintView
 		//
 		//	Let the audio class think
 		//
-		WWAudioClass::Get_Instance ()->On_Frame_Update (WW3D::Get_Frame_Time());
+		WWAudioClass::Get_Instance ()->On_Frame_Update (WW3D::Get_Logic_Frame_Time_Milliseconds());
 
 		//
 		//	Update the count of particles and polys in the status bar
@@ -555,7 +548,7 @@ CGraphicView::RepaintView
 			m_ParticleCountUpdate = cur_ticks;
 			doc->Update_Particle_Count ();
 
-			int polys = (prender_obj != NULL) ? prender_obj->Get_Num_Polys () : 0;
+			int polys = (prender_obj != nullptr) ? prender_obj->Get_Num_Polys () : 0;
 			((CMainFrame *)::AfxGetMainWnd ())->UpdatePolygonCount (polys);
 		}
 
@@ -566,7 +559,6 @@ CGraphicView::RepaintView
 	}
 
 	_already_painting = false;
-	return ;
 }
 
 
@@ -576,7 +568,7 @@ CGraphicView::RepaintView
 //
 ////////////////////////////////////////////////////////////////////////////
 void
-CGraphicView::UpdateDisplay (void)
+CGraphicView::UpdateDisplay ()
 {
 	// Get the document to display
     CW3DViewDoc* doc = (CW3DViewDoc *)GetDocument();
@@ -600,8 +592,6 @@ CGraphicView::UpdateDisplay (void)
 		WW3D::Render (doc->GetScene (), m_pCamera, FALSE, FALSE);
 		WW3D::End_Render ();
     } */
-
-    return ;
 }
 
 
@@ -647,7 +637,7 @@ CGraphicView::WindowProc
 		}
 
 		RepaintView (FALSE);
-		ValidateRect (NULL);
+		ValidateRect (nullptr);
 		return 0;
 
 	} else if (message == WM_KEYDOWN) {
@@ -688,11 +678,11 @@ fnTimerCallback
 )
 {
 	HWND hwnd = (HWND)dwUser;
-	if (hwnd != NULL) {
+	if (hwnd != nullptr) {
 
 		// Send this event off to the view to process (hackish, but fine for now)
-		if ((GetProp (hwnd, "WaitingToProcess") == NULL) &&
-			 (GetProp (hwnd, "Inactive") == NULL)) {
+		if ((GetProp (hwnd, "WaitingToProcess") == nullptr) &&
+			 (GetProp (hwnd, "Inactive") == nullptr)) {
 
 			SetProp (hwnd, "WaitingToProcess", (HANDLE)1);
 
@@ -701,8 +691,6 @@ fnTimerCallback
 			::PostMessage (hwnd, WM_USER + 101, 0, 0L);
 		}
 	}
-
-	return ;
 }
 
 
@@ -733,7 +721,6 @@ CGraphicView::OnLButtonDown
 	}
 
 	CView::OnLButtonDown (nFlags, point);
-	return ;
 }
 
 
@@ -765,13 +752,12 @@ CGraphicView::OnLButtonUp
     }
     else
     {
-        ::SetCursor (::LoadCursor (NULL, MAKEINTRESOURCE (IDC_ARROW)));
+        ::SetCursor (::LoadCursor (nullptr, MAKEINTRESOURCE (IDC_ARROW)));
 		  ((CW3DViewDoc *)GetDocument())->Set_Cursor ("cursor.tga");
     }
 
 	// Allow the base class to process this message
     CView::OnLButtonUp (nFlags, point);
-    return ;
 }
 
 float minZoomAdjust = 0.0F;
@@ -841,7 +827,7 @@ CGraphicView::OnMouseMove
 	else if ((nFlags & MK_CONTROL) && m_bMouseDown)
 	{
 		LightClass *pSceneLight = doc->GetSceneLight ();
-		if ((pSceneLight != NULL) && (m_pLightMesh != NULL))
+		if ((pSceneLight != nullptr) && (m_pLightMesh != nullptr))
 		{
 			RECT rect;
 			GetClientRect (&rect);
@@ -889,7 +875,7 @@ CGraphicView::OnMouseMove
 		CW3DViewDoc *doc= (CW3DViewDoc *)GetDocument();
 		LightClass *pscene_light = doc->GetSceneLight ();
 		RenderObjClass *prender_obj = doc->GetDisplayedObject ();
-		if ((pscene_light != NULL) && (prender_obj != NULL)) {
+		if ((pscene_light != nullptr) && (prender_obj != nullptr)) {
 
 			// Calculate a light adjustment factor
 			CRect rect;
@@ -1064,7 +1050,7 @@ CGraphicView::OnMouseMove
 
 				// Get the main window of our app
 				CMainFrame *pCMainWnd = (CMainFrame *)::AfxGetMainWnd ();
-				if (pCMainWnd != NULL)
+				if (pCMainWnd != nullptr)
 				{
 					// Ensure the background camera matches the main camera
 					CW3DViewDoc *doc = (CW3DViewDoc *)GetDocument();
@@ -1073,7 +1059,7 @@ CGraphicView::OnMouseMove
 
 					// Update the current object if necessary
 					RenderObjClass *prender_obj = doc->GetDisplayedObject ();
-					if (prender_obj != NULL) {
+					if (prender_obj != nullptr) {
 
 						// Ensure the status bar is updated with the correct poly count
 						pCMainWnd->UpdatePolygonCount (prender_obj->Get_Num_Polys ());
@@ -1091,7 +1077,6 @@ CGraphicView::OnMouseMove
 
 	// Allow the base class to process this message
 	CView::OnMouseMove (nFlags, point);
-	return ;
 }
 
 
@@ -1175,7 +1160,6 @@ CGraphicView::Reset_Camera_To_Display_Emitter (ParticleEmitterClass &emitter)
 
 	// View this sphere
 	Reset_Camera_To_Display_Sphere (sphere);
-	return ;
 }
 
 
@@ -1208,7 +1192,7 @@ CGraphicView::Reset_Camera_To_Display_Sphere (SphereClass &sphere)
 	// Make the same adjustment for the scene light
 	CW3DViewDoc* doc = (CW3DViewDoc *)GetDocument();
 	LightClass *pSceneLight = doc->GetSceneLight ();
-	if ((m_pLightMesh != NULL) && (pSceneLight != NULL)) {
+	if ((m_pLightMesh != nullptr) && (pSceneLight != nullptr)) {
 
 		// Reposition the light and its 'mesh' as appropriate
 		transform.Make_Identity ();
@@ -1232,8 +1216,8 @@ CGraphicView::Reset_Camera_To_Display_Sphere (SphereClass &sphere)
 		m_pCamera->Set_Clip_Planes (min_dist, max_dist);
 
 		// Adjust the fog near clipping plane to the new value, but
-		// leave the far clip plane alone (since it is scene dependant
-		// not camera dependant).
+		// leave the far clip plane alone (since it is scene dependent
+		// not camera dependent).
 		float fog_near, fog_far;
 		doc->GetScene()->Get_Fog_Range(&fog_near, &fog_far);
 		doc->GetScene()->Set_Fog_Range(min_dist, fog_far);
@@ -1246,14 +1230,13 @@ CGraphicView::Reset_Camera_To_Display_Sphere (SphereClass &sphere)
 
 	// Update the camera distance in the status bar
 	CMainFrame *pCMainWnd = (CMainFrame *)::AfxGetMainWnd ();
-	if (pCMainWnd != NULL) {
+	if (pCMainWnd != nullptr) {
 		pCMainWnd->UpdateCameraDistance (m_CameraDistance);
 		pCMainWnd->UpdateFrameCount (0, 0, 0);
 	}
 
 	// Record the sphere we are viewing for later
 	m_ViewedSphere = sphere;
-	return ;
 }
 
 
@@ -1292,13 +1275,12 @@ CGraphicView::Reset_Camera_To_Display_Object (RenderObjClass &render_object)
 
 	// Update the polygon count in the main window
 	CMainFrame *pCMainWnd = (CMainFrame *)::AfxGetMainWnd ();
-	if (pCMainWnd != NULL) {
+	if (pCMainWnd != nullptr) {
 		pCMainWnd->UpdatePolygonCount (render_object.Get_Num_Polys ());
 	}
 
 	// Load the settings in the default.dat if its in the local directory.
 	Load_Default_Dat ();
-	return ;
 }
 
 
@@ -1308,32 +1290,30 @@ CGraphicView::Reset_Camera_To_Display_Object (RenderObjClass &render_object)
 //
 ////////////////////////////////////////////////////////////////////////////
 void
-CGraphicView::Load_Default_Dat (void)
+CGraphicView::Load_Default_Dat ()
 {
 	// Get the directory where this executable was run from
 	TCHAR filename[MAX_PATH];
-	::GetModuleFileName (NULL, filename, sizeof (filename));
+	::GetModuleFileName (nullptr, filename, sizeof (filename));
 
 	// Strip the filename from the path
 	LPTSTR ppath = ::strrchr (filename, '\\');
-	if (ppath != NULL) {
+	if (ppath != nullptr) {
 		ppath[0] = 0;
 	}
 
 	// Concat the default.dat filename onto the path
-	::strcat (filename, "\\default.dat");
+	strlcat(filename, "\\default.dat", ARRAY_SIZE(filename));
 
 	// Does the file exist in the directory?
 	if (::GetFileAttributes (filename) != 0xFFFFFFFF) {
 
 		// Ask the document to load the settings from this data file
 		CW3DViewDoc *pCDoc = (CW3DViewDoc *)GetDocument ();
-		if (pCDoc != NULL) {
+		if (pCDoc != nullptr) {
 			pCDoc->LoadSettings (filename);
 		}
 	}
-
-	return ;
 }
 
 
@@ -1355,14 +1335,13 @@ CGraphicView::OnRButtonUp
 	if (m_bMouseDown) {
 		((CW3DViewDoc *)GetDocument())->Set_Cursor ("orbit.tga");
 	} else {
-		::SetCursor (::LoadCursor (NULL, MAKEINTRESOURCE (IDC_ARROW)));
+		::SetCursor (::LoadCursor (nullptr, MAKEINTRESOURCE (IDC_ARROW)));
 		((CW3DViewDoc *)GetDocument())->Set_Cursor ("cursor.tga");
 		ReleaseCapture ();
 	}
 
 	// Allow the base class to process this message
 	CView::OnRButtonUp(nFlags, point);
-	return ;
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -1397,7 +1376,6 @@ CGraphicView::OnRButtonDown
 
 	// Allow the base class to process this message
     CView::OnRButtonDown(nFlags, point);
-    return ;
 }
 
 
@@ -1451,8 +1429,6 @@ CGraphicView::SetAnimationState (ANIMATION_STATE animationState)
         // Save the new state
         m_animationState = animationState;
     }
-
-    return ;
 }
 
 
@@ -1524,7 +1500,7 @@ CGraphicView::SetCameraPos (CAMERA_POS cameraPos)
 
         // Get the main window of our app
         CMainFrame *pCMainWnd = (CMainFrame *)::AfxGetMainWnd ();
-        if (pCMainWnd != NULL)
+        if (pCMainWnd != nullptr)
         {
             CW3DViewDoc* doc = (CW3DViewDoc *)GetDocument();
 
@@ -1540,8 +1516,6 @@ CGraphicView::SetCameraPos (CAMERA_POS cameraPos)
             pCMainWnd->UpdateCameraDistance(m_CameraDistance);
         }
     }
-
-    return ;
 }
 
 
@@ -1559,8 +1533,6 @@ CGraphicView::RotateObject (OBJECT_ROTATION rotation)
         // Save the rotation state
         m_objectRotation = rotation;
     }
-
-    return ;
 }
 
 
@@ -1574,7 +1546,6 @@ CGraphicView::SetAllowedCameraRotation (CAMERA_ROTATION cameraRotation)
 {
     // Store this for later reference
     m_allowedCameraRotation = cameraRotation;
-    return ;
 }
 
 
@@ -1584,7 +1555,7 @@ CGraphicView::SetAllowedCameraRotation (CAMERA_ROTATION cameraRotation)
 //
 ////////////////////////////////////////////////////////////////////////////
 void
-CGraphicView::ResetObject (void)
+CGraphicView::ResetObject ()
 {
     // Get the current document
     CW3DViewDoc *doc = ::GetCurrentDocument ();
@@ -1597,11 +1568,9 @@ CGraphicView::ResetObject (void)
         if (pCRenderObj)
         {
             // Reset the rotation of the object
-            pCRenderObj->Set_Transform (Matrix3D(1));
+            pCRenderObj->Set_Transform (Matrix3D(true));
         }
     }
-
-    return ;
 }
 
 
@@ -1614,7 +1583,6 @@ void
 CGraphicView::OnGetMinMaxInfo (MINMAXINFO FAR* lpMMI)
 {
 	CView::OnGetMinMaxInfo (lpMMI);
-	return ;
 }
 
 
@@ -1624,14 +1592,14 @@ CGraphicView::OnGetMinMaxInfo (MINMAXINFO FAR* lpMMI)
 //
 ////////////////////////////////////////////////////////////////////////////
 void
-CGraphicView::Rotate_Object (void)
+CGraphicView::Rotate_Object ()
 {
 	// Get the document to display
 	CW3DViewDoc *doc = (CW3DViewDoc *)GetDocument();
 
 	// Get the currently displayed object
 	RenderObjClass *prender_obj = doc->GetDisplayedObject ();
-	if (prender_obj != NULL)
+	if (prender_obj != nullptr)
 	{
 		// Get the current transform for the object
 		Matrix3D transform = prender_obj->Get_Transform ();
@@ -1661,8 +1629,6 @@ CGraphicView::Rotate_Object (void)
 		// Set the new transform for the object
 		prender_obj->Set_Transform (transform);
 	}
-
-	return ;
 }
 
 
@@ -1672,7 +1638,7 @@ CGraphicView::Rotate_Object (void)
 //
 ////////////////////////////////////////////////////////////////////////////
 void
-CGraphicView::Rotate_Light (void)
+CGraphicView::Rotate_Light ()
 {
 	// Get the document to display
 	CW3DViewDoc *doc = (CW3DViewDoc *)GetDocument();
@@ -1680,7 +1646,7 @@ CGraphicView::Rotate_Light (void)
 	// Get the currently displayed object
 	LightClass *pscene_light = doc->GetSceneLight ();
 	RenderObjClass *prender_obj = doc->GetDisplayedObject ();
-	if ((pscene_light != NULL) && (prender_obj != NULL)) {
+	if ((pscene_light != nullptr) && (prender_obj != nullptr)) {
 		Matrix3D rotation_matrix (1);
 
 		// Build a rotation matrix that contains the x,y,z
@@ -1727,8 +1693,6 @@ CGraphicView::Rotate_Light (void)
 		m_pLightMesh->Set_Transform (transform);
 		pscene_light->Set_Transform (transform);
 	}
-
-	return ;
 }
 
 
@@ -1745,8 +1709,6 @@ CGraphicView::Set_FOV (double hfov, double vfov, bool force)
 	if (force || (doc->Is_FOV_Manual () == false)) {
 		m_pCamera->Set_View_Plane (hfov, vfov);
 	}
-
-	return ;
 }
 
 
@@ -1756,7 +1718,7 @@ CGraphicView::Set_FOV (double hfov, double vfov, bool force)
 //
 ////////////////////////////////////////////////////////////////////////////
 void
-CGraphicView::Reset_FOV (void)
+CGraphicView::Reset_FOV ()
 {
 	int cx = 0;
 	int cy = 0;
@@ -1787,7 +1749,6 @@ CGraphicView::Reset_FOV (void)
 
 	// Reset the field of view
 	Set_FOV (hfov, vfov);
-	return ;
 }
 
 
@@ -1812,11 +1773,9 @@ CGraphicView::Set_Camera_Distance (float dist)
 	// Update the status bar
 	//
 	CMainFrame *main_wnd = (CMainFrame *)::AfxGetMainWnd ();
-	if (main_wnd != NULL) {
+	if (main_wnd != nullptr) {
 		main_wnd->UpdateCameraDistance (m_CameraDistance);
 	}
-
-	return ;
 }
 
 

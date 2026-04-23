@@ -35,10 +35,10 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 
-HINSTANCE ApplicationHInstance = NULL;  ///< our application instance
+HINSTANCE ApplicationHInstance = nullptr;  ///< our application instance
 
 /// just to satisfy the game libraries we link to
-HWND ApplicationHWnd = NULL;
+HWND ApplicationHWnd = nullptr;
 
 const char *gAppPrefix = "wd_";
 
@@ -64,7 +64,7 @@ END_MESSAGE_MAP()
 // CWdumpApp construction
 
 CWdumpApp::CWdumpApp()
-: DumpTextures(false), NoWindow(false), TextureDumpFile(0)
+: DumpTextures(false), NoWindow(false), TextureDumpFile(nullptr)
 {
 	// TODO: add construction code here,
 	// Place all significant initialization in InitInstance
@@ -78,7 +78,7 @@ CWdumpApp theApp;
 // private class declaration of a CCommandLineInfo class that knows about our special options
 class CWDumpCommandLineInfo : public CCommandLineInfo
 {
-	virtual void ParseParam(const TCHAR* pszParam,BOOL bFlag,BOOL bLast)
+	virtual void ParseParam(const TCHAR* pszParam,BOOL bFlag,BOOL bLast) override
 	{
 		if (bFlag)
 		{
@@ -146,7 +146,7 @@ BOOL CWdumpApp::InitInstance()
 	if(NoWindow) {
 		if(cmdInfo.m_nShellCommand == CWDumpCommandLineInfo::FileOpen) {
 			const char *c = strrchr(cmdInfo.m_strFileName, '\\');
-			if(c == 0)
+			if(c == nullptr)
 				c = (LPCTSTR) cmdInfo.m_strFileName;
 			if(*c == '\\')
 				c++;
@@ -158,7 +158,7 @@ BOOL CWdumpApp::InitInstance()
 /*			STARTUPINFO info;
 			GetStartupInfo(&info);
 
-			if(info.hStdOutput == NULL) {
+			if(info.hStdOutput == nullptr) {
 				AllocConsole();                  // Allocate console window
 				freopen("CONOUT$", "a", stdout);
 				freopen("CONIN$", "r", stdin);
@@ -179,7 +179,7 @@ BOOL CWdumpApp::InitInstance()
 
 			CWdumpDoc *doc = (CWdumpDoc *) pDocTemplate->OpenDocumentFile(cmdInfo.m_strFileName, FALSE);
 
-/*			if(info.hStdOutput == NULL) {
+/*			if(info.hStdOutput == nullptr) {
 				printf("Press return to close this window..");
 				getchar();
 				FreeConsole();
@@ -202,7 +202,7 @@ BOOL CWdumpApp::InitInstance()
 
 	POSITION p = pDocTemplate->GetFirstDocPosition();
 	CWdumpDoc *doc = (CWdumpDoc *) pDocTemplate->GetNextDoc(p);
-	doc->UpdateAllViews(0);
+	doc->UpdateAllViews(nullptr);
 
 	return TRUE;
 }
@@ -223,7 +223,7 @@ public:
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(CAboutDlg)
 	protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+	virtual void DoDataExchange(CDataExchange* pDX) override;    // DDX/DDV support
 	//}}AFX_VIRTUAL
 
 // Implementation

@@ -46,9 +46,8 @@
 //	Listener3DClass
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////
-Listener3DClass::Listener3DClass (void)
+Listener3DClass::Listener3DClass ()
 {
-	return ;
 }
 
 
@@ -57,10 +56,9 @@ Listener3DClass::Listener3DClass (void)
 //	~Listener3DClass
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////
-Listener3DClass::~Listener3DClass (void)
+Listener3DClass::~Listener3DClass ()
 {
 	Free_Miles_Handle ();
-	return ;
 }
 
 
@@ -70,12 +68,12 @@ Listener3DClass::~Listener3DClass (void)
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void
-Listener3DClass::Initialize_Miles_Handle (void)
+Listener3DClass::Initialize_Miles_Handle ()
 {
 	MMSLockClass lock;
 
 	// Do we have a valid sample handle from miles?
-	if (m_SoundHandle != NULL) {
+	if (m_SoundHandle != nullptr) {
 
 		::AIL_set_3D_position (m_SoundHandle->Get_H3DSAMPLE (), 0.0F, 0.0F, 0.0F);
 		::AIL_set_3D_orientation (m_SoundHandle->Get_H3DSAMPLE (),
@@ -84,10 +82,8 @@ Listener3DClass::Initialize_Miles_Handle (void)
 
 
 		// Associate this object instance with the handle
-		m_SoundHandle->Set_Sample_User_Data (INFO_OBJECT_PTR, (S32)this);
+		m_SoundHandle->Set_Sample_User_Data (INFO_OBJECT_PTR, (void *)this);
 	}
-
-	return ;
 }
 
 
@@ -97,9 +93,8 @@ Listener3DClass::Initialize_Miles_Handle (void)
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void
-Listener3DClass::Allocate_Miles_Handle (void)
+Listener3DClass::Allocate_Miles_Handle ()
 {
-	return ;
 }
 
 
@@ -109,9 +104,8 @@ Listener3DClass::Allocate_Miles_Handle (void)
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void
-Listener3DClass::Free_Miles_Handle (void)
+Listener3DClass::Free_Miles_Handle ()
 {
-	return ;
 }
 
 
@@ -121,10 +115,9 @@ Listener3DClass::Free_Miles_Handle (void)
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void
-Listener3DClass::On_Added_To_Scene (void)
+Listener3DClass::On_Added_To_Scene ()
 {
 	Allocate_Miles_Handle ();
-	return ;
 }
 
 
@@ -134,9 +127,8 @@ Listener3DClass::On_Added_To_Scene (void)
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void
-Listener3DClass::On_Removed_From_Scene (void)
+Listener3DClass::On_Removed_From_Scene ()
 {
 	Free_Miles_Handle ();
-	return ;
 }
 

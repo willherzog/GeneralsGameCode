@@ -36,13 +36,7 @@
  * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-#if defined(_MSC_VER)
 #pragma once
-#endif
-
-#ifndef DLLIST_H
-#define DLLIST_H
-
 
 template <class T> class DLNodeClass;
 
@@ -96,7 +90,7 @@ class DLNodeClass : public W3DMPO
 	DLListClass<T>* list;
 public:
 	DLNodeClass() : succ(0), pred(0), list(0) {}
-	~DLNodeClass() { Remove(); }
+	virtual ~DLNodeClass() override { Remove(); }
 
 	void Insert_Before(DLNodeClass<T>* n)
 	{
@@ -207,5 +201,3 @@ inline void DLListClass<T>::Remove_Tail()
 	else tail->succ=0;
 	n->Remove();
 }
-
-#endif //DLLIST_H

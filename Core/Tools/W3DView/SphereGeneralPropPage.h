@@ -16,12 +16,8 @@
 **	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if !defined(AFX_SPHEREGENERALPROPPAGE_H__E86BBE83_F527_11D3_A08F_00104B791122__INCLUDED_)
-#define AFX_SPHEREGENERALPROPPAGE_H__E86BBE83_F527_11D3_A08F_00104B791122__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
+
 // SphereGeneralPropPage.h : header file
 //
 
@@ -40,7 +36,7 @@ class SphereGeneralPropPageClass : public CPropertyPage
 
 // Construction
 public:
-	SphereGeneralPropPageClass (SphereRenderObjClass *sphere = NULL);
+	SphereGeneralPropPageClass (SphereRenderObjClass *sphere = nullptr);
 	~SphereGeneralPropPageClass ();
 
 // Dialog Data
@@ -84,21 +80,21 @@ public:
 	//
 	//	Inline accessors
 	//
-	SphereRenderObjClass *	Get_Sphere (void) const							{ return m_RenderObj; }
+	SphereRenderObjClass *	Get_Sphere () const							{ return m_RenderObj; }
 	void							Set_Sphere (SphereRenderObjClass *sphere)	{ m_RenderObj = sphere; Initialize (); }
-	bool							Is_Data_Valid (void) const						{ return m_bValid; }
+	bool							Is_Data_Valid () const						{ return m_bValid; }
 
-	const CString &			Get_Name (void) const					{ return m_Name; }
-	const CString &			Get_Texture_Filename (void) const	{ return m_TextureFilename; }
-	float							Get_Lifetime (void) const				{ return m_Lifetime; }
-	const ShaderClass &		Get_Shader (void) const					{ return m_Shader; }
+	const CString &			Get_Name () const					{ return m_Name; }
+	const CString &			Get_Texture_Filename () const	{ return m_TextureFilename; }
+	float							Get_Lifetime () const				{ return m_Lifetime; }
+	const ShaderClass &		Get_Shader () const					{ return m_Shader; }
 
 protected:
 
 	/////////////////////////////////////////////////////////
 	//	Protected methods
 	/////////////////////////////////////////////////////////
-	void								Initialize (void);
+	void								Initialize ();
 	void								Add_Shader_To_Combo (ShaderClass &shader, LPCTSTR name);
 
 private:
@@ -116,5 +112,3 @@ private:
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
-
-#endif // !defined(AFX_SPHEREGENERALPROPPAGE_H__E86BBE83_F527_11D3_A08F_00104B791122__INCLUDED_)

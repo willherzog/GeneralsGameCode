@@ -22,9 +22,6 @@
 
 #pragma once
 
-#ifndef FenceTool_H
-#define FenceTool_H
-
 #include "Tool.h"
 class WorldHeightMapEdit;
 class MapObject;
@@ -44,19 +41,16 @@ protected:
 	Int				m_objectCount;
 
 public:
-	FenceTool(void);
-	~FenceTool(void);
+	FenceTool();
+	virtual ~FenceTool() override;
 
 protected:
 	void updateMapObjectList(Coord3D downPt, Coord3D curPt, WbView* pView, CWorldBuilderDoc *pDoc, Bool checkPlayers);
 
 public:
-	virtual void mouseDown(TTrackingMode m, CPoint viewPt, WbView* pView, CWorldBuilderDoc *pDoc);
-	virtual void mouseUp(TTrackingMode m, CPoint viewPt, WbView* pView, CWorldBuilderDoc *pDoc);
-	virtual void mouseMoved(TTrackingMode m, CPoint viewPt, WbView* pView, CWorldBuilderDoc *pDoc);
-	virtual void activate(); ///< Become the current tool.
-	virtual void deactivate(); ///< Become not the current tool.
+	virtual void mouseDown(TTrackingMode m, CPoint viewPt, WbView* pView, CWorldBuilderDoc *pDoc) override;
+	virtual void mouseUp(TTrackingMode m, CPoint viewPt, WbView* pView, CWorldBuilderDoc *pDoc) override;
+	virtual void mouseMoved(TTrackingMode m, CPoint viewPt, WbView* pView, CWorldBuilderDoc *pDoc) override;
+	virtual void activate() override; ///< Become the current tool.
+	virtual void deactivate() override; ///< Become not the current tool.
 };
-
-
-#endif //FenceTool_H

@@ -20,12 +20,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-#if !defined(AFX_WORLDBUILDERDOC_H__FBA4134D_2826_11D5_8CE0_00010297BBAC__INCLUDED_)
-#define AFX_WORLDBUILDERDOC_H__FBA4134D_2826_11D5_8CE0_00010297BBAC__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 
 #include "Lib/BaseType.h"
 #include "Common/MapObject.h"
@@ -74,27 +69,27 @@ protected:	// waypoint stuff.
 	} m_waypointLinks[MAX_WAYPOINTS];
 	Int									m_numWaypointLinks;
 protected:
-	void updateWaypointTable(void);
-	void compressWaypointIds(void);
+	void updateWaypointTable();
+	void compressWaypointIds();
 	void updateLWL(MapObject *pWay, MapObject *pSrcWay);
 public:
 	void addWaypointLink(Int waypointID1, Int waypointID2);
 	void removeWaypointLink(Int waypointID1, Int waypointID2);
 	MapObject *getWaypointByID(Int waypointID);
-	Int getNumWaypointLinks(void) {return m_numWaypointLinks;};
+	Int getNumWaypointLinks() {return m_numWaypointLinks;};
 	void getWaypointLink(Int ndx, Int *waypoint1, Int *waypointID2);
 	Bool waypointLinkExists(Int waypointID1, Int waypointID2);
 	Bool isWaypointLinked(MapObject *pWay);
 	void updateLinkedWaypointLabels(MapObject *pWay);
 
 	// Boundary stuff
-	Int getNumBoundaries(void) const ;
+	Int getNumBoundaries() const ;
 	void getBoundary(Int ndx, ICoord2D* border) const;
 	void addBoundary(ICoord2D* boundaryToAdd);
 	void changeBoundary(Int ndx, ICoord2D *border);
-	void removeLastBoundary(void);
+	void removeLastBoundary();
 
-	// outNdx must not be NULL, but outHandle can be.
+	// outNdx must not be null, but outHandle can be.
 	// outHandle: 0 means BL, 1 means TL, 2 means TR, 3 means BR
 	void findBoundaryNear(Coord3D *pt, float okDistance, Int *outNdx, Int *outHandle);
 
@@ -102,8 +97,8 @@ public:
 	Bool ParseWaypointData(DataChunkInput &file, DataChunkInfo *info, void *userData);
 
 public: // overridden
-	virtual BOOL DoSave(LPCTSTR lpszPathName, BOOL bReplace = TRUE);
-	virtual BOOL DoFileSave();
+	virtual BOOL DoSave(LPCTSTR lpszPathName, BOOL bReplace = TRUE) override;
+	virtual BOOL DoFileSave() override;
 
 // Attributes
 public:
@@ -146,14 +141,14 @@ public:
 
 	void syncViewCenters(Real x, Real y);
 
-	Bool needAutoSave(void) {return m_needAutosave;};
+	Bool needAutoSave() {return m_needAutosave;};
 
-	Int getNextWaypointID(void) { return ++m_curWaypointID;};
+	Int getNextWaypointID() { return ++m_curWaypointID;};
 
 	void setNextWaypointID(Int newMax) { if (newMax>m_curWaypointID) m_curWaypointID = newMax;};
 
-	void autoSave(void);
-	void validate(void);
+	void autoSave();
+	void validate();
 // Operations
 public:
 
@@ -161,15 +156,15 @@ public:
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(CWorldBuilderDoc)
 	public:
-	virtual BOOL OnNewDocument();
-	virtual void Serialize(CArchive& ar);
-	virtual BOOL OnOpenDocument(LPCTSTR lpszPathName);
-	virtual BOOL CanCloseFrame(CFrameWnd* pFrame);
+	virtual BOOL OnNewDocument() override;
+	virtual void Serialize(CArchive& ar) override;
+	virtual BOOL OnOpenDocument(LPCTSTR lpszPathName) override;
+	virtual BOOL CanCloseFrame(CFrameWnd* pFrame) override;
 	//}}AFX_VIRTUAL
 
 // Implementation
 public:
-	virtual ~CWorldBuilderDoc();
+	virtual ~CWorldBuilderDoc() override;
 #ifdef RTS_DEBUG
 	virtual void AssertValid() const;
 	virtual void Dump(CDumpContext& dc) const;
@@ -213,5 +208,3 @@ protected:
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
-
-#endif // !defined(AFX_WORLDBUILDERDOC_H__FBA4134D_2826_11D5_8CE0_00010297BBAC__INCLUDED_)

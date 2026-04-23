@@ -29,9 +29,6 @@
 
 #pragma once
 
-#ifndef MONEY_CRATE_COLLIDE_H_
-#define MONEY_CRATE_COLLIDE_H_
-
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common/Module.h"
 #include "GameLogic/Module/CrateCollide.h"
@@ -59,8 +56,8 @@ public:
 
 		static const FieldParse dataFieldParse[] =
 		{
-			{ "MoneyProvided",	INI::parseUnsignedInt,	NULL, offsetof( MoneyCrateCollideModuleData, m_moneyProvided ) },
-			{ "UpgradedBoost",	parseUpgradePair,		NULL, offsetof( MoneyCrateCollideModuleData, m_upgradeBoost ) },
+			{ "MoneyProvided",	INI::parseUnsignedInt,	nullptr, offsetof( MoneyCrateCollideModuleData, m_moneyProvided ) },
+			{ "UpgradedBoost",	parseUpgradePair,		nullptr, offsetof( MoneyCrateCollideModuleData, m_upgradeBoost ) },
 
 			{ 0, 0, 0, 0 }
 		};
@@ -84,10 +81,8 @@ public:
 protected:
 
 	/// This is the game logic execution function that all real CrateCollides will implement
-	virtual Bool executeCrateBehavior( Object *other );
+	virtual Bool executeCrateBehavior( Object *other ) override;
 
 	Int getUpgradedSupplyBoost( Object *other ) const;
 
 };
-
-#endif

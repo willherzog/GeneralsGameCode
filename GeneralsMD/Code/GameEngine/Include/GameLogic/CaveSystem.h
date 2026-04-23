@@ -29,9 +29,6 @@
 
 #pragma once
 
-#ifndef CAVE_SYSTEM_H
-#define CAVE_SYSTEM_H
-
 class Object;
 class TunnelTracker; // The player owns one such object for his Tunnels, so instead of duplicating
 // so much code, this SubSystem will manage all of the Cave systems.
@@ -47,11 +44,11 @@ class CaveSystem : public SubsystemInterface,
 {
 public:
 	CaveSystem();
-	~CaveSystem();
+	virtual ~CaveSystem() override;
 
-	void init();
-	void reset();
-	void update();
+	virtual void init() override;
+	virtual void reset() override;
+	virtual void update() override;
 
 	Bool canSwitchIndexToIndex( Int oldIndex, Int newIndex ); // If either Index has guys in it, no, you can't
 	void registerNewCave( Int theIndex );			// All Caves are born with a default index, which could be new
@@ -61,9 +58,9 @@ public:
 protected:
 
 	// snapshot methods
-	virtual void crc( Xfer *xfer ) { }
-	virtual void xfer( Xfer *xfer );
-	virtual void loadPostProcess( void ) { }
+	virtual void crc( Xfer *xfer ) override { }
+	virtual void xfer( Xfer *xfer ) override;
+	virtual void loadPostProcess() override { }
 
 private:
 	std::vector<TunnelTracker*> m_tunnelTrackerVector;// A vector of pointers where the indexes are known by
@@ -73,4 +70,3 @@ private:
 };
 
 extern CaveSystem *TheCaveSystem;
-#endif

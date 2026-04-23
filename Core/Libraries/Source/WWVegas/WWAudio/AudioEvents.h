@@ -34,12 +34,7 @@
  * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-#if defined(_MSC_VER)
 #pragma once
-#endif
-
-#ifndef __AUDIO_EVENTS_H
-#define __AUDIO_EVENTS_H
 
 #include "simplevec.h"
 #include "bittype.h"
@@ -65,10 +60,10 @@ class StringClass;
 // Callback declarations.  These functions are called when a registered event occurs
 // in the sound library/
 //
-typedef void (_stdcall  *LPFNSOSCALLBACK)		(SoundSceneObjClass *sound_obj, uint32 user_param);
-typedef void (_stdcall  *LPFNEOSCALLBACK)		(SoundSceneObjClass *sound_obj, uint32 user_param);
-typedef void (_stdcall  *LPFNHEARDCALLBACK)	(LogicalListenerClass *listener, LogicalSoundClass *sound_obj, uint32 user_param);
-typedef void (_stdcall  *LPFNTEXTCALLBACK)	(AudibleSoundClass *sound_obj, const StringClass &text, uint32 user_param);
+typedef void (__stdcall  *LPFNSOSCALLBACK)		(SoundSceneObjClass *sound_obj, uint32 user_param);
+typedef void (__stdcall  *LPFNEOSCALLBACK)		(SoundSceneObjClass *sound_obj, uint32 user_param);
+typedef void (__stdcall  *LPFNHEARDCALLBACK)	(LogicalListenerClass *listener, LogicalSoundClass *sound_obj, uint32 user_param);
+typedef void (__stdcall  *LPFNTEXTCALLBACK)	(AudibleSoundClass *sound_obj, const StringClass &text, uint32 user_param);
 
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -133,8 +128,8 @@ struct AUDIO_CALLBACK_STRUCT
 	T					callback_ptr;
 	uint32			user_data;
 
-	AUDIO_CALLBACK_STRUCT (void)
-		:	callback_ptr (NULL), user_data (0)	{}
+	AUDIO_CALLBACK_STRUCT ()
+		:	callback_ptr (nullptr), user_data (0)	{}
 
 	AUDIO_CALLBACK_STRUCT (T _ptr, uint32 _data)
 		:	callback_ptr (_ptr), user_data (_data) {}
@@ -158,8 +153,8 @@ public:
 	/////////////////////////////////////////////////////////////////////////////////
 	//	Public constructors/destructors
 	/////////////////////////////////////////////////////////////////////////////////
-	AudioCallbackListClass (void)					{ }
-	virtual ~AudioCallbackListClass (void)		{ }
+	AudioCallbackListClass ()					{ }
+	virtual ~AudioCallbackListClass () override { }
 
 	/////////////////////////////////////////////////////////////////////////////////
 	//	Public methods
@@ -177,7 +172,6 @@ template <class T> void
 AudioCallbackListClass<T>::Add_Callback (T pointer, uint32 user_data)
 {
 	Add ( AUDIO_CALLBACK_STRUCT<T> (pointer, user_data));
-	return ;
 }
 
 
@@ -187,7 +181,7 @@ AudioCallbackListClass<T>::Add_Callback (T pointer, uint32 user_data)
 template <class T> T
 AudioCallbackListClass<T>::Get_Callback (int index, uint32 *user_data)
 {
-	if (user_data != NULL) {
+	if (user_data != nullptr) {
 		(*user_data) = Vector[index].user_data;
 	}
 
@@ -206,10 +200,4 @@ AudioCallbackListClass<T>::Remove_Callback (T pointer)
 			break;
 		}
 	}
-
-	return ;
 }
-
-
-#endif //__AUDIO_EVENTS_H
-
