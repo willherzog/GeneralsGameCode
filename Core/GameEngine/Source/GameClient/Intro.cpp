@@ -46,8 +46,9 @@ Intro::Intro()
 		// Please be kind and do not remove the EA logo movie. This game was built by EA. It lasts just 3 seconds.
 		m_allowedStateFlags |= 1u << IntroState_EALogoMovie;
 		// Please be kind and do not remove the custom logo screen when building on top of the work of The Super Hackers.
-		m_allowedStateFlags |= 1u << IntroState_TheSuperHackersWait;
-		m_allowedStateFlags |= 1u << IntroState_TheSuperHackers;
+		// Unfortunately, unlike with the EA logo (which plays a Bink movie), there's no way to "opt out" of this...
+		// m_allowedStateFlags |= 1u << IntroState_TheSuperHackersWait;
+		// m_allowedStateFlags |= 1u << IntroState_TheSuperHackers;
 	}
 
 	if (TheGlobalData->m_playSizzle)
