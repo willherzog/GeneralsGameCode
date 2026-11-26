@@ -74,6 +74,7 @@
 #include "GameLogic/Module/AssistedTargetingUpdate.h"
 #include "GameLogic/Module/ProjectileStreamUpdate.h"
 #include "GameLogic/Module/PhysicsUpdate.h"
+#include "GameLogic/Module/SpawnBehavior.h"
 #include "GameLogic/TerrainLogic.h"
 
 #define RATIONALIZE_ATTACK_RANGE
@@ -599,11 +600,12 @@ Real WeaponTemplate::estimateWeaponTemplateDamage(
   // hmm.. must be shooting a firebase or such, if there is noone home to take the bullet, return 0!
   if ( victimObj->isKindOf( KINDOF_STRUCTURE) && damageType == DAMAGE_SNIPER )
   {
-    if ( victimObj->getContain() )
-    {
-      if ( victimObj->getContain()->getContainCount() == 0 )
-        return 0.0f;
-    }
+    // TheSuperHackers PR # 2822 (stop snipers shooting at unmanned Stinger Sites)
+		const Bool hasOccupants = victimObj->getContain() && victimObj->getContain()->getContainCount() > 0;
+		const Bool hasSlaves = victimObj->getSpawnBehaviorInterface() && victimObj->getSpawnBehaviorInterface()->getSlaveCount() > 0;
+
+		if (!hasOccupants && !hasSlaves)
+			return 0.0f;
   }
 
 
