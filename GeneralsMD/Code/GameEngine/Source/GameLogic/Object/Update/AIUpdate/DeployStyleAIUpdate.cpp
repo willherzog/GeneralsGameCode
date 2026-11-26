@@ -143,7 +143,8 @@ UpdateSleepTime DeployStyleAIUpdate::update()
 		}
 	}
 
-	if( isInRange || isInGuardIdleState )
+	// TheSuperHackers PR # 3016 (prevent deploying/attacking if still trying to move)
+	if( !isTryingToMove && (isInRange || isInGuardIdleState) )
 	{
 		switch( m_state )
 		{
