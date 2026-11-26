@@ -64,8 +64,8 @@ GarrisonContainModuleData::GarrisonContainModuleData()
 {
 
 	//
-	// by default we say that transports can have infantry inside them, this will be totally
-	// overwritten by any data provided from the INI entry tho
+	// by default we say that transports can have infantry inside them
+	// this will be totally overwritten by any data provided from the INI entry tho
 	//
 	m_allowInsideKindOf = MAKE_KINDOF_MASK( KINDOF_INFANTRY );
 
