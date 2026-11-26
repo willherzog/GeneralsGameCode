@@ -567,11 +567,9 @@ Bool TransportContain::isSpecificRiderFreeToExit(Object* specificObject)
 	if (ai && ai->getAiFreeToExit(specificObject) != FREE_TO_EXIT)
 		return FALSE;
 
-#if !RETAIL_COMPATIBLE_CRC
 	// TheSuperHackers PR # 3041 (don't prevent passenger exit with disabled Battle Bus)
 	if (me->getContainedBy() != nullptr && me->isDisabledByType(DISABLED_HELD))
 		return FALSE;
-#endif
 
   // I can always kick people out if I am in the air, I know what I'm doing
   if (me->isUsingAirborneLocomotor())
