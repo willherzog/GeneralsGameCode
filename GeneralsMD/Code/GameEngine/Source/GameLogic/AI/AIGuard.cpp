@@ -447,7 +447,45 @@ StateReturnType AIGuardInnerState::update()
 			m_exitConditions.m_center = *targetToGuard->getPosition();
 		}
 
-		return m_attackState->update();
+		// TheSuperHackers PR # 3035 (fix for deployed units needlessly un-deploying after each attack)
+		StateReturnType ret = m_attackState->update();
+
+		if (ret == STATE_CONTINUE || IS_STATE_SLEEP(ret))
+			return ret;
+
+		m_attackState->onExit(EXIT_NORMAL);
+		deleteInstance(m_attackState);
+
+		m_attackState = nullptr;
+
+		if (ret == STATE_SUCCESS)
+		{
+			if (getGuardMachine()->lookForInnerTarget())
+			{
+				Object* newTargetToGuard = getGuardMachine()->findTargetToGuardByID();
+				Coord3D pos = newTargetToGuard ? *newTargetToGuard->getPosition() : *getGuardMachine()->getPositionToGuard();
+				Object* nemesis = TheGameLogic->findObjectByID(getGuardMachine()->getNemesisID());
+
+				if (nemesis)
+				{
+					m_exitConditions.m_center = pos;
+					m_exitConditions.m_radiusSqr = sqr(AIGuardMachine::getStdGuardRange(getMachineOwner()));
+					m_exitConditions.m_conditionsToConsider = (ExitConditions::ATTACK_ExitIfOutsideRadius | ExitConditions::ATTACK_ExitIfNoUnitFound);
+
+					m_attackState = newInstance(AIAttackState)(getMachine(), false, true, false, &m_exitConditions);
+					m_attackState->getMachine()->setGoalObject(nemesis);
+
+					StateReturnType enterRet = m_attackState->onEnter();
+
+					if (enterRet == STATE_CONTINUE)
+						return STATE_CONTINUE;
+
+					return enterRet;
+				}
+			}
+		}
+
+		return ret;
 	}
 	else if (m_enterState)
 	{
