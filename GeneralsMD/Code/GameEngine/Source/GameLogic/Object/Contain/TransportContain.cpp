@@ -568,10 +568,8 @@ Bool TransportContain::isSpecificRiderFreeToExit(Object* specificObject)
 		return FALSE;
 
 #if !RETAIL_COMPATIBLE_CRC
-	// TheSuperHackers @bugfix Stubbjax 02/03/2026 If our parent container is held, then we
-	// are not free to exit.
-	DEBUG_ASSERTCRASH(specificObject->getContainedBy(), ("rider must be contained"));
-	if (specificObject->getContainedBy()->isDisabledByType(DISABLED_HELD))
+	// TheSuperHackers PR # 3041 (don't prevent passenger exit with disabled Battle Bus)
+	if (me->getContainedBy() != nullptr && me->isDisabledByType(DISABLED_HELD))
 		return FALSE;
 #endif
 
