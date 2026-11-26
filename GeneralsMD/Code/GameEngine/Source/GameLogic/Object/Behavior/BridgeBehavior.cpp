@@ -760,7 +760,7 @@ UpdateSleepTime BridgeBehavior::update()
 				else if ( bridge && bridgeTemplate && bridgeInfo)//we have valid Terrain data for the bridge
 					getRandomSurfacePosition( bridgeTemplate, bridgeInfo, &pos );
 				else
-					pos.set( getObject()->getPosition() );
+					pos.set( *getObject()->getPosition() );
 
 
 				// launch the fx list
@@ -824,7 +824,7 @@ UpdateSleepTime BridgeBehavior::update()
 					if ( bridge && bridgeTemplate && bridgeInfo )//we have valid Terrain data for the bridge
 						getRandomSurfacePosition( bridgeTemplate, bridgeInfo, &pos );
 					else
-						pos.set( getObject()->getPosition() );
+						pos.set( *getObject()->getPosition() );
 
 					// launch the fx list
 					ObjectCreationList::create( (*oclIt).ocl, us, &pos, nullptr, INVALID_ANGLE );
@@ -1115,7 +1115,7 @@ void BridgeBehavior::createScaffolding()
 	// to the center area of the bridge
 	//
 	Real tileDistance = leftVector.length();
-	Int numObjects = REAL_TO_INT_CEIL( tileDistance / spacing ) + 1;
+	Int numObjects = REAL_TO_INT_CEIL( WWMath::Div_Safe(tileDistance, spacing, 1.0f) ) + 1;
 
 	//
 	// given the number of objects that we need to tile across the whole bridge, we will

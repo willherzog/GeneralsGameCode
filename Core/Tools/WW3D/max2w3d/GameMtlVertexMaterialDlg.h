@@ -30,13 +30,11 @@
  *                                                                                             *
  *                    $Revision:: 4                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
 
-#include <max.h>
+#include "max_sdk.h"
 #include "GameMtlForm.h"
 
 class GameMtl;
@@ -52,7 +50,7 @@ public:
 	virtual BOOL		Dialog_Proc (HWND dlg_wnd, UINT message, WPARAM wparam, LPARAM lparam);
 
 	void					ActivateDlg(BOOL onoff);
-	void					ReloadDialog(void);
+	void					ReloadDialog();
 
 private:
 

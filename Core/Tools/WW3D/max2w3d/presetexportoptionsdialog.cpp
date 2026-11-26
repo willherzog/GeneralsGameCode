@@ -32,8 +32,6 @@
  *                                                                                             *
  *                    $Revision:: 5                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 
@@ -72,7 +70,7 @@ PresetExportOptionsDialogClass::PresetExportOptionsDialogClass (Interface *maxin
 //	~PresetExportOptionsDialogClass
 //
 ////////////////////////////////////////////////////////////////////////////////////////
-PresetExportOptionsDialogClass::~PresetExportOptionsDialogClass (void)
+PresetExportOptionsDialogClass::~PresetExportOptionsDialogClass ()
 {
 }
 
@@ -83,7 +81,7 @@ PresetExportOptionsDialogClass::~PresetExportOptionsDialogClass (void)
 //
 ////////////////////////////////////////////////////////////////////////////////////////
 int
-PresetExportOptionsDialogClass::Do_Modal (void)
+PresetExportOptionsDialogClass::Do_Modal ()
 {
 	int retval = ::DialogBoxParam (AppInstance, MAKEINTRESOURCE (IDD_W3D_PRESET_EXPORT_OPTIONS),
 													ParentWnd, Real_Message_Proc, (LPARAM)this);
@@ -307,12 +305,6 @@ PresetExportOptionsDialogClass::Pane_Message_Proc
 					Options->DisableExportAABTrees = (SendMessage (control_wnd, BM_GETCHECK, 0, 0L) != 1);
 					break;
 
-#if 0
-				case IDC_EXPORT_MESH_OPTIMIZE:
-					Options->EnableOptimizeMeshData = (SendMessage (control_wnd, BM_GETCHECK, 0, 0L) == 1);
-					break;
-#endif
-
 				case IDC_USE_SKELETON_CHECK:
 					Options->LoadHierarchy = (SendMessage (control_wnd, BM_GETCHECK, 0, 0L) == 1);
 					break;
@@ -508,7 +500,7 @@ PresetExportOptionsDialogClass::Show_Settings_Pane (int pane_id)
 //
 ////////////////////////////////////////////////////////////////////////////////////////
 void
-PresetExportOptionsDialogClass::Create_Settings_Panes (void)
+PresetExportOptionsDialogClass::Create_Settings_Panes ()
 {
 	PaneWnds[PANE_HLOD] = ::CreateDialogParam (AppInstance, MAKEINTRESOURCE (IDD_EXPORT_PANE_HLOD),
 										Wnd, Settings_Pane_Message_Proc, (LPARAM)this);
@@ -569,7 +561,7 @@ PresetExportOptionsDialogClass::Create_Settings_Panes (void)
 //
 ////////////////////////////////////////////////////////////////////////////////////////
 void
-PresetExportOptionsDialogClass::Destroy_Settings_Panes (void)
+PresetExportOptionsDialogClass::Destroy_Settings_Panes ()
 {
 	//
 	//	Loop over all the panes and destroy them
@@ -587,7 +579,7 @@ PresetExportOptionsDialogClass::Destroy_Settings_Panes (void)
 //
 ////////////////////////////////////////////////////////////////////////////////////////
 void
-PresetExportOptionsDialogClass::Determine_Preset_Type (void)
+PresetExportOptionsDialogClass::Determine_Preset_Type ()
 {
 	//
 	//	Examine the current options and try to determine which
@@ -653,7 +645,7 @@ PresetExportOptionsDialogClass::Determine_Preset_Type (void)
 //
 ////////////////////////////////////////////////////////////////////////////////////////
 void
-PresetExportOptionsDialogClass::Initialize_Controls (void)
+PresetExportOptionsDialogClass::Initialize_Controls ()
 {
 	//
 	//	Check the review log file button if necessary
@@ -710,7 +702,7 @@ PresetExportOptionsDialogClass::Initialize_Controls (void)
 //
 ////////////////////////////////////////////////////////////////////////////////////////
 void
-PresetExportOptionsDialogClass::Update_Controls (void)
+PresetExportOptionsDialogClass::Update_Controls ()
 {
 	//
 	//	Loop over all the panes and update any of the controls therein
@@ -723,9 +715,6 @@ PresetExportOptionsDialogClass::Update_Controls (void)
 		//
 		CheckDlgButton (pane_wnd, IDC_EXPORT_MESH_SMOOTH_CHECK,	Options->SmoothBetweenMeshes);
 		CheckDlgButton (pane_wnd, IDC_EXPORT_MESH_AABTREES,		!Options->DisableExportAABTrees);
-#if ENABLE_MESH_OPTIMIZING
-		CheckDlgButton (pane_wnd, IDC_EXPORT_MESH_OPTIMIZE,		Options->EnableOptimizeMeshData);
-#endif
 		CheckDlgButton (pane_wnd, IDC_USE_SKELETON_CHECK,			Options->LoadHierarchy);
 		CheckDlgButton (pane_wnd, IDC_COMPRESS_ANIMATION_CHECK,	Options->CompressAnimation);
 		CheckDlgButton (pane_wnd, IDC_EXPORT_MESH_MAT_TO_TEXTURE,	Options->EnableMaterialColorToTextureConversion);
@@ -797,7 +786,7 @@ PresetExportOptionsDialogClass::Update_Controls (void)
 //
 ////////////////////////////////////////////////////////////////////////////////////////
 void
-PresetExportOptionsDialogClass::Save_Settings (void)
+PresetExportOptionsDialogClass::Save_Settings ()
 {
 	//
 	//	Force settings that certain preset types need

@@ -32,6 +32,8 @@
 #include "Common/GlobalData.h"
 #include "Common/GameEngine.h"
 #include "GameClient/ClientInstance.h"
+#include "GameClient/MapUtil.h"
+#include "GameClient/MessageBox.h"
 #include "GameClient/GameWindow.h"
 #include "GameClient/GameWindowManager.h"
 #include "GameClient/InGameUI.h"
@@ -47,6 +49,7 @@
 #include "Common/CRCDebug.h"
 #include "Common/OptionPreferences.h"
 #include "Common/version.h"
+#include <Utility/bit_adapter.h>
 
 constexpr const char s_genrep[] = "GENREP";
 constexpr const UnsignedInt replayBufferBytes = 8192;
@@ -99,6 +102,37 @@ static FILE* openStatsLogFile()
 	return fopen(statsFile.str(), "a+");
 }
 #endif
+
+RecorderClass::CRCInfo::CRCInfo() :
+	m_sawCRCMismatch(FALSE),
+	m_localPlayer(0)
+{}
+
+RecorderClass::CRCInfo::CRCInfo(UnsignedInt localPlayer)
+{
+	m_sawCRCMismatch = FALSE;
+	m_localPlayer = localPlayer;
+}
+
+void RecorderClass::CRCInfo::addCRC(UnsignedInt val)
+{
+	m_data.push_back(val);
+	//DEBUG_LOG(("CRCInfo::addCRC() - crc %8.8X pushes list to %d entries (full=%d)", val, m_data.size(), !m_data.empty()));
+}
+
+UnsignedInt RecorderClass::CRCInfo::readCRC()
+{
+	if (m_data.empty())
+	{
+		DEBUG_LOG(("CRCInfo::readCRC() - bailing, full=0, size=%d", m_data.size()));
+		return 0;
+	}
+
+	UnsignedInt val = m_data.front();
+	m_data.pop_front();
+	//DEBUG_LOG(("CRCInfo::readCRC() - returning %8.8X, full=%d, size=%d", val, !m_data.empty(), m_data.size()));
+	return val;
+}
 
 void RecorderClass::logGameStart(AsciiString options)
 {
@@ -391,7 +425,7 @@ void RecorderClass::updatePlayback() {
 	// While there are commands to be queued up for this frame, do it.
 	while (m_nextFrame == curFrame) {
 		appendNextCommand();	// append the next command to TheCommandQueue
-		readNextFrame();	// Read the next command's frame number for playback.
+		readNextFrame();	// Read and validate the next command's frame number for playback.
 	}
 }
 
@@ -425,8 +459,8 @@ void RecorderClass::updateRecord()
 		if (msg->getType() == GameMessage::MSG_NEW_GAME &&
 			 msg->getArgument(0)->integer != GAME_SHELL &&
 			 msg->getArgument(0)->integer != GAME_NONE) {
-			m_originalGameMode = msg->getArgument(0)->integer;
-			DEBUG_LOG(("RecorderClass::updateRecord() - original game is mode %d", m_originalGameMode));
+			const GameMode originalGameMode = (GameMode)msg->getArgument(0)->integer;
+			DEBUG_LOG(("RecorderClass::updateRecord() - original game is mode %d", originalGameMode));
 			lastFrame = 0;
 			GameDifficulty diff = DIFFICULTY_NORMAL;
 			if (msg->getArgumentCount() >= 2)
@@ -438,7 +472,7 @@ void RecorderClass::updateRecord()
 			if (msg->getArgumentCount() >= 4)
 				maxFPS = msg->getArgument(3)->integer;
 
-			startRecording(diff, m_originalGameMode, rankPoints, maxFPS);
+			startRecording(diff, originalGameMode, rankPoints, maxFPS);
 		} else if (msg->getType() == GameMessage::MSG_CLEAR_GAME_DATA) {
 			if (m_file != nullptr) {
 				lastFrame = -1;
@@ -470,12 +504,13 @@ void RecorderClass::updateRecord()
  * Start a new file for recording. This will always overwrite the "LastReplay.rep" file with the new one.
  * So don't call this unless you really mean it.
  */
-void RecorderClass::startRecording(GameDifficulty diff, Int originalGameMode, Int rankPoints, Int maxFPS) {
+void RecorderClass::startRecording(GameDifficulty diff, GameMode originalGameMode, Int rankPoints, Int maxFPS) {
 	DEBUG_ASSERTCRASH(m_file == nullptr, ("Starting to record game while game is in progress."));
 
 	reset();
 
 	m_mode = RECORDERMODETYPE_RECORD;
+	m_originalGameMode = originalGameMode;
 
 	AsciiString filepath = getReplayDir();
 
@@ -628,7 +663,7 @@ void RecorderClass::startRecording(GameDifficulty diff, Int originalGameMode, In
 	// Write maxFPS chosen
 	m_file->write(&maxFPS, sizeof(maxFPS));
 
-	DEBUG_LOG(("RecorderClass::startRecording() - diff=%d, mode=%d, FPS=%d", diff, originalGameMode, maxFPS));
+	DEBUG_LOG(("RecorderClass::startRecording() - diff=%d, mode=%d, FPS=%d", diff, (Int)originalGameMode, maxFPS));
 
 	/*
 	// Write the map name.
@@ -741,15 +776,12 @@ void RecorderClass::writeToFile(GameMessage * msg) {
 		argType = argType->getNext();
 	}
 
-//	UnsignedByte lasttype = (UnsignedByte)ARGUMENTDATATYPE_UNKNOWN;
-	Int numArgs = msg->getArgumentCount();
-	for (Int i = 0; i < numArgs; ++i) {
-//		UnsignedByte type = (UnsignedByte)(msg->getArgumentDataType(i));
-//		if (lasttype != type) {
-//			fwrite(&type, sizeof(type), 1, m_file);
-//			lasttype = type;
-//		}
-		writeArgument(msg->getArgumentDataType(i), *(msg->getArgument(i)));
+	const size_t argsCount = msg->getArgumentCount();
+
+	for (size_t i = 0; i < argsCount; ++i) {
+		GameMessageArgumentDataType argType = msg->getArgumentDataType(i);
+		const GameMessageArgumentType* arg = msg->getArgument(i);
+		writeArgument(argType, *arg);
 	}
 
 	deleteInstance(parser);
@@ -804,18 +836,17 @@ void RecorderClass::writeArgument(GameMessageArgumentDataType type, const GameMe
  * Read in a replay header, for (1) populating a replay listbox or (2) starting playback.  In
  * case (2), set FILE *m_file.
  */
-Bool RecorderClass::readReplayHeader(ReplayHeader& header)
+Bool RecorderClass::readReplayHeader(ReplayHeader& header, const AsciiString& filename, Bool forPlayback)
 {
-	AsciiString filepath = getReplayDir();
-	filepath.concat(header.filename.str());
+	header.filename = getReplayPathForRead(filename);
 
 	// TheSuperHackers @performance More buffered data reduces disk overhead and will improve fast forward playback
-	const UnsignedInt buffersize = header.forPlayback ? replayBufferBytes : File::BUFFERSIZE;
-	m_file = TheFileSystem->openFile(filepath.str(), File::READ | File::BINARY, buffersize);
+	const UnsignedInt buffersize = forPlayback ? replayBufferBytes : File::BUFFERSIZE;
+	m_file = TheFileSystem->openFile(header.filename.str(), File::READ | File::BINARY, buffersize);
 
 	if (m_file == nullptr)
 	{
-		DEBUG_LOG(("Can't open %s (%s)", filepath.str(), header.filename.str()));
+		DEBUG_LOG(("Can't open %s (%s)", header.filename.str(), filename.str()));
 		return FALSE;
 	}
 
@@ -883,13 +914,15 @@ Bool RecorderClass::readReplayHeader(ReplayHeader& header)
 		m_file = nullptr;
 		return FALSE;
 	}
+	// TheSuperHackers @bugfix bobtista 17/09/2026 Preserve the recorded local slot, including -1 for no local player.
+	m_gameInfo.setLocalSlotNum(header.localPlayerIndex);
 	if (header.localPlayerIndex >= 0)
 	{
 		Int localIP = m_gameInfo.getSlot(header.localPlayerIndex)->getIP();
 		m_gameInfo.setLocalIP(localIP);
 	}
 
-	if (!header.forPlayback)
+	if (!forPlayback)
 	{
 		m_gameInfo.endGame();
 		m_gameInfo.reset();
@@ -933,84 +966,9 @@ AsciiString RecorderClass::getCurrentReplayFilename()
 	return AsciiString::TheEmptyString;
 }
 
-// TheSuperHackers @info helmutbuhler 03/04/2025
-// Some info about CRC:
-// In each game, each peer periodically calculates a CRC from the local gamestate and sends that
-// in a message to all peers (including itself) so that everyone can check that the crc is synchronous.
-// In a network game, there is a delay between sending the CRC message and receiving it. This is
-// necessary because if you were to wait each frame for all messages from all peers, things would go
-// horribly slow.
-// But this delay is not a problem for CRC checking because everyone receives the CRC in the same frame
-// and every peer just makes sure all the received CRCs are equal.
-// While playing replays, this is a problem however: The CRC messages in the replays appear on the frame
-// they were received, which can be a few frames delayed if it was a network game. And if we were to
-// compare those with the local gamestate, they wouldn't sync up.
-// So, in order to fix this, we need to queue up our local CRCs,
-// so that we can check it with the crc messages that come later.
-// This class is basically that queue.
-class CRCInfo
-{
-public:
-	CRCInfo(UnsignedInt localPlayer, Bool isMultiplayer);
-	void addCRC(UnsignedInt val);
-	UnsignedInt readCRC();
-
-	int GetQueueSize() const { return m_data.size(); }
-
-	UnsignedInt getLocalPlayer() { return m_localPlayer; }
-
-	void setSawCRCMismatch() { m_sawCRCMismatch = TRUE; }
-	Bool sawCRCMismatch() const { return m_sawCRCMismatch; }
-
-protected:
-
-	Bool m_sawCRCMismatch;
-	Bool m_skippedOne;
-	std::list<UnsignedInt> m_data;
-	UnsignedInt m_localPlayer;
-};
-
-CRCInfo::CRCInfo(UnsignedInt localPlayer, Bool isMultiplayer)
-{
-	m_localPlayer = localPlayer;
-	m_skippedOne = !isMultiplayer;
-	m_sawCRCMismatch = FALSE;
-}
-
-void CRCInfo::addCRC(UnsignedInt val)
-{
-	// TheSuperHackers @fix helmutbuhler 03/04/2025
-	// In Multiplayer, the first MSG_LOGIC_CRC message somehow doesn't make it through the network.
-	// Perhaps this happens because the network is not yet set up on frame 0.
-	// So we also don't queue up the first local crc message, otherwise the crc
-	// messages wouldn't match up anymore and we'd desync immediately during playback.
-	if (!m_skippedOne)
-	{
-		m_skippedOne = TRUE;
-		return;
-	}
-
-	m_data.push_back(val);
-	//DEBUG_LOG(("CRCInfo::addCRC() - crc %8.8X pushes list to %d entries (full=%d)", val, m_data.size(), !m_data.empty()));
-}
-
-UnsignedInt CRCInfo::readCRC()
-{
-	if (m_data.empty())
-	{
-		DEBUG_LOG(("CRCInfo::readCRC() - bailing, full=0, size=%d", m_data.size()));
-		return 0;
-	}
-
-	UnsignedInt val = m_data.front();
-	m_data.pop_front();
-	//DEBUG_LOG(("CRCInfo::readCRC() - returning %8.8X, full=%d, size=%d", val, !m_data.empty(), m_data.size()));
-	return val;
-}
-
 Bool RecorderClass::sawCRCMismatch() const
 {
-	return m_crcInfo->sawCRCMismatch();
+	return m_crcInfo.sawCRCMismatch();
 }
 
 void RecorderClass::handleCRCMessage(UnsignedInt newCRC, Int playerIndex, Bool fromPlayback)
@@ -1018,24 +976,33 @@ void RecorderClass::handleCRCMessage(UnsignedInt newCRC, Int playerIndex, Bool f
 	if (fromPlayback)
 	{
 		//DEBUG_LOG(("RecorderClass::handleCRCMessage() - Adding CRC of %X from %d to m_crcInfo", newCRC, playerIndex));
-		m_crcInfo->addCRC(newCRC);
+		m_crcInfo.addCRC(newCRC);
 		return;
 	}
 
-	Int localPlayerIndex = m_crcInfo->getLocalPlayer();
-	Bool samePlayer = FALSE;
-	AsciiString playerName;
-	playerName.format("player%d", localPlayerIndex);
+	Int localPlayerIndex = m_crcInfo.getLocalPlayer();
 	const Player *p = ThePlayerList->getNthPlayer(playerIndex);
-	if (!p || (p->getPlayerNameKey() == NAMEKEY(playerName)))
-		samePlayer = TRUE;
-	if (samePlayer || (localPlayerIndex < 0))
+	const Bool isLocalPlayer = !p || ThePlayerList->getSlotIndex(playerIndex) == localPlayerIndex;
+	if (isLocalPlayer)
 	{
-		UnsignedInt playbackCRC = m_crcInfo->readCRC();
+		UnsignedInt playbackCRC = m_crcInfo.readCRC();
 		//DEBUG_LOG(("RecorderClass::handleCRCMessage() - Comparing CRCs of InGame:%8.8X Replay:%8.8X Frame:%d from Player %d",
-		//	playbackCRC, newCRC, TheGameLogic->getFrame()-m_crcInfo->GetQueueSize()-1, playerIndex));
-		if (TheGameLogic->getFrame() > 0 && newCRC != playbackCRC && !m_crcInfo->sawCRCMismatch())
+		//	playbackCRC, newCRC, TheGameLogic->getFrame()-m_crcInfo.GetQueueSize()-1, playerIndex));
+		if (TheGameLogic->getFrame() > 0 && newCRC != playbackCRC && !m_crcInfo.sawCRCMismatch())
 		{
+			// TheSuperHackers @info helmutbuhler 03/04/2025
+			// Note: We subtract the queue size from the frame number. This way we calculate the correct frame
+			// the mismatch first happened in case the NetCRCInterval is set to 1 during the game.
+			const UnsignedInt mismatchFrame = TheGameLogic->getFrame() - m_crcInfo.GetQueueSize() - 1;
+
+			if (TheDebugIgnoreReplaySyncErrors)
+			{
+				DEBUG_LOG(("Replay CRC mismatch ignored\nInGame:%8.8X Replay:%8.8X\nFrame:%d",
+					playbackCRC, newCRC, mismatchFrame));
+				printf("CRC Mismatch in Frame %d (ignored) InGame:%8.8X Replay:%8.8X\n", mismatchFrame, playbackCRC, newCRC);
+				return;
+			}
+
 			// Since we don't seem to have any *visible* desyncs when replaying games, but get this warning
 			// virtually every replay, the assumption is our CRC checking is faulty.  Since we're at the
 			// tail end of patch season, let's just disable the message, and hope the users believe the
@@ -1044,11 +1011,6 @@ void RecorderClass::handleCRCMessage(UnsignedInt newCRC, Int playerIndex, Bool f
 			// TheSuperHackers @tweak helmutbuhler 03/04/2025
 			// More than 20 years later, but finally fixed and re-enabled!
 			TheInGameUI->message("GUI:CRCMismatch");
-
-			// TheSuperHackers @info helmutbuhler 03/04/2025
-			// Note: We subtract the queue size from the frame number. This way we calculate the correct frame
-			// the mismatch first happened in case the NetCRCInterval is set to 1 during the game.
-			const UnsignedInt mismatchFrame = TheGameLogic->getFrame() - m_crcInfo->GetQueueSize() - 1;
 
 			// Now also prints a UI message for it.
 			const UnicodeString mismatchDetailsStr = TheGameText->FETCH_OR_SUBSTITUTE("GUI:CRCMismatchDetails", L"InGame:%8.8X Replay:%8.8X Frame:%d");
@@ -1070,7 +1032,7 @@ void RecorderClass::handleCRCMessage(UnsignedInt newCRC, Int playerIndex, Bool f
 				TheGameLogic->setGamePaused(pause, pauseMusic, pauseInput);
 
 				// Mark this mismatch as seen when we had the chance to pause once.
-				m_crcInfo->setSawCRCMismatch();
+				m_crcInfo.setSawCRCMismatch();
 			}
 		}
 		return;
@@ -1085,9 +1047,7 @@ void RecorderClass::handleCRCMessage(UnsignedInt newCRC, Int playerIndex, Bool f
 Bool RecorderClass::replayMatchesGameVersion(AsciiString filename)
 {
 	ReplayHeader header;
-	header.forPlayback = TRUE;
-	header.filename = filename;
-	if ( readReplayHeader( header ) )
+	if ( readReplayHeader( header, filename, TRUE ) )
 	{
 		return replayMatchesGameVersion( header );
 	}
@@ -1108,6 +1068,61 @@ Bool RecorderClass::replayMatchesGameVersion(const ReplayHeader& header)
 	return true;
 }
 
+static void showQueuedReplayLoadFailure()
+{
+	UnicodeString title = TheGameText->FETCH_OR_SUBSTITUTE("GUI:ReplayLoadFailedTitle", L"REPLAY CANNOT BE LOADED");
+	UnicodeString body = TheGameText->FETCH_OR_SUBSTITUTE("GUI:ReplayLoadFailed", L"The replay file could not be opened or is invalid.");
+
+	MessageBoxOk(title, body, nullptr);
+}
+
+static void showQueuedReplayMapNotFound()
+{
+	UnicodeString title = TheGameText->FETCH_OR_SUBSTITUTE("GUI:ReplayMapNotFoundTitle", L"MAP NOT FOUND");
+	UnicodeString body = TheGameText->FETCH_OR_SUBSTITUTE("GUI:ReplayMapNotFound", L"This replay cannot be loaded because the map was not found on this device.");
+
+	MessageBoxOk(title, body, nullptr);
+}
+
+/**
+ * Play the replay requested on startup, after the shell has been initialized
+ */
+void RecorderClass::loadQueuedReplay()
+{
+	const AsciiString filename = TheGlobalData->m_loadReplayGame;
+	TheWritableGlobalData->m_loadReplayGame.clear();
+
+	ReplayHeader header;
+	if (!readReplayHeader(header, filename, FALSE))
+	{
+		DEBUG_LOG(("Replay '%s' could not be read", filename.str()));
+		showQueuedReplayLoadFailure();
+		return;
+	}
+
+	// A replay whose map is missing starts a game that cannot load, so reject it here instead
+	ReplayGameInfo gameInfo;
+	if (!ParseAsciiStringToGameInfo(&gameInfo, header.gameOptions))
+	{
+		DEBUG_LOG(("Replay '%s' contains invalid game options", filename.str()));
+		showQueuedReplayLoadFailure();
+		return;
+	}
+
+	if (TheMapCache == nullptr || TheMapCache->findMap(gameInfo.getMap()) == nullptr)
+	{
+		DEBUG_LOG(("Replay '%s' requires unavailable map '%s'", filename.str(), gameInfo.getMap().str()));
+		showQueuedReplayMapNotFound();
+		return;
+	}
+
+	if (!playbackFile(filename))
+	{
+		DEBUG_LOG(("Failed to play replay '%s'", filename.str()));
+		showQueuedReplayLoadFailure();
+	}
+}
+
 /**
  * Start playback of the file. Return true or false depending on if the file is
  * a valid replay file or not.
@@ -1122,12 +1137,8 @@ Bool RecorderClass::playbackFile(AsciiString filename)
 		}
 	}
 
-	m_mode = RECORDERMODETYPE_PLAYBACK;
-
 	ReplayHeader header;
-	header.forPlayback = TRUE;
-	header.filename = filename;
-	Bool success = readReplayHeader( header );
+	Bool success = readReplayHeader( header, filename, TRUE );
 	if (!success)
 	{
 		return FALSE;
@@ -1181,8 +1192,6 @@ Bool RecorderClass::playbackFile(AsciiString filename)
 	DEBUG_ASSERTCRASH(!exeDifferent && !iniDifferent, (debugString.str()));
 #endif
 
-	TheWritableGlobalData->m_pendingFile = m_gameInfo.getMap();
-
 #ifdef DEBUG_LOGGING
 	if (header.localPlayerIndex >= 0)
 	{
@@ -1191,15 +1200,15 @@ Bool RecorderClass::playbackFile(AsciiString filename)
 	}
 #endif
 
-	Bool isMultiplayer = m_gameInfo.getSlot(header.localPlayerIndex)->getIP() != 0;
-	m_crcInfo = NEW CRCInfo(header.localPlayerIndex, isMultiplayer);
 	REPLAY_CRC_INTERVAL = m_gameInfo.getCRCInterval();
-	DEBUG_LOG(("Player index is %d, replay CRC interval is %d", m_crcInfo->getLocalPlayer(), REPLAY_CRC_INTERVAL));
 
 	Int difficulty = 0;
 	m_file->read(&difficulty, sizeof(difficulty));
 
 	m_file->read(&m_originalGameMode, sizeof(m_originalGameMode));
+
+	m_crcInfo = CRCInfo(header.localPlayerIndex);
+	DEBUG_LOG(("Player index is %d, replay CRC interval is %d", m_crcInfo.getLocalPlayer(), REPLAY_CRC_INTERVAL));
 
 	Int rankPoints = 0;
 	m_file->read(&rankPoints, sizeof(rankPoints));
@@ -1214,7 +1223,15 @@ Bool RecorderClass::playbackFile(AsciiString filename)
 	// Otherwise a crc message remains and messes up the crc calculation on the restarted replay.
 	TheCommandList->reset();
 
+	m_nextFrame = 0;
 	readNextFrame();
+	// readNextFrame() closes m_file via stopPlayback() if the first frame cannot be read.
+	if(m_file == nullptr)
+	{
+		return FALSE;
+	}
+
+	TheWritableGlobalData->m_pendingFile = m_gameInfo.getMap();
 
 	// send a message to the logic for a new game
 	if (!m_doingAnalysis)
@@ -1232,6 +1249,11 @@ Bool RecorderClass::playbackFile(AsciiString filename)
 		TheCommandList->appendMessage( msg );
 		InitRandom( m_gameInfo.getSeed() );
 	}
+
+	// TheSuperHackers @bugfix bobtista 25/07/2026 Enter playback mode only once the playback is ready.
+	// Previously a failed open left the recorder in playback mode with a NULL m_file, and the next
+	// update dereferenced it, for example when the replay is deleted during the version mismatch prompt.
+	m_mode = RECORDERMODETYPE_PLAYBACK;
 
 	m_currentReplayFilename = filename;
 	m_playbackFrameCount = header.frameCount;
@@ -1298,9 +1320,29 @@ AsciiString RecorderClass::readAsciiString() {
  * Read the frame number for the next command in the playback file. If the end of the file is reached, the playback
  * is stopped and the next frame is said to be -1.
  */
-void RecorderClass::readNextFrame() {
+void RecorderClass::readNextFrame()
+{
+	const UnsignedInt curFrame = m_nextFrame;
+
 	Int bytesRead = m_file->read(&m_nextFrame, sizeof(m_nextFrame));
-	if (bytesRead != sizeof(m_nextFrame)) {
+	if (bytesRead == sizeof(m_nextFrame))
+	{
+		// TheSuperHackers @bugfix Check whether the next frame value is within a reasonable range
+		// to avoid prolonging playback due to potentially corrupted data.
+		const bool isInValidRange = m_nextFrame >= curFrame && m_nextFrame < curFrame + 3600 * LOGICFRAMES_PER_SECOND;
+		if (!isInValidRange)
+		{
+			if (m_doingAnalysis)
+				return;
+
+			DEBUG_LOG(("RecorderClass::readNextFrame - current frame %d, next frame %d is in unexpected distance",
+				TheGameLogic->getFrame(), m_nextFrame));
+			m_nextFrame = -1;
+			stopPlayback();
+		}
+	}
+	else
+	{
 		DEBUG_LOG(("RecorderClass::readNextFrame - read failed on frame %d", TheGameLogic->getFrame()));
 		m_nextFrame = -1;
 		stopPlayback();
@@ -1425,7 +1467,7 @@ void RecorderClass::readArgument(GameMessageArgumentDataType type, GameMessage *
 #ifdef DEBUG_LOGGING
 			if (m_doingAnalysis)
 			{
-				DEBUG_LOG(("Real argument: %g (%8.8X)", thereal, *(int *)&thereal));
+				DEBUG_LOG(("Real argument: %g (%8.8X)", thereal, std::bit_cast<int>(thereal)));
 			}
 #endif
 			break;
@@ -1486,7 +1528,7 @@ void RecorderClass::readArgument(GameMessageArgumentDataType type, GameMessage *
 			if (m_doingAnalysis)
 			{
 				DEBUG_LOG(("Coord3D argument: %g %g %g (%8.8X %8.8X %8.8X)", loc.x, loc.y, loc.z,
-					*(int *)&loc.x, *(int *)&loc.y, *(int *)&loc.z));
+					std::bit_cast<int>(loc.x), std::bit_cast<int>(loc.y), std::bit_cast<int>(loc.z)));
 			}
 #endif
 			break;
@@ -1515,7 +1557,8 @@ void RecorderClass::readArgument(GameMessageArgumentDataType type, GameMessage *
 #endif
 			break;
 		}
-		case ARGUMENTDATATYPE_TIMESTAMP: {  // Not to be confused with Terrance Stamp... Kneel before Zod!!!
+		case ARGUMENTDATATYPE_TIMESTAMP: {
+			// Not to be confused with Terrance Stamp... Kneel before Zod!!!
 			UnsignedInt stamp;
 			m_file->read(&stamp, sizeof(stamp));
 			msg->appendTimestampArgument(stamp);
@@ -1558,9 +1601,10 @@ RecorderClass::CullBadCommandsResult RecorderClass::cullBadCommands() {
 
 	while (msg != nullptr) {
 		next = msg->next();
-		if ((msg->getType() > GameMessage::MSG_BEGIN_NETWORK_MESSAGES) &&
-				(msg->getType() < GameMessage::MSG_END_NETWORK_MESSAGES) &&
-				(msg->getType() != GameMessage::MSG_LOGIC_CRC)) {
+		if (msg->getType() > GameMessage::MSG_BEGIN_NETWORK_MESSAGES && msg->getType() < GameMessage::MSG_END_NETWORK_MESSAGES)
+		{
+			DEBUG_ASSERTCRASH(msg->getType() != GameMessage::MSG_LOGIC_CRC,
+				("Use MSG_LOGIC_CRC_PLAYBACK instead of MSG_LOGIC_CRC during replay playback"));
 
 			deleteInstance(msg);
 		}
@@ -1582,6 +1626,21 @@ AsciiString RecorderClass::getReplayDir()
 {
 	AsciiString tmp = TheGlobalData->getPath_UserData();
 	tmp.concat("Replays\\");
+	return tmp;
+}
+
+/**
+ * returns the path to open for a replay filename in the replay directory or an absolute replay path.
+ */
+AsciiString RecorderClass::getReplayPathForRead(const AsciiString& filenameOrPath)
+{
+	if (isAbsolutePath(filenameOrPath.str()))
+	{
+		return filenameOrPath;
+	}
+
+	AsciiString tmp = getReplayDir();
+	tmp.concat(filenameOrPath);
 	return tmp;
 }
 
@@ -1620,10 +1679,8 @@ AsciiString RecorderClass::getLastReplayFileName()
 			AsciiString players;
 			AsciiString full;
 			AsciiString fullPlusNum;
-			AsciiString mapName = game->getMap();
-			const char *fname = mapName.reverseFind('\\');
-			if (fname)
-				mapName = fname+1;
+			const AsciiString mapPath = game->getMap();
+			const char* mapName = getFileName(mapPath.str());
 			for (Int i=0; i<MAX_SLOTS; ++i)
 			{
 				GameSlot *slot = game->getSlot(i);
@@ -1634,7 +1691,7 @@ AsciiString RecorderClass::getLastReplayFileName()
 					players.concat(player);
 				}
 			}
-			full.format("%s%s_%d_%d", players.str(), mapName.str(), game->getSeed(), game->getLocalSlotNum());
+			full.format("%s%s_%d_%d", players.str(), mapName, game->getSeed(), game->getLocalSlotNum());
 			AsciiString testString;
 			testString.format("%s%s%s", getReplayDir().str(), full.str(), replayExtention);
 

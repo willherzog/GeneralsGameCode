@@ -30,8 +30,6 @@
  *                                                                                             *
  *                    $Revision:: 2                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
@@ -214,9 +212,9 @@ private:
 /*
 ** Prototype for Dist-LOD objects
 */
-class DistLODPrototypeClass : public W3DMPO, public PrototypeClass
+class DistLODPrototypeClass : public PrototypeClass
 {
-	W3DMPO_GLUE(DistLODPrototypeClass)
+	W3DMPO_CODE(DistLODPrototypeClass)
 public:
 	DistLODPrototypeClass( DistLODDefClass *def ) { Definition = def; }
 

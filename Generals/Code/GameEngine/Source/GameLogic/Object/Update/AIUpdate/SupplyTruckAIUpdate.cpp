@@ -53,6 +53,7 @@ static const char* statenames[] =
 	"ST_REGROUPING",			///< Wanting failed, so hang out at base until something changes.  Still on autopilot, but resting.
 	"ST_DOCKING"					///< Docking substates are running, wait for them to finish
 };
+static_assert(ARRAY_SIZE(statenames) == ST_COUNT, "Incorrect array size");
 #endif
 
 //-------------------------------------------------------------------------------------------------
@@ -160,7 +161,7 @@ Bool SupplyTruckAIUpdate::gainOneBox( Int remainingStock )
 		{
 			//figure out whether the best one is considerably far from the previous one (current position)
 			Coord3D delta = *getObject()->getPosition();
-			delta.sub( bestWarehouse->getPosition() );
+			delta.sub( *bestWarehouse->getPosition() );
 			if ( delta.length() > getWarehouseScanDistance()/4)
 			playDepleted = TRUE;
 		}

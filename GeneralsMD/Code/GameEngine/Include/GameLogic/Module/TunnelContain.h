@@ -66,7 +66,7 @@ public:
 		static const FieldParse dataFieldParse[] =
 		{
 			{ "TimeForFullHeal", INI::parseDurationReal, nullptr, offsetof( TunnelContainModuleData, m_framesForFullHeal ) },
-			{ 0, 0, 0, 0 }
+			{ nullptr, nullptr, nullptr, 0 }
 		};
     p.add(dataFieldParse);
 	}
@@ -97,13 +97,15 @@ public:
 	virtual void onContaining( Object *obj, Bool wasSelected ) override;		///< object now contains 'obj'
 	virtual void onRemoving( Object *obj ) override;			///< object no longer contains 'obj'
 	virtual void onSelling() override;///< Container is being sold.  Tunnel responds by kicking people out if this is the last tunnel.
+#if !(RTS_GENERALS && RETAIL_COMPATIBLE_CRC)
 	virtual void onCapture( Player *oldOwner, Player *newOwner ) override; // Need to change who we are registered with.
+#endif
 
 	virtual void orderAllPassengersToExit( CommandSourceType commandSource, Bool instantly ) override; ///< All of the smarts of exiting are in the passenger's AIExit. removeAllFrommContain is a last ditch system call, this is the game Evacuate
 	virtual void orderAllPassengersToIdle( CommandSourceType commandSource ) override; ///< Just like it sounds
 
 	virtual Bool isValidContainerFor(const Object* obj, Bool checkCapacity) const override;
-	virtual void addToContainList( Object *obj );		///< The part of AddToContain that inheritors can override (Can't do whole thing because of all the private stuff involved)
+	virtual void addToContainList( Object *obj ) override;		///< The part of AddToContain that inheritors can override (Can't do whole thing because of all the private stuff involved)
 	virtual void removeFromContain( Object *obj, Bool exposeStealthUnits = FALSE ) override;	///< remove 'obj' from contain list
 	virtual void removeAllContained( Bool exposeStealthUnits = FALSE ) override;				///< remove all objects on contain list
   virtual void harmAndForceExitAllContained( DamageInfo *info ) override;
@@ -115,6 +117,7 @@ public:
 	virtual UnsignedInt getHeroUnitsContained() const override;
 	virtual Int getContainMax() const override;
 	virtual const ContainedItemsList* getContainedItemsList() const override;
+	virtual Bool isContained( const Object *obj ) const override;
 	virtual UnsignedInt getFullTimeForHeal() const; ///< Returns the time in frames until a contained object becomes fully healed
 	virtual Bool isDisplayedOnControlBar() const override { return TRUE; } ///< Does this container display its contents on the ControlBar?
 	virtual Bool isKickOutOnCapture() override { return FALSE; }///< Caves and Tunnels don't kick out on capture.

@@ -30,8 +30,6 @@
  *                                                                                             *
  *                    $Revision:: 2                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 
@@ -40,7 +38,7 @@
 //
 
 #include "ExportAllDlg.h"
-#include <max.h>
+#include "max_sdk.h"
 #include <assert.h>
 #include <shlobj.h>	// SHBrowseForFolder
 
@@ -65,7 +63,7 @@ ExportAllDlg::ExportAllDlg (Interface *max_interface)
 /////////////////////////////////////////////////////////////////////////////
 // ExportAllDlg Methods
 
-int ExportAllDlg::DoModal (void)
+int ExportAllDlg::DoModal ()
 {
 	// Put up the dialog box.
 	BOOL result = DialogBoxParam(AppInstance, MAKEINTRESOURCE(IDD_EXPORT_ALL),
@@ -97,8 +95,6 @@ BOOL CALLBACK _thunk_dialog_proc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
 BOOL CALLBACK ExportAllDlg::DialogProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	int code = HIWORD(wParam);
-
 	switch (uMsg)
 	{
 
@@ -151,7 +147,7 @@ BOOL CALLBACK ExportAllDlg::DialogProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 /////////////////////////////////////////////////////////////////////////////
 // ExportAllDlg message handlers
 
-void ExportAllDlg::OnInitDialog (void)
+void ExportAllDlg::OnInitDialog ()
 {
 	CenterWindow(m_hWnd, m_MaxInterface->GetMAXHWnd());
 	SetCursor(LoadCursor(nullptr, IDC_ARROW));
@@ -192,7 +188,7 @@ void ExportAllDlg::OnBrowse()
 	}
 }
 
-BOOL ExportAllDlg::OnOK (void)
+BOOL ExportAllDlg::OnOK ()
 {
 	// Get the directory chosen by the user. If none is entered,
 	// freak on the user.

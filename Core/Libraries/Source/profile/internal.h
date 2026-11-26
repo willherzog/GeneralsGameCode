@@ -29,7 +29,7 @@
 
 #pragma once
 
-#include "../debug/debug.h"
+#include "debug/debug.h"
 #include "internal_funclevel.h"
 #include "internal_highlevel.h"
 #include "internal_cmd.h"
@@ -43,8 +43,8 @@
 
 class ProfileFastCS
 {
-  ProfileFastCS(const ProfileFastCS&) CPP_11(= delete);
-  ProfileFastCS& operator=(const ProfileFastCS&) CPP_11(= delete);
+  ProfileFastCS(const ProfileFastCS&) FUNCTION_DELETE;
+  ProfileFastCS& operator=(const ProfileFastCS&) FUNCTION_DELETE;
 
 	static HANDLE testEvent;
 
@@ -58,20 +58,24 @@ class ProfileFastCS
 		#define ts_lock _emit 0xF0
 		DASSERT(((unsigned)&nFlag % 4) == 0);
 
-		__asm mov ebx, [nFlag]
-		__asm ts_lock
-		__asm bts dword ptr [ebx], 0
-		__asm jc The_Bit_Was_Previously_Set_So_Try_Again
+		__asm {
+			mov ebx, [nFlag]
+			ts_lock
+			bts dword ptr [ebx], 0
+			jc The_Bit_Was_Previously_Set_So_Try_Again
+		}
 		return;
 
 	The_Bit_Was_Previously_Set_So_Try_Again:
     // can't use SwitchToThread() here because Win9X doesn't have it!
     if (testEvent)
 		  ::WaitForSingleObject(testEvent,1);
-		__asm mov ebx, [nFlag]
-		__asm ts_lock
-		__asm bts dword ptr [ebx], 0
-		__asm jc  The_Bit_Was_Previously_Set_So_Try_Again
+		__asm {
+			mov ebx, [nFlag]
+			ts_lock
+			bts dword ptr [ebx], 0
+			jc  The_Bit_Was_Previously_Set_So_Try_Again
+		}
 	}
 
 	void ThreadSafeClearFlag()
@@ -108,8 +112,8 @@ public:
 
 	class Lock
 	{
-    Lock(const Lock&) CPP_11(= delete);
-	Lock& operator=(const Lock&) CPP_11(= delete);
+    Lock(const Lock&) FUNCTION_DELETE;
+	Lock& operator=(const Lock&) FUNCTION_DELETE;
 
 		ProfileFastCS& CriticalSection;
 
@@ -136,7 +140,7 @@ void ProfileFreeMemory(void *ptr);
 __forceinline void ProfileGetTime(__int64 &t)
 {
 #if defined(_MSC_VER) && _MSC_VER < 1300
-  _asm
+  __asm
   {
     mov ecx,[t]
     push eax

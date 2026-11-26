@@ -30,14 +30,12 @@
  *                                                                                             *
  *                    $Revision:: 2                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
 
-#include "simplevec.h"
-#include "chunkio.h"
+#include "WWLib/simplevec.h"
+#include "WWLib/chunkio.h"
 
 
 // Forward declarations

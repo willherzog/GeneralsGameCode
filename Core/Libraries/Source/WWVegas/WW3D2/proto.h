@@ -30,15 +30,13 @@
  *                                                                                             *
  *                    $Revision:: 1                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
 
-#include "always.h"
+#include "WWLib/always.h"
 #include <stdlib.h>
-#include "w3d_file.h"
+#include "WW3D2/w3d_file.h"
 
 class RenderObjClass;
 class ChunkLoadClass;
@@ -102,9 +100,9 @@ private:
 	PrototypeClass & operator = (const PrototypeClass & that);
 };
 
-class PrimitivePrototypeClass : public W3DMPO, public PrototypeClass
+class PrimitivePrototypeClass : public PrototypeClass
 {
-	W3DMPO_GLUE(PrimitivePrototypeClass)
+	W3DMPO_CODE(PrimitivePrototypeClass)
 public:
 	PrimitivePrototypeClass(RenderObjClass * proto);
 

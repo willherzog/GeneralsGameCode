@@ -32,8 +32,6 @@
  *                                                                                             *
  *                    $Revision:: 11                                                          $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
@@ -79,18 +77,15 @@ public:
 };
 
 template <class T>
-class DLNodeClass : public W3DMPO
+class DLNodeClass
 {
-	// nope, this is an ABC
-	//W3DMPO_GLUE(DLNodeClass)
-
 	friend DLListClass<T>;
 	DLNodeClass<T>* succ;
 	DLNodeClass<T>* pred;
 	DLListClass<T>* list;
 public:
 	DLNodeClass() : succ(0), pred(0), list(0) {}
-	virtual ~DLNodeClass() override { Remove(); }
+	~DLNodeClass() { Remove(); }
 
 	void Insert_Before(DLNodeClass<T>* n)
 	{

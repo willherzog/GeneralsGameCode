@@ -30,13 +30,11 @@
  *                                                                                             *
  *                    $Revision:: 7                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
 
-#include "assetmgr.h"
+#include "WW3D2/assetmgr.h"
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -52,7 +50,7 @@ public:
 	//	Public constructors/destructors
 	///////////////////////////////////////////////////
 	ViewerAssetMgrClass () {}
-	virtual ~ViewerAssetMgrClass () {}
+	virtual ~ViewerAssetMgrClass () override {}
 
 	///////////////////////////////////////////////////
 	//	Public methods
@@ -61,7 +59,7 @@ public:
 	//
 	// Base class overrides
 	//
-	virtual bool						Load_3D_Assets (FileClass &w3dfile);
+	virtual bool						Load_3D_Assets (FileClass &w3dfile) override;
 	virtual TextureClass *			Get_Texture(const char * filename, MipCountType mip_level_count=MIP_LEVELS_ALL);
 
 	//

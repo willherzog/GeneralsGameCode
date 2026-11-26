@@ -30,31 +30,12 @@
  *                                                                                             *
  *                    $Revision:: 16                                                          $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
- *   obbtri_collision_separation_test -- test the projected extents for separation             *
- *   obbtri_check_collision_axis -- project the obb and tri onto an arbitrary axis             *
- *   obbtri_check_collision_cross_axis -- intersection check for a "cross-product" axis        *
- *   obbtri_check_collision_basis_axis -- intersection check for a basis axis                  *
- *   obbtri_check_collision_normal_axis -- intersection check for the triangle normal          *
- *   eval_side -- returns -1,0,+1 depending on the signe of val and side                       *
- *   obbtri_compute_contact_normal -- computes the normal of the collision                     *
- *   eval_A0_point -- contact point parameters for A0xEx                                       *
- *   eval_A1_point -- contact point parameters for A1xEx                                       *
- *   eval_A2_point -- contact point parameters for A2xEx                                       *
- *   obbtri_compute_contact_point -- compute the contact point                                 *
- *   CollisionMath::Collide -- collide an obbox into a triangle                                *
- *   obbtri_intersection_separation_test -- test the projected extents for intersection        *
- *   obbtri_check_intersection_cross_axis -- intersection check for a "cross-product" axis     *
- *   obbtri_check_intersection_basis_axis -- intersection check for a basis axis               *
- *   obbtri_check_intersection_normal_axis -- intersection check for the triangle normal       *
- *   CollisionMath::Intersection_Test -- Intersection check for an OBBox and a triangle        *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #include "colmath.h"
 #include "obbox.h"
 #include "tri.h"
-#include "wwdebug.h"
+#include "WWDebug/wwdebug.h"
 
 
 /*
@@ -205,22 +186,8 @@ private:
 
 
 
-/***********************************************************************************************
- * obbtri_collision_separation_test -- test the projected extents for separation               *
- *                                                                                             *
- * Once the extents are projected onto the axis, this function contains                        *
- * the logic that determines the allowed fraction.                                             *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- * true = objects are SEPARATED                                                                *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   4/8/99     GTH : Created.                                                                 *
- *=============================================================================================*/
+// Test the projected extents for separation. Once the extents are projected onto the axis, this
+// function contains the logic that determines the allowed fraction.
 static inline bool obbtri_collision_separation_test
 (
 	BTCollisionStruct & context,
@@ -274,22 +241,8 @@ static inline bool obbtri_collision_separation_test
 }
 
 
-/***********************************************************************************************
- * obbtri_check_collision_axis -- project the obb and tri onto an arbitrary axis               *
- *                                                                                             *
- * projects the box and the triangle onto the given axis and calls                             *
- * obbtri_separation_test.  return true if separation was detected                             *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- * true = objects are SEPARATED                                                                *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   4/8/99     GTH : Created.                                                                 *
- *=============================================================================================*/
+// Project the obb and tri onto an arbitrary axis and call obbtri_collision_separation_test. Returns
+// true if separation was detected.
 static inline bool obbtri_check_collision_axis(BTCollisionStruct & context)
 {
 	float		dist;						// separation along the axis
@@ -313,9 +266,9 @@ static inline bool obbtri_check_collision_axis(BTCollisionStruct & context)
 	}
 
 	// compute coordinates of the leading edge of the box at t0 and t1
-	leb0 =	context.Box.Extent.X * WWMath::Fabs(Vector3::Dot_Product(context.TestAxis,context.A[0])) +
-				context.Box.Extent.Y * WWMath::Fabs(Vector3::Dot_Product(context.TestAxis,context.A[1])) +
-				context.Box.Extent.Z * WWMath::Fabs(Vector3::Dot_Product(context.TestAxis,context.A[2]));
+	leb0 =	context.Box.Extent.X * WWMath::Fabsf_Legacy(Vector3::Dot_Product(context.TestAxis,context.A[0])) +
+				context.Box.Extent.Y * WWMath::Fabsf_Legacy(Vector3::Dot_Product(context.TestAxis,context.A[1])) +
+				context.Box.Extent.Z * WWMath::Fabsf_Legacy(Vector3::Dot_Product(context.TestAxis,context.A[2]));
 	leb1 = leb0 + axismove;
 
 	// compute coordinate of "leading edge of the triangle" relative to the box center.
@@ -328,23 +281,9 @@ static inline bool obbtri_check_collision_axis(BTCollisionStruct & context)
 }
 
 
-/***********************************************************************************************
- * obbtri_check_collision_cross_axis -- projects obb and tri onto a "cross" axis               *
- *                                                                                             *
- * Assumes that the axis given is one generated from a cross product of one of the edge and    *
- * basis vectors.  In this case, the box extent can be optimized and only two triangle verts   *
- * need to be checked.                                                                         *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- * true = objects are SEPARATED                                                                *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   4/8/99     GTH : Created.                                                                 *
- *=============================================================================================*/
+// Projects obb and tri onto a "cross" axis. Assumes that the axis given is one generated from a
+// cross product of one of the edge and basis vectors. In this case, the box extent can be optimized
+// and only two triangle verts need to be checked.
 static inline bool obbtri_check_collision_cross_axis
 (
 	BTCollisionStruct &	context,
@@ -384,23 +323,8 @@ static inline bool obbtri_check_collision_cross_axis
 }
 
 
-/***********************************************************************************************
- * obbtri_check_collision_basis_axis -- projects the obb and tri onto a basis axis             *
- *                                                                                             *
- * Projects the box and triangle onto an axis that is assumed to be a basis                    *
- * vector from the box.  In this case, we can skip a dot-product and use the                   *
- * corresponding extent of the box (which is passed in as leb0).                               *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- * true = objects are SEPARATED                                                                *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   4/8/99     GTH : Created.                                                                 *
- *=============================================================================================*/
+// Projects the obb and tri onto a basis axis from the box. In this case, we can skip a dot-product
+// and use the corresponding extent of the box (which is passed in as leb0).
 static inline bool obbtri_check_collision_basis_axis
 (
 	BTCollisionStruct & context,
@@ -442,22 +366,7 @@ static inline bool obbtri_check_collision_basis_axis
 }
 
 
-/***********************************************************************************************
- * obbtri_check_collision_normal_axis -- project the box and tri onto the tri-normal           *
- *                                                                                             *
- * Projects the box and triangle onto an axis that is assumed to be the normal                 *
- * vector from the triangle.  In this case, the triangle extents are zero.                     *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- * true = objects are SEPARATED                                                                *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   4/8/99     GTH : Created.                                                                 *
- *=============================================================================================*/
+// Project the box and tri onto the tri-normal. In this case, the triangle extents are zero.
 static inline bool obbtri_check_collision_normal_axis(BTCollisionStruct & context)
 {
 	float		dist;						// separation along the axis
@@ -479,9 +388,9 @@ static inline bool obbtri_check_collision_normal_axis(BTCollisionStruct & contex
 		context.TestSide = 1.0f;
 	}
 
-	leb0 =	context.Box.Extent.X * WWMath::Fabs(context.AN[0]) +
-				context.Box.Extent.Y * WWMath::Fabs(context.AN[1]) +
-				context.Box.Extent.Z * WWMath::Fabs(context.AN[2]);
+	leb0 =	context.Box.Extent.X * WWMath::Fabsf_Legacy(context.AN[0]) +
+				context.Box.Extent.Y * WWMath::Fabsf_Legacy(context.AN[1]) +
+				context.Box.Extent.Z * WWMath::Fabsf_Legacy(context.AN[2]);
 	leb1 = leb0 + axismove;
 	context.TestPoint = 0;
 	lp = dist;	// this is the "optimization", don't have to find lp
@@ -489,18 +398,7 @@ static inline bool obbtri_check_collision_normal_axis(BTCollisionStruct & contex
 	return obbtri_collision_separation_test(context,lp,leb0,leb1);
 }
 
-/***********************************************************************************************
- * eval_side -- returns -1,0,+1 depending on the sign of val and side                          *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   4/8/99     GTH : Created.                                                                 *
- *=============================================================================================*/
+// Returns -1,0,+1 depending on the sign of val and side.
 static inline float eval_side(float val,int side)
 {
 	if (val > 0.0f) {
@@ -512,18 +410,6 @@ static inline float eval_side(float val,int side)
 	}
 }
 
-/***********************************************************************************************
- * obbtri_compute_contact_normal -- computes the normal of the collision                       *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   4/8/99     GTH : Created.                                                                 *
- *=============================================================================================*/
 static inline void obbtri_compute_contact_normal
 (
 	const BTCollisionStruct &	context,
@@ -588,18 +474,7 @@ static inline void obbtri_compute_contact_normal
 }
 
 
-/***********************************************************************************************
- * eval_A0_point -- contact point parameters for A0xEx                                         *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   4/8/99     GTH : Created.                                                                 *
- *=============================================================================================*/
+// Contact point parameters for A0xEx.
 static inline void eval_A0_point(const BTCollisionStruct & context,float * x,int edge)
 {
 	float yval,den;
@@ -610,7 +485,7 @@ static inline void eval_A0_point(const BTCollisionStruct & context,float * x,int
 	if (context.Point == 0) { yval = 0.0f; } else { yval = 1.0f; }
 
 	den = Vector3::Dot_Product(context.N,context.AxE[0][edge]);
-	if (WWMath::Fabs(den) > 0.0f) {
+	if (WWMath::Fabsf_Legacy(den) > 0.0f) {
 
 		Vector3::Cross_Product(context.FinalD,context.E[edge],&DxE);
 		x[0] = Vector3::Dot_Product(context.N,DxE);
@@ -631,18 +506,7 @@ static inline void eval_A0_point(const BTCollisionStruct & context,float * x,int
 }
 
 
-/***********************************************************************************************
- * eval_A1_point -- contact point parameters for A1xEx                                         *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   4/8/99     GTH : Created.                                                                 *
- *=============================================================================================*/
+// Contact point parameters for A1xEx.
 static inline void eval_A1_point(const BTCollisionStruct & context,float * x,int edge)
 {
 	float yval,den;
@@ -653,7 +517,7 @@ static inline void eval_A1_point(const BTCollisionStruct & context,float * x,int
 	if (context.Point == 0) { yval = 0.0f; } else { yval = 1.0f; }
 
 	den = Vector3::Dot_Product(context.N,context.AxE[1][edge]);
-	if (WWMath::Fabs(den) > 0.0f) {
+	if (WWMath::Fabsf_Legacy(den) > 0.0f) {
 
 		Vector3::Cross_Product(context.FinalD,context.E[edge],&DxE);
 		x[1] = Vector3::Dot_Product(context.N,DxE);
@@ -673,18 +537,7 @@ static inline void eval_A1_point(const BTCollisionStruct & context,float * x,int
 	}
 }
 
-/***********************************************************************************************
- * eval_A2_point -- contact point parameters for A2xEx                                         *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   4/8/99     GTH : Created.                                                                 *
- *=============================================================================================*/
+// Contact point parameters for A2xEx.
 static inline void eval_A2_point(const BTCollisionStruct & context,float * x,int edge)
 {
 	float yval,den;
@@ -695,7 +548,7 @@ static inline void eval_A2_point(const BTCollisionStruct & context,float * x,int
 	if (context.Point == 0) { yval = 0.0f; } else { yval = 1.0f; }
 
 	den = Vector3::Dot_Product(context.N,context.AxE[2][edge]);
-	if (WWMath::Fabs(den) > 0.0f) {
+	if (WWMath::Fabsf_Legacy(den) > 0.0f) {
 
 		Vector3::Cross_Product(context.FinalD,context.E[edge],&DxE);
 		x[2] = Vector3::Dot_Product(context.N,DxE);
@@ -716,18 +569,6 @@ static inline void eval_A2_point(const BTCollisionStruct & context,float * x,int
 }
 
 
-/***********************************************************************************************
- * obbtri_compute_contact_point -- compute the contact point                                   *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   4/8/99     GTH : Created.                                                                 *
- *=============================================================================================*/
 static inline void obbtri_compute_contact_point
 (
 	BTCollisionStruct &	context,
@@ -867,18 +708,6 @@ static inline void obbtri_compute_contact_point
 
 
 
-/***********************************************************************************************
- * CollisionMath::Collide -- collide an obbox into a triangle                                  *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   4/8/99     GTH : Created.                                                                 *
- *=============================================================================================*/
 bool CollisionMath::Collide
 (
 	const OBBoxClass &		box,
@@ -937,7 +766,7 @@ bool CollisionMath::Collide
 	context.TestAxisId = AXIS_A0E0;
 	if (context.TestAxis.Length2() > AXISLEN_EPSILON2) {
 		dp = context.AN[0];
-		leb0 = box.Extent[1]*WWMath::Fabs(context.AE[2][0]) + box.Extent[2]*WWMath::Fabs(context.AE[1][0]);
+		leb0 = box.Extent[1]*WWMath::Fabsf_Legacy(context.AE[2][0]) + box.Extent[2]*WWMath::Fabsf_Legacy(context.AE[1][0]);
 		if (obbtri_check_collision_cross_axis(context,dp,2,leb0)) goto exit;
 	}
 
@@ -949,7 +778,7 @@ bool CollisionMath::Collide
 	context.TestAxisId = AXIS_A0E1;
 	if (context.TestAxis.Length2() > AXISLEN_EPSILON2) {
 		dp = -context.AN[0];
-		leb0 = box.Extent[1]*WWMath::Fabs(context.AE[2][1]) + box.Extent[2]*WWMath::Fabs(context.AE[1][1]);
+		leb0 = box.Extent[1]*WWMath::Fabsf_Legacy(context.AE[2][1]) + box.Extent[2]*WWMath::Fabsf_Legacy(context.AE[1][1]);
 		if (obbtri_check_collision_cross_axis(context,dp,1,leb0)) goto exit;
 	}
 
@@ -963,7 +792,7 @@ bool CollisionMath::Collide
 	context.AE[2][2] = Vector3::Dot_Product(context.A[2],context.E[2]);
 	if (context.TestAxis.Length2() > AXISLEN_EPSILON2) {
 		dp = -context.AN[0];
-		leb0 = box.Extent[1]*WWMath::Fabs(context.AE[2][2]) + box.Extent[2]*WWMath::Fabs(context.AE[1][2]);
+		leb0 = box.Extent[1]*WWMath::Fabsf_Legacy(context.AE[2][2]) + box.Extent[2]*WWMath::Fabsf_Legacy(context.AE[1][2]);
 		if (obbtri_check_collision_cross_axis(context,dp,1,leb0)) goto exit;
 	}
 
@@ -975,7 +804,7 @@ bool CollisionMath::Collide
 	context.TestAxisId = AXIS_A1E0;
 	if (context.TestAxis.Length2() > AXISLEN_EPSILON2) {
 		dp = context.AN[1];
-		leb0 = box.Extent[0]*WWMath::Fabs(context.AE[2][0]) + box.Extent[2]*WWMath::Fabs(context.AE[0][0]);
+		leb0 = box.Extent[0]*WWMath::Fabsf_Legacy(context.AE[2][0]) + box.Extent[2]*WWMath::Fabsf_Legacy(context.AE[0][0]);
 		if (obbtri_check_collision_cross_axis(context,dp,2,leb0)) goto exit;
 	}
 
@@ -987,7 +816,7 @@ bool CollisionMath::Collide
 	context.TestAxisId = AXIS_A1E1;
 	if (context.TestAxis.Length2() > AXISLEN_EPSILON2) {
 		dp = -context.AN[1];
-		leb0 = box.Extent[0]*WWMath::Fabs(context.AE[2][1]) + box.Extent[2]*WWMath::Fabs(context.AE[0][1]);
+		leb0 = box.Extent[0]*WWMath::Fabsf_Legacy(context.AE[2][1]) + box.Extent[2]*WWMath::Fabsf_Legacy(context.AE[0][1]);
 		if (obbtri_check_collision_cross_axis(context,dp,1,leb0)) goto exit;
 	}
 
@@ -1000,7 +829,7 @@ bool CollisionMath::Collide
 	context.AE[0][2] = Vector3::Dot_Product(context.A[0],context.E[2]);
 	if (context.TestAxis.Length2() > AXISLEN_EPSILON2) {
 		dp = -context.AN[1];
-		leb0 = box.Extent[0]*WWMath::Fabs(context.AE[2][2]) + box.Extent[2]*WWMath::Fabs(context.AE[0][2]);
+		leb0 = box.Extent[0]*WWMath::Fabsf_Legacy(context.AE[2][2]) + box.Extent[2]*WWMath::Fabsf_Legacy(context.AE[0][2]);
 		if (obbtri_check_collision_cross_axis(context,dp,1,leb0)) goto exit;
 	}
 
@@ -1012,7 +841,7 @@ bool CollisionMath::Collide
 	context.TestAxisId = AXIS_A2E0;
 	if (context.TestAxis.Length2() > AXISLEN_EPSILON2) {
 		dp = context.AN[2];
-		leb0 = box.Extent[0]*WWMath::Fabs(context.AE[1][0]) + box.Extent[1]*WWMath::Fabs(context.AE[0][0]);
+		leb0 = box.Extent[0]*WWMath::Fabsf_Legacy(context.AE[1][0]) + box.Extent[1]*WWMath::Fabsf_Legacy(context.AE[0][0]);
 		if (obbtri_check_collision_cross_axis(context,dp,2,leb0)) goto exit;
 	}
 
@@ -1024,7 +853,7 @@ bool CollisionMath::Collide
 	context.TestAxisId = AXIS_A2E1;
 	if (context.TestAxis.Length2() > AXISLEN_EPSILON2) {
 		dp = -context.AN[2];
-		leb0 = box.Extent[0]*WWMath::Fabs(context.AE[1][1]) + box.Extent[1]*WWMath::Fabs(context.AE[0][1]);
+		leb0 = box.Extent[0]*WWMath::Fabsf_Legacy(context.AE[1][1]) + box.Extent[1]*WWMath::Fabsf_Legacy(context.AE[0][1]);
 		if (obbtri_check_collision_cross_axis(context,dp,1,leb0)) goto exit;
 	}
 
@@ -1036,7 +865,7 @@ bool CollisionMath::Collide
 	context.TestAxisId = AXIS_A2E2;
 	if (context.TestAxis.Length2() > AXISLEN_EPSILON2) {
 		dp = -context.AN[2];
-		leb0 = box.Extent[0]*WWMath::Fabs(context.AE[1][2]) + box.Extent[1]*WWMath::Fabs(context.AE[0][2]);
+		leb0 = box.Extent[0]*WWMath::Fabsf_Legacy(context.AE[1][2]) + box.Extent[1]*WWMath::Fabsf_Legacy(context.AE[0][2]);
 		if (obbtri_check_collision_cross_axis(context,dp,1,leb0)) goto exit;
 	}
 
@@ -1098,7 +927,7 @@ exit:
 		Vector3 normal;
 		obbtri_compute_contact_normal(context,&normal);
 
-		if (	(WWMath::Fabs(context.MaxFrac - result->Fraction) > WWMATH_EPSILON) ||
+		if (	(WWMath::Fabsf_Legacy(context.MaxFrac - result->Fraction) > WWMATH_EPSILON) ||
 				(Vector3::Dot_Product(normal,move) < Vector3::Dot_Product(result->Normal,move)) )
 		{
 			result->Normal = normal; //obbtri_compute_contact_normal(context,result);
@@ -1176,25 +1005,8 @@ private:
 };
 
 
-/***********************************************************************************************
- * obbtri_intersection_separation_test -- test the projected extents for intersection          *
- *                                                                                             *
- * Once the extents are projected onto the axis, this function contains                        *
- * the logic that determines whether the box and triangle intersect.                           *
- *                                                                                             *
- * INPUT:                                                                                      *
- * context - the BTIntersectStruct containing the data for this intersection test              *
- * lp - the leading edge of the polygon projected onto the axis                                *
- * leb0 - the leading edge of the box projected onto the axis                                  *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- * true = objects are separated                                                                *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   2/3/2000   gth : Created.                                                                 *
- *=============================================================================================*/
+// Test the projected extents for intersection. Once the extents are projected onto the axis, this
+// function contains the logic that determines whether the box and triangle intersect.
 static inline bool obbtri_intersection_separation_test
 (
 	BTIntersectStruct &	context,
@@ -1216,21 +1028,8 @@ static inline bool obbtri_intersection_separation_test
 }
 
 
-/***********************************************************************************************
- * obbtri_check_intersection_cross_axis -- intersection check for a "cross-product" axis       *
- *                                                                                             *
- * axis being checked is a cross product between a triangle edge and a box basis vector        *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- * true = the objects are SEPARATED                                                            *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   5/4/99     GTH : Created.                                                                 *
- *=============================================================================================*/
+// Axis being checked is a cross product between a triangle edge and a box basis vector.
+// WARNING: True = the objects are SEPARATED.
 static inline bool obbtri_check_intersection_cross_axis
 (
 	BTIntersectStruct &	context,
@@ -1259,21 +1058,7 @@ static inline bool obbtri_check_intersection_cross_axis
 }
 
 
-/***********************************************************************************************
- * obbtri_check_intersection_basis_axis -- intersection check for a basis axis                 *
- *                                                                                             *
- * axis being checked is one of the basis vectors for the box                                  *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- * true = the objects are SEPARATED                                                            *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   5/4/99     GTH : Created.                                                                 *
- *=============================================================================================*/
+// Axis being checked is one of the basis vectors for the box.
 static inline bool obbtri_check_intersection_basis_axis
 (
 	BTIntersectStruct &	context,
@@ -1305,21 +1090,6 @@ static inline bool obbtri_check_intersection_basis_axis
 }
 
 
-/***********************************************************************************************
- * obbtri_check_intersection_normal_axis -- intersection check for the triangle normal         *
- *                                                                                             *
- * axis being checked is the triangle's normal                                                 *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- * true = the objects are SEPARATED                                                            *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   5/4/99     GTH : Created.                                                                 *
- *=============================================================================================*/
 static inline bool obbtri_check_intersection_normal_axis
 (
 	BTIntersectStruct &	context
@@ -1337,32 +1107,17 @@ static inline bool obbtri_check_intersection_normal_axis
 		dist = -dist;
 	}
 
-	leb0 =	context.Box.Extent.X * WWMath::Fabs(context.AN[0]) +
-				context.Box.Extent.Y * WWMath::Fabs(context.AN[1]) +
-				context.Box.Extent.Z * WWMath::Fabs(context.AN[2]);
+	leb0 =	context.Box.Extent.X * WWMath::Fabsf_Legacy(context.AN[0]) +
+				context.Box.Extent.Y * WWMath::Fabsf_Legacy(context.AN[1]) +
+				context.Box.Extent.Z * WWMath::Fabsf_Legacy(context.AN[2]);
 	lp = dist;	// this is the "optimization", don't have to find lp
 
 	return obbtri_intersection_separation_test(context,lp,leb0);
 }
 
 
-/***********************************************************************************************
- * CollisionMath::Intersection_Test -- Intersection check for an OBBox and a triangle          *
- *                                                                                             *
- * INPUT:                                                                                      *
- * box - obbox to be tested                                                                    *
- * tri - triangle to be tested                                                                 *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- * true = objects INTERSECT                                                                    *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- * note that the other inline functions are "quick-reject" functions which return true when    *
- * the objects are separated.                                                                  *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   5/4/99     GTH : Created.                                                                 *
- *=============================================================================================*/
+// WARNING: Note that the other inline functions are "quick-reject" functions which return true when
+// the objects are separated.
 bool CollisionMath::Intersection_Test(const OBBoxClass & box,const TriClass & tri)
 {
 	float dp,leb0;
@@ -1408,7 +1163,7 @@ bool CollisionMath::Intersection_Test(const OBBoxClass & box,const TriClass & tr
 	context.TestAxis = context.AxE[0][0];
 	if (context.TestAxis.Length2() > AXISLEN_EPSILON2) {
 		dp = context.AN[0];
-		leb0 = box.Extent[1]*WWMath::Fabs(context.AE[2][0]) + box.Extent[2]*WWMath::Fabs(context.AE[1][0]);
+		leb0 = box.Extent[1]*WWMath::Fabsf_Legacy(context.AE[2][0]) + box.Extent[2]*WWMath::Fabsf_Legacy(context.AE[1][0]);
 		if (obbtri_check_intersection_cross_axis(context,dp,leb0)) return false;
 	}
 
@@ -1419,7 +1174,7 @@ bool CollisionMath::Intersection_Test(const OBBoxClass & box,const TriClass & tr
 	context.TestAxis = context.AxE[0][1];
 	if (context.TestAxis.Length2() > AXISLEN_EPSILON2) {
 		dp = -context.AN[0];
-		leb0 = box.Extent[1]*WWMath::Fabs(context.AE[2][1]) + box.Extent[2]*WWMath::Fabs(context.AE[1][1]);
+		leb0 = box.Extent[1]*WWMath::Fabsf_Legacy(context.AE[2][1]) + box.Extent[2]*WWMath::Fabsf_Legacy(context.AE[1][1]);
 		if (obbtri_check_intersection_cross_axis(context,dp,leb0)) return false;
 	}
 
@@ -1432,7 +1187,7 @@ bool CollisionMath::Intersection_Test(const OBBoxClass & box,const TriClass & tr
 	context.AE[2][2] = Vector3::Dot_Product(context.A[2],context.E[2]);
 	if (context.TestAxis.Length2() > AXISLEN_EPSILON2) {
 		dp = -context.AN[0];
-		leb0 = box.Extent[1]*WWMath::Fabs(context.AE[2][2]) + box.Extent[2]*WWMath::Fabs(context.AE[1][2]);
+		leb0 = box.Extent[1]*WWMath::Fabsf_Legacy(context.AE[2][2]) + box.Extent[2]*WWMath::Fabsf_Legacy(context.AE[1][2]);
 		if (obbtri_check_intersection_cross_axis(context,dp,leb0)) return false;
 	}
 
@@ -1443,7 +1198,7 @@ bool CollisionMath::Intersection_Test(const OBBoxClass & box,const TriClass & tr
 	context.TestAxis = context.AxE[1][0];
 	if (context.TestAxis.Length2() > AXISLEN_EPSILON2) {
 		dp = context.AN[1];
-		leb0 = box.Extent[0]*WWMath::Fabs(context.AE[2][0]) + box.Extent[2]*WWMath::Fabs(context.AE[0][0]);
+		leb0 = box.Extent[0]*WWMath::Fabsf_Legacy(context.AE[2][0]) + box.Extent[2]*WWMath::Fabsf_Legacy(context.AE[0][0]);
 		if (obbtri_check_intersection_cross_axis(context,dp,leb0)) return false;
 	}
 
@@ -1454,7 +1209,7 @@ bool CollisionMath::Intersection_Test(const OBBoxClass & box,const TriClass & tr
 	context.TestAxis = context.AxE[1][1];
 	if (context.TestAxis.Length2() > AXISLEN_EPSILON2) {
 		dp = -context.AN[1];
-		leb0 = box.Extent[0]*WWMath::Fabs(context.AE[2][1]) + box.Extent[2]*WWMath::Fabs(context.AE[0][1]);
+		leb0 = box.Extent[0]*WWMath::Fabsf_Legacy(context.AE[2][1]) + box.Extent[2]*WWMath::Fabsf_Legacy(context.AE[0][1]);
 		if (obbtri_check_intersection_cross_axis(context,dp,leb0)) return false;
 	}
 
@@ -1466,7 +1221,7 @@ bool CollisionMath::Intersection_Test(const OBBoxClass & box,const TriClass & tr
 	context.AE[0][2] = Vector3::Dot_Product(context.A[0],context.E[2]);
 	if (context.TestAxis.Length2() > AXISLEN_EPSILON2) {
 		dp = -context.AN[1];
-		leb0 = box.Extent[0]*WWMath::Fabs(context.AE[2][2]) + box.Extent[2]*WWMath::Fabs(context.AE[0][2]);
+		leb0 = box.Extent[0]*WWMath::Fabsf_Legacy(context.AE[2][2]) + box.Extent[2]*WWMath::Fabsf_Legacy(context.AE[0][2]);
 		if (obbtri_check_intersection_cross_axis(context,dp,leb0)) return false;
 	}
 
@@ -1477,7 +1232,7 @@ bool CollisionMath::Intersection_Test(const OBBoxClass & box,const TriClass & tr
 	context.TestAxis = context.AxE[2][0];
 	if (context.TestAxis.Length2() > AXISLEN_EPSILON2) {
 		dp = context.AN[2];
-		leb0 = box.Extent[0]*WWMath::Fabs(context.AE[1][0]) + box.Extent[1]*WWMath::Fabs(context.AE[0][0]);
+		leb0 = box.Extent[0]*WWMath::Fabsf_Legacy(context.AE[1][0]) + box.Extent[1]*WWMath::Fabsf_Legacy(context.AE[0][0]);
 		if (obbtri_check_intersection_cross_axis(context,dp,leb0)) return false;
 	}
 
@@ -1488,7 +1243,7 @@ bool CollisionMath::Intersection_Test(const OBBoxClass & box,const TriClass & tr
 	context.TestAxis = context.AxE[2][1];
 	if (context.TestAxis.Length2() > AXISLEN_EPSILON2) {
 		dp = -context.AN[2];
-		leb0 = box.Extent[0]*WWMath::Fabs(context.AE[1][1]) + box.Extent[1]*WWMath::Fabs(context.AE[0][1]);
+		leb0 = box.Extent[0]*WWMath::Fabsf_Legacy(context.AE[1][1]) + box.Extent[1]*WWMath::Fabsf_Legacy(context.AE[0][1]);
 		if (obbtri_check_intersection_cross_axis(context,dp,leb0)) return false;
 	}
 
@@ -1499,7 +1254,7 @@ bool CollisionMath::Intersection_Test(const OBBoxClass & box,const TriClass & tr
 	context.TestAxis = context.AxE[2][2];
 	if (context.TestAxis.Length2() > AXISLEN_EPSILON2) {
 		dp = -context.AN[2];
-		leb0 = box.Extent[0]*WWMath::Fabs(context.AE[1][2]) + box.Extent[1]*WWMath::Fabs(context.AE[0][2]);
+		leb0 = box.Extent[0]*WWMath::Fabsf_Legacy(context.AE[1][2]) + box.Extent[1]*WWMath::Fabsf_Legacy(context.AE[0][2]);
 		if (obbtri_check_intersection_cross_axis(context,dp,leb0)) return false;
 	}
 

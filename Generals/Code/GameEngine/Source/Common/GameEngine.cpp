@@ -100,7 +100,6 @@
 #include "GameClient/GUICallbacks.h"
 
 #include "GameNetwork/NetworkInterface.h"
-#include "GameNetwork/WOLBrowser/WebBrowser.h"
 #include "GameNetwork/LANAPI.h"
 #include "GameNetwork/GameSpy/GameResultsThread.h"
 #include "GameNetwork/GameSpy/PeerDefs.h"
@@ -170,10 +169,6 @@ void initSubsystem(
 }
 
 //-------------------------------------------------------------------------------------------------
-extern HINSTANCE ApplicationHInstance;  ///< our application instance
-extern CComModule _Module;
-
-//-------------------------------------------------------------------------------------------------
 static void updateTGAtoDDS();
 
 //-------------------------------------------------------------------------------------------------
@@ -203,11 +198,10 @@ static void updateWindowTitle()
 	}
 
 #if RTS_GENERALS
-	const WideChar* defaultGameTitle = L"Command and Conquer Generals";
+	UnicodeString gameTitle = TheGameText->FETCH_OR_SUBSTITUTE("GUI:Command&ConquerGenerals", L"Command and Conquer Generals");
 #elif RTS_ZEROHOUR
-	const WideChar* defaultGameTitle = L"Command and Conquer Generals Zero Hour";
+	UnicodeString gameTitle = TheGameText->FETCH_OR_SUBSTITUTE("GUI:Command&ConquerGenerals", L"Command and Conquer Generals Zero Hour");
 #endif
-	UnicodeString gameTitle = TheGameText->FETCH_OR_SUBSTITUTE("GUI:Command&ConquerGenerals", defaultGameTitle);
 
 	if (!gameTitle.isEmpty())
 	{
@@ -252,8 +246,6 @@ GameEngine::GameEngine()
 	m_logicTimeAccumulator = 0.0f;
 	m_quitting = FALSE;
 	m_isActive = FALSE;
-
-	_Module.Init(nullptr, ApplicationHInstance, nullptr);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -278,6 +270,9 @@ GameEngine::~GameEngine()
 	delete TheSubsystemList;
 	TheSubsystemList = nullptr;
 
+	delete TheSkirmishGameInfo;
+	TheSkirmishGameInfo = nullptr;
+
 	delete TheNetwork;
 	TheNetwork = nullptr;
 
@@ -291,8 +286,6 @@ GameEngine::~GameEngine()
 	TheFileSystem = nullptr;
 
 	Drawable::killStaticImages();
-
-	_Module.Term();
 
 #ifdef PERF_TIMERS
 	PerfGather::termPerfDump();
@@ -441,8 +434,6 @@ void GameEngine::init()
 		initSubsystem(TheGlobalLanguageData,"TheGlobalLanguageData",MSGNEW("GameEngineSubsystem") GlobalLanguage, nullptr); // must be before the game text
 		TheGlobalLanguageData->parseCustomDefinition();
 		initSubsystem(TheAudio,"TheAudio", createAudioManager(TheGlobalData->m_headless), nullptr);
-		if (!TheAudio->isMusicAlreadyLoaded())
-			setQuitting(TRUE);
 
 #if RTS_ZEROHOUR && RETAIL_COMPATIBLE_CRC
 		TheNameKeyGenerator->syncNameKeyID();
@@ -490,11 +481,14 @@ void GameEngine::init()
 		ini.loadFileDirectory("Data\\INI\\CommandMapDebug", INI_LOAD_MULTIFILE, nullptr);
 #endif
 
+#if defined(_ALLOW_DEBUG_CHEATS_IN_RELEASE)
+		ini.loadFileDirectory("Data\\INI\\CommandMapDemo", INI_LOAD_MULTIFILE, nullptr, INI::LoadFlags_SearchSubDirs); // Added in Zero Hour
+#endif
+
 		TheMetaMap->generateMetaMap();
 		TheMetaMap->verifyMetaMap();
 
 		initSubsystem(TheActionManager,"TheActionManager", MSGNEW("GameEngineSubsystem") ActionManager(), nullptr);
-		//initSubsystem((CComObject<WebBrowser> *)TheWebBrowser,"(CComObject<WebBrowser> *)TheWebBrowser", (CComObject<WebBrowser> *)createWebBrowser(), nullptr);
 		initSubsystem(TheGameStateMap,"TheGameStateMap", MSGNEW("GameEngineSubsystem") GameStateMap, nullptr );
 		initSubsystem(TheGameState,"TheGameState", MSGNEW("GameEngineSubsystem") GameState, nullptr );
 
@@ -577,9 +571,6 @@ void GameEngine::init()
 			}
 		}
 
-		if(!TheGlobalData->m_playIntro)
-			TheWritableGlobalData->m_afterIntro = TRUE;
-
 	}
 	catch (ErrorCode ec)
 	{
@@ -600,9 +591,6 @@ void GameEngine::init()
 	{
 		RELEASE_CRASH(("Uncaught Exception during initialization."));
 	}
-
-	if(!TheGlobalData->m_playIntro)
-		TheWritableGlobalData->m_afterIntro = TRUE;
 
 	resetSubsystems();
 
@@ -651,9 +639,9 @@ void GameEngine::resetSubsystems()
 }
 
 /// -----------------------------------------------------------------------------------------------
-Bool GameEngine::canUpdateGameLogic()
+Bool GameEngine::canUpdateGameLogic(UnsignedInt logicTimeQueryFlags)
 {
-	// Must be first.
+	// This updates the paused game status of the game logic.
 	TheGameLogic->preUpdate();
 
 	TheFramePacer->setTimeFrozen(isTimeFrozen());
@@ -665,7 +653,7 @@ Bool GameEngine::canUpdateGameLogic()
 	}
 	else
 	{
-		return canUpdateRegularGameLogic();
+		return canUpdateRegularGameLogic(logicTimeQueryFlags);
 	}
 }
 
@@ -686,11 +674,16 @@ Bool GameEngine::canUpdateNetworkGameLogic()
 }
 
 /// -----------------------------------------------------------------------------------------------
-Bool GameEngine::canUpdateRegularGameLogic()
+Bool GameEngine::canUpdateRegularGameLogic(UnsignedInt logicTimeQueryFlags)
 {
-	const Bool enabled = TheFramePacer->isLogicTimeScaleEnabled();
-	const Int logicTimeScaleFps = TheFramePacer->getLogicTimeScaleFps();
-	const Int maxRenderFps = TheFramePacer->getFramesPerSecondLimit();
+	const Int logicTimeScaleFps = TheFramePacer->getActualLogicTimeScaleFps(logicTimeQueryFlags);
+
+	if (logicTimeScaleFps <= 0)
+	{
+		return false;
+	}
+
+	const Int maxRenderFps = TheFramePacer->getActualFramesPerSecondLimit();
 
 #if defined(_ALLOW_DEBUG_CHEATS_IN_RELEASE)
 	const Bool useFastMode = TheGlobalData->m_TiVOFastMode;
@@ -698,7 +691,7 @@ Bool GameEngine::canUpdateRegularGameLogic()
 	const Bool useFastMode = TheGlobalData->m_TiVOFastMode && TheGameLogic->isInReplayGame();
 #endif
 
-	if (useFastMode || !enabled || logicTimeScaleFps >= maxRenderFps)
+	if (useFastMode || logicTimeScaleFps >= maxRenderFps)
 	{
 		// Logic time scale is uncapped or larger equal Render FPS. Update straight away.
 		return true;
@@ -748,20 +741,15 @@ void GameEngine::update()
 			}
 		}
 
-		const Bool canUpdate = canUpdateGameLogic();
-		const Bool canUpdateLogic = canUpdate && !TheFramePacer->isGameHalted() && !TheFramePacer->isTimeFrozen();
-		const Bool canUpdateScript = canUpdate && !TheFramePacer->isGameHalted();
-
-		if (canUpdateLogic)
+		// TheSuperHackers @info Ignores frozen time because the script engine needs updating in the logic update regardless.
+		if (canUpdateGameLogic(FramePacer::IgnoreFrozenTime))
 		{
-			TheGameClient->step();
 			TheGameLogic->UPDATE();
-		}
-		else if (canUpdateScript)
-		{
-			// TheSuperHackers @info Still update the Script Engine to allow
-			// for scripted camera movements while the time is frozen.
-			TheScriptEngine->UPDATE();
+
+			if (!TheFramePacer->isTimeFrozen())
+			{
+				TheGameClient->step();
+			}
 		}
 	}
 }
@@ -892,7 +880,8 @@ exit the app.
 void GameEngine::checkAbnormalQuitting()
 {
 	if (TheRecorder->isMultiplayer() && TheGameLogic->isInInternetGame())
-	{	//Should not be quitting at this time, record it as a cheat.
+	{
+		//Should not be quitting at this time, record it as a cheat.
 
 		Int localID = TheGameSpyInfo->getLocalProfileID();
 		PSPlayerStats stats = TheGameSpyPSMessageQueue->findPlayerStatsByID(localID);

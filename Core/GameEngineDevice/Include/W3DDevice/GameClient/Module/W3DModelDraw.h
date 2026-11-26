@@ -135,7 +135,7 @@ struct PristineBoneInfo
 	Int boneIndex;
 };
 //typedef std::hash_map< NameKeyType, PristineBoneInfo, rts::hash<NameKeyType>, rts::equal_to<NameKeyType> > PristineBoneInfoMap;
-typedef std::map< NameKeyType, PristineBoneInfo, std::less<NameKeyType> > PristineBoneInfoMap;
+typedef std::map< NameKeyType, PristineBoneInfo, std::less<NameKeyType>/**/> PristineBoneInfoMap;
 
 //-------------------------------------------------------------------------------------------------
 
@@ -268,7 +268,7 @@ typedef std::vector<ModelConditionInfo> ModelConditionVector;
 
 //-------------------------------------------------------------------------------------------------
 //typedef std::hash_map< TransitionSig, ModelConditionInfo, std::hash<TransitionSig>, std::equal_to<TransitionSig> > TransitionMap;
-typedef std::map< TransitionSig, ModelConditionInfo, std::less<TransitionSig> > TransitionMap;
+typedef std::map< TransitionSig, ModelConditionInfo, std::less<TransitionSig>/**/> TransitionMap;
 
 //-------------------------------------------------------------------------------------------------
 // this is more efficient and also helps solve a projectile-launch-offset problem for double-upgraded
@@ -357,7 +357,7 @@ public:
 	virtual void allocateShadows() override; ///< create shadow resources if not already present. Used by Options screen.
 
 #if defined(RTS_DEBUG)
-	virtual void getRenderCost(RenderCost & rc) const;  ///< estimates the render cost of this draw module
+	virtual void getRenderCost(RenderCost & rc) const override;  ///< estimates the render cost of this draw module
 	void getRenderCostRecursive(RenderCost & rc,RenderObjClass * robj) const;
 #endif
 
@@ -408,7 +408,7 @@ public:
 	virtual void setPauseAnimation(Bool pauseAnim) override;
 
 	//Kris: Manually set a drawable's current animation to specific frame.
-	virtual void setAnimationFrame( int frame );
+	virtual void setAnimationFrame( int frame ) override;
 
 	virtual void updateSubObjects() override;
 	virtual void showSubObject( const AsciiString& name, Bool show ) override;

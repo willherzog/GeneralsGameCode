@@ -469,8 +469,19 @@ UpdateSleepTime TransportContain::update()
 {
 	const TransportContainModuleData *moduleData = getTransportContainModuleData();
 
-	if( m_payloadCreated == FALSE )
+	if (m_payloadCreated == FALSE)
+	{
+#if RETAIL_COMPATIBLE_CRC
 		createPayload();
+#else
+		// TheSuperHackers @bugfix Caball009 25/05/2026 Don't create payload
+		// for destroyed object to avoid leaving the payload in an invalid state.
+		if (!getObject()->isDestroyed())
+		{
+			createPayload();
+		}
+#endif
+	}
 
 	if( moduleData && moduleData->m_healthRegen )
 	{
@@ -580,7 +591,7 @@ Bool TransportContain::isSpecificRiderFreeToExit(Object* specificObject)
 		return FALSE;
 
 	const Locomotor *hisLocomotor = specificObject->getAIUpdateInterface()->getCurLocomotor();
-	if( hisLocomotor == FALSE )
+	if( hisLocomotor == nullptr )
    	return FALSE;
 
   // He can't get to this spot naturally, so I can't force him there.  (amphib transport)
@@ -653,7 +664,13 @@ void TransportContain::onCapture( Player *oldOwner, Player *newOwner )
 		else
 		{
 			//Use standard
+#if RETAIL_COMPATIBLE_CRC
 			orderAllPassengersToExit( CMD_FROM_AI, FALSE );
+#else
+      // TheSuperHackers @bugfix Stubbjax 20/11/2025 Only eject passengers if the new owner is not allied with the old owner.
+			if (oldOwner->getRelationship(newOwner->getDefaultTeam()) != ALLIES)
+				orderAllPassengersToExit(CMD_FROM_AI, FALSE);
+#endif
 		}
 	}
 }

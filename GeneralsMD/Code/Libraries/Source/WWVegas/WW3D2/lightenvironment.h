@@ -33,14 +33,12 @@
  *                    $Revision:: 5                                                           $*
  *                                                                                             *
  * 06/27/02 KM Shader system light environment updates                                       *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
 
-#include "always.h"
-#include "vector3.h"
+#include "WWLib/always.h"
+#include "WWMath/vector3.h"
 
 
 class Matrix3D;

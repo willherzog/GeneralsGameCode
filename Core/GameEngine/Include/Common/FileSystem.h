@@ -53,7 +53,7 @@
 
 #include <Utility/hash_map_adapter.h>
 
-#include "mutex.h"
+#include "WWLib/mutex.h"
 
 //----------------------------------------------------------------------------
 //           Forward References
@@ -63,7 +63,15 @@
 //           Type Defines
 //----------------------------------------------------------------------------
 
-typedef std::set<AsciiString, rts::less_than_nocase<AsciiString> > FilenameList;
+// Orders file names case insensitive.
+// TheSuperHackers @tweak Also orders file names path separator insensitive,
+// so that the kind and number of path separators make no difference.
+struct FilenameLess
+{
+	bool operator()(const AsciiString& a, const AsciiString& b) const;
+};
+
+typedef std::set<AsciiString, FilenameLess> FilenameList;
 typedef FilenameList::iterator FilenameListIter;
 typedef UnsignedByte FileInstance;
 
@@ -109,6 +117,14 @@ typedef UnsignedByte FileInstance;
 
 struct FileInfo {
 
+	FileInfo()
+		: sizeHigh(0)
+		, sizeLow(0)
+		, timestampHigh(0)
+		, timestampLow(0)
+	{
+	}
+
 	Int64 size() const { return (Int64)sizeHigh << 32 | sizeLow; }
 	Int64 timestamp() const { return (Int64)timestampHigh << 32 | timestampLow; }
 
@@ -134,6 +150,8 @@ struct FileInfo {
 // TheSuperHackers @bugfix xezon 26/10/2025 Adds a mutex to the file exist map to try prevent
 // application hangs during level load after the file exist map was corrupted because of writes
 // from multiple threads.
+//
+// TheSuperHackers @feature Mauller 24/04/2026 Add extension removal functions
 //===============================
 class FileSystem : public SubsystemInterface
 {
@@ -158,6 +176,22 @@ public:
 	static AsciiString normalizePath(const AsciiString& path);	///< normalizes a file path. The path can refer to a directory. File path must be absolute, but does not need to exist. Returns an empty string on failure.
 	static Bool isPathInDirectory(const AsciiString& testPath, const AsciiString& basePath);	///< determines if a file path is within a base path. Both paths must be absolute, but do not need to exist.
 
+	static bool removeExtension(AsciiString& path);
+	static bool removeExtension(UnicodeString& path);
+
+	/// Appends the native separator to nonempty paths unless either separator is already at the end.
+	/// Existing separators are not converted.
+	static void ensureTrailingPathSeparatorInPath(AsciiString& path);
+
+	/// Writes the key form of a path: lowercase ascii with every run of separators as one backslash,
+	/// except that on Windows the separator pair at the start of a UNC or device path stays a pair.
+	/// Two paths refer to the same game file exactly when their keys are equal.
+	/// Returns FALSE and writes an empty key if the key does not fit.
+	static Bool makePathKey(Char* key, size_t keySize, const Char* path);
+
+	/// Compares the key forms of two paths like strcmp, without building them.
+	static Int comparePath(const Char* a, const Char* b);
+
 protected:
 #if ENABLE_FILESYSTEM_EXISTENCE_CACHE
 	struct FileExistData
@@ -168,8 +202,8 @@ protected:
 	};
 	typedef std::hash_map<
 		rts::string_key<AsciiString>, FileExistData,
-		rts::string_key_hash<AsciiString>,
-		rts::string_key_equal<AsciiString> > FileExistMap;
+		rts::string_key_hash,
+		rts::string_key_equal> FileExistMap;
 
 	mutable FileExistMap m_fileExist;
 	mutable FastCriticalSectionClass m_fileExistMutex;
@@ -183,3 +217,8 @@ extern FileSystem*	TheFileSystem;
 //----------------------------------------------------------------------------
 //           Inlining
 //----------------------------------------------------------------------------
+
+inline bool FilenameLess::operator()(const AsciiString& a, const AsciiString& b) const
+{
+	return FileSystem::comparePath(a.str(), b.str()) < 0;
+}

@@ -49,13 +49,13 @@
 #include "W3DDevice/GameClient/FlatHeightMap.h"
 
 #include <stdlib.h>
-#include <assetmgr.h>
-#include <texture.h>
-#include <tri.h>
-#include <colmath.h>
-#include <coltest.h>
-#include <rinfo.h>
-#include <camera.h>
+#include <WW3D2/assetmgr.h>
+#include <WW3D2/texture.h>
+#include <WWMath/tri.h>
+#include <WWMath/colmath.h>
+#include <WW3D2/coltest.h>
+#include <WW3D2/rinfo.h>
+#include <WW3D2/camera.h>
 #include <d3dx8core.h>
 #include "Common/GlobalData.h"
 #include "Common/PerfTimer.h"
@@ -76,13 +76,13 @@
 #include "W3DDevice/GameClient/W3DRoadBuffer.h"
 #include "W3DDevice/GameClient/W3DBridgeBuffer.h"
 #include "W3DDevice/GameClient/W3DWaypointBuffer.h"
-#include "W3DDevice/GameClient/W3DCustomEdging.h"
 #include "W3DDevice/GameClient/WorldHeightMap.h"
 #include "W3DDevice/GameClient/W3DShaderManager.h"
 #include "W3DDevice/GameClient/W3DShadow.h"
 #include "W3DDevice/GameClient/W3DWater.h"
 #include "W3DDevice/GameClient/W3DShroud.h"
 #include "WW3D2/dx8wrapper.h"
+#include "WW3D2/Renderer.h"
 #include "WW3D2/light.h"
 #include "WW3D2/scene.h"
 #include "W3DDevice/GameClient/W3DPoly.h"
@@ -107,7 +107,6 @@ static ShaderClass detailOpaqueShader(SC_DETAIL_BLEND);
 #define DEFAULT_MAX_MAP_SHORELINE_TILES		4096	//default size of array allocated to hold all map shoreline tiles.
 
 #define ADJUST_FROM_INDEX_TO_REAL(k) ((k-m_map->getBorderSizeInline())*MAP_XY_FACTOR)
-inline Int IABS(Int x) {	if (x>=0) return x; return -x;};
 
 const Int CELLS_PER_TILE = 16; // In order to be efficient in texture, needs to be a power of 2. [3/24/2003]
 
@@ -180,6 +179,7 @@ void FlatHeightMapRenderObjClass::adjustTerrainLOD(Int adj)
 //=============================================================================
 void FlatHeightMapRenderObjClass::ReleaseResources()
 {
+	releaseTiles();
 	BaseHeightMapRenderObjClass::ReleaseResources();
 }
 
@@ -243,7 +243,10 @@ void FlatHeightMapRenderObjClass::oversizeTerrain(Int tilesToOversize)
 	// Not needed with flat version. [3/20/2003]
 }
 
-
+void FlatHeightMapRenderObjClass::setTerrainDrawSize(Int width, Int height)
+{
+	// Not needed with flat version.
+}
 
 //=============================================================================
 // HeightMapRenderObjClass::doPartialUpdate
@@ -405,13 +408,13 @@ rendered portion of the terrain.  Only a 96x96 section is rendered at any time,
 even though maps can be up to 1024x1024.  This function determines which subset
 is rendered. */
 //=============================================================================
-void FlatHeightMapRenderObjClass::updateCenter(CameraClass *camera , RefRenderObjListIterator *pLightsIterator)
+void FlatHeightMapRenderObjClass::updateCenter(CameraClass *camera, const Vector3 *cameraPivot, RefRenderObjListIterator *pLightsIterator)
 {
 #ifdef DO_UNIT_TIMINGS
 #pragma MESSAGE("*** WARNING *** DOING DO_UNIT_TIMINGS!!!!")
 	return;
 #endif
-	BaseHeightMapRenderObjClass::updateCenter(camera, pLightsIterator);
+	BaseHeightMapRenderObjClass::updateCenter(camera, cameraPivot, pLightsIterator);
 	m_needFullUpdate = false;
 	Int i, j;
 	Int culled = 0;
@@ -466,7 +469,6 @@ void FlatHeightMapRenderObjClass::Render(RenderInfoClass & rinfo)
 		W3DShaderManager::updateCloud();
 	}
 
-	Matrix3D tm(Transform);
 	// If there are trees, tell them to draw at the transparent time to draw.
 	if (m_treeBuffer) {
 		m_treeBuffer->setIsTerrain();
@@ -484,7 +486,7 @@ void FlatHeightMapRenderObjClass::Render(RenderInfoClass & rinfo)
 	}
 #endif
 
-	DX8Wrapper::Set_Light_Environment(rinfo.light_environment);
+	Renderer::Set_Light_Environment(rinfo.light_environment);
 
 	// Force shaders to update.
 	m_stageTwoTexture->restore();
@@ -492,8 +494,7 @@ void FlatHeightMapRenderObjClass::Render(RenderInfoClass & rinfo)
 	DX8Wrapper::Set_Texture(1,nullptr);
 	ShaderClass::Invalidate();
 
-	//	tm.Scale(ObjSpaceExtent);
-	DX8Wrapper::Set_Transform(D3DTS_WORLD,tm);
+	Renderer::Set_Transform(RenderTransform_World,Transform);
 
 
 	DX8Wrapper::Set_Material(m_vertexMaterialClass);
@@ -507,12 +508,14 @@ void FlatHeightMapRenderObjClass::Render(RenderInfoClass & rinfo)
  	}
  	else
  	if (TheGlobalData->m_useLightMap)
- 	{	//lightmap only
+ 	{
+ 		//lightmap only
  		st=W3DShaderManager::ST_FLAT_TERRAIN_BASE_NOISE2;
  	}
  	else
  	if (doCloud)
- 	{	//cloudmap only
+ 	{
+ 		//cloudmap only
  		st=W3DShaderManager::ST_FLAT_TERRAIN_BASE_NOISE1;
  	}
 
@@ -535,7 +538,7 @@ void FlatHeightMapRenderObjClass::Render(RenderInfoClass & rinfo)
  	W3DShaderManager::setTexture(2,m_stageTwoTexture);	//cloud
  	W3DShaderManager::setTexture(3,m_stageThreeTexture);//noise
 	//Disable writes to destination alpha channel (if there is one)
-	if (DX8Wrapper::getBackBufferFormat() == WW3D_FORMAT_A8R8G8B8) {
+	if (Renderer::Get_Back_Buffer_Format() == WW3D_FORMAT_A8R8G8B8) {
 		DX8Wrapper::Set_DX8_Render_State(D3DRS_COLORWRITEENABLE,D3DCOLORWRITEENABLE_BLUE|D3DCOLORWRITEENABLE_GREEN|D3DCOLORWRITEENABLE_RED);
 	}
 
@@ -603,16 +606,12 @@ void FlatHeightMapRenderObjClass::Render(RenderInfoClass & rinfo)
 	}
 #endif
 
-#ifdef DO_SCORCH
 	DX8Wrapper::Set_Texture(0,nullptr);
 	DX8Wrapper::Set_Texture(1,nullptr);
 	m_stageTwoTexture->restore();
 
-	ShaderClass::Invalidate();
-	if (!ShaderClass::Is_Backface_Culling_Inverted()) {
-		drawScorches();
-	}
-#endif
+	drawScorches();
+
 	DX8Wrapper::Set_Texture(0,nullptr);
 	DX8Wrapper::Set_Texture(1,nullptr);
 	m_stageTwoTexture->restore();

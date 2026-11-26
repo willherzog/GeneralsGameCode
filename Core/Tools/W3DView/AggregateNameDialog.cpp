@@ -26,15 +26,13 @@
  *                                                                                             *
  *                    $Revision:: 3                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 
 #include "StdAfx.h"
 #include "W3DView.h"
 #include "AggregateNameDialog.h"
-#include "w3d_file.h"
+#include "WW3D2/w3d_file.h"
 
 
 #ifdef RTS_DEBUG

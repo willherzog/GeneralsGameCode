@@ -153,12 +153,12 @@ public:
 	virtual ProductionID requestUniqueUnitID() = 0;
 
 	virtual Bool queueUpgrade( const UpgradeTemplate *upgrade ) = 0;
-	virtual void cancelUpgrade( const UpgradeTemplate *upgrade ) = 0;
+	virtual Bool cancelUpgrade( const UpgradeTemplate *upgrade ) = 0;
 	virtual Bool isUpgradeInQueue( const UpgradeTemplate *upgrade ) const = 0;
 	virtual UnsignedInt countUnitTypeInQueue( const ThingTemplate *unitType ) const = 0;
 
 	virtual Bool queueCreateUnit( const ThingTemplate *unitType, ProductionID productionID ) = 0;
-	virtual void cancelUnitCreate( ProductionID productionID ) = 0;
+	virtual Bool cancelUnitCreate( ProductionID productionID ) = 0;
 	virtual void cancelAllUnitsOfType( const ThingTemplate *unitType) = 0;
 
 	virtual void cancelAndRefundAllProduction() = 0;
@@ -169,6 +169,11 @@ public:
 	virtual const ProductionEntry *nextProduction( const ProductionEntry *p ) const = 0;
 
 	virtual void setHoldDoorOpen(ExitDoorType exitDoor, Bool holdIt) = 0;
+
+	//These functions keep track of the special power construction of a new building via a special power instead of standard production interface.
+	//This was added for the sneak attack building functionality.
+	virtual const CommandButton* getSpecialPowerConstructionCommandButton() const = 0;
+	virtual void setSpecialPowerConstructionCommandButton( const CommandButton *commandButton ) = 0;
 
 };
 
@@ -204,12 +209,12 @@ public:
 	virtual ProductionID requestUniqueUnitID() override { ProductionID tmp = m_uniqueID; m_uniqueID = (ProductionID)(m_uniqueID+1); return tmp; }
 
 	virtual Bool queueUpgrade( const UpgradeTemplate *upgrade ) override;				///< queue upgrade "research"
-	virtual void cancelUpgrade( const UpgradeTemplate *upgrade ) override;				///< cancel upgrade "research"
+	virtual Bool cancelUpgrade( const UpgradeTemplate *upgrade ) override;				///< cancel upgrade "research"
 	virtual Bool isUpgradeInQueue( const UpgradeTemplate *upgrade ) const override;		///< is the upgrade in our production queue already
 	virtual UnsignedInt countUnitTypeInQueue( const ThingTemplate *unitType ) const override;  ///< count number of units with matching unit type in the production queue
 
 	virtual Bool queueCreateUnit( const ThingTemplate *unitType, ProductionID productionID ) override;					///< queue unit to be produced
-	virtual void cancelUnitCreate( ProductionID productionID ) override;		      ///< cancel construction of unit with matching production ID
+	virtual Bool cancelUnitCreate( ProductionID productionID ) override;		      ///< cancel construction of unit with matching production ID
 	virtual void cancelAllUnitsOfType( const ThingTemplate *unitType) override;	///< cancel all production of type unitType
 
 	virtual void cancelAndRefundAllProduction() override;									///< cancel and refund anything in the production queue
@@ -224,14 +229,21 @@ public:
 
 	virtual UpdateSleepTime update() override;					///< the update
 
+	//These functions keep track of the special power construction of a new building via a special power instead of standard production interface.
+	//This was added for the sneak attack building functionality.
+	virtual const CommandButton* getSpecialPowerConstructionCommandButton() const override { return m_specialPowerConstructionCommandButton; }
+	virtual void setSpecialPowerConstructionCommandButton( const CommandButton *commandButton ) override { m_specialPowerConstructionCommandButton = commandButton; }
+
 	// DieModuleInterface
 	virtual void onDie( const DamageInfo *damageInfo ) override;
 
 protected:
 
-
 	void addToProductionQueue( ProductionEntry *production );				///< add to *END* of production queue list
 	void removeFromProductionQueue( ProductionEntry *production );	///< remove production from the queue list
+
+	Bool cancelUpgrade( ProductionEntry *production );
+	Bool cancelUnitCreate( ProductionEntry *production );
 
 	void updateDoors();														///< update the door behavior
 
@@ -243,6 +255,7 @@ protected:
 		Bool				m_holdOpen;															///< if T, don't allow door to close
 	};
 
+	const CommandButton *m_specialPowerConstructionCommandButton; ///< In a mode to construct a specific building via a special power. (NO NEED TO SAVE DATA ON THIS FIELD)
 	ProductionEntry*		m_productionQueue;							///< queue of things we want to build
 	ProductionEntry*		m_productionQueueTail;					///< tail pointer for m_productionQueue
 	ProductionID				m_uniqueID;											///< unique ID counter for producing units

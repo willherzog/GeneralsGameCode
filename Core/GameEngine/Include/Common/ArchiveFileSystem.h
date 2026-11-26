@@ -126,10 +126,7 @@ public:
 	ArchiveFileSystem();
 	virtual ~ArchiveFileSystem() override;
 
-	virtual void init() = 0;
-	virtual void update() = 0;
-	virtual void reset() = 0;
-	virtual void postProcessLoad() = 0;
+	virtual void postProcessLoad() override = 0;
 
 	// ArchiveFile operations
 	virtual ArchiveFile*	openArchiveFile( const Char *filename ) = 0;		///< Create new or return existing Archive file from file name
@@ -144,12 +141,9 @@ public:
 	void					getFileListInDirectory(const AsciiString& currentDirectory, const AsciiString& originalDirectory, const AsciiString& searchName, FilenameList &filenameList, Bool searchSubdirectories) const; ///< search the given directory for files matching the searchName (egs. *.ini, *.rep).  Possibly search subdirectories.  Scans each Archive file.
 	Bool					getFileInfo(const AsciiString& filename, FileInfo *fileInfo, FileInstance instance = 0) const; ///< see FileSystem.h
 
-	virtual Bool	loadBigFilesFromDirectory(AsciiString dir, AsciiString fileMask, Bool overwrite = FALSE) = 0;
+	virtual Bool	loadArchiveFilesFromDirectory(AsciiString dir, AsciiString fileMask, Bool overwrite = FALSE) = 0;
 
-	// Unprotected this for copy-protection routines
-	ArchiveFile* getArchiveFile(const AsciiString& filename, FileInstance instance = 0) const;
-
-	void loadMods();
+	virtual void loadMods() = 0;
 
 	ArchivedDirectoryInfo* friend_getArchivedDirectoryInfo(const Char* directory);
 
@@ -163,6 +157,7 @@ protected:
 		AsciiString lastToken; ///< Synonymous for file name if the search directory was a file path
 	};
 
+	ArchiveFile* getArchiveFile(const AsciiString& filename, FileInstance instance = 0) const;
 	ArchivedDirectoryInfoResult getArchivedDirectoryInfo(const Char* directory);
 
 	virtual void loadIntoDirectoryTree(ArchiveFile *archiveFile, Bool overwrite = FALSE);	///< load the archive file's header information and apply it to the global archive directory tree.

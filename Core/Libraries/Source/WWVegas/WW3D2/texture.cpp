@@ -34,9 +34,6 @@
  *                                                                                             *
  * 06/27/02 KM Texture class abstraction																			*
  * 08/05/02 KM Texture class redesign (revisited)
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
- *   FileListTextureClass::Load_Frame_Surface -- Load source texture                           *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #include "texture.h"
@@ -44,19 +41,19 @@
 #include <d3d8.h>
 #include <d3dx8core.h>
 #include "dx8wrapper.h"
-#include "TARGA.h"
-#include <nstrdup.h>
+#include "WWLib/TARGA.h"
+#include <WWLib/nstrdup.h>
 #include "w3d_file.h"
 #include "assetmgr.h"
 #include "formconv.h"
 #include "textureloader.h"
 #include "missingtexture.h"
-#include "ffactory.h"
+#include "WWLib/ffactory.h"
 #include "dx8caps.h"
 #include "dx8texman.h"
 #include "meshmatdesc.h"
 #include "texturethumbnail.h"
-#include "wwprofile.h"
+#include "WWDebug/wwprofile.h"
 
 const unsigned DEFAULT_INACTIVATION_TIME=20000;
 
@@ -971,7 +968,7 @@ void TextureClass::Apply(unsigned int stage)
 //! Get surface from mip level
 /*!
 */
-SurfaceClass *TextureClass::Get_Surface_Level(unsigned int level)
+SurfaceClass *TextureClass::Get_Surface_Level(unsigned int level) const
 {
 	if (!Peek_D3D_Texture())
 	{

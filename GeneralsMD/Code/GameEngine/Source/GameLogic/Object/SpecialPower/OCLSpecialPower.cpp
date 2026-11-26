@@ -148,7 +148,7 @@ OCLSpecialPower::~OCLSpecialPower()
 //-------------------------------------------------------------------------------------------------
 void OCLSpecialPower::doSpecialPowerAtLocation( const Coord3D *loc, Real angle, UnsignedInt commandOptions )
 {
-	if (getObject()->isDisabled())
+	if (!canDoSpecialPower())
 		return;
 
 	// sanity
@@ -166,7 +166,8 @@ void OCLSpecialPower::doSpecialPowerAtLocation( const Coord3D *loc, Real angle, 
 		fpOptions.flags = FPF_CLEAR_CELLS_ONLY;
 		fpOptions.maxRadius = MAX_ADJUST_RADIUS;
 		if ( ! ThePartitionManager->findPositionAround(&targetCoord, &fpOptions, &targetCoord) )
-    { // if findPosition() fails, then don't monkey with target Coord!
+    {
+    	// if findPosition() fails, then don't monkey with target Coord!
     	targetCoord = *loc;
     }
 
@@ -177,7 +178,8 @@ void OCLSpecialPower::doSpecialPowerAtLocation( const Coord3D *loc, Real angle, 
 	SpecialPowerModule::doSpecialPowerAtLocation( &targetCoord, angle, commandOptions );
 
 #if RETAIL_COMPATIBLE_CRC
-	// TheSuperHackers @info we need to leave early if we are in the MissileLauncherBuildingUpdate crash fix codepath
+	// TheSuperHackers @info Leave early when an update module refused the launch
+	// and marked this power with an invalid ready frame.
 	if (m_availableOnFrame == 0xFFFFFFFF)
 		return;
 #endif
@@ -207,7 +209,7 @@ void OCLSpecialPower::doSpecialPowerAtLocation( const Coord3D *loc, Real angle, 
 			ObjectCreationList::create( ocl, getObject(), &creationCoord, &targetCoord, angle );
 			break;
 		case USE_OWNER_OBJECT:
-			creationCoord.set( &targetCoord );
+			creationCoord.set( targetCoord );
 			ObjectCreationList::create( ocl, getObject(), &creationCoord, &targetCoord, angle, false );
 			break;
 		case CREATE_ABOVE_LOCATION:
@@ -235,14 +237,21 @@ void OCLSpecialPower::doSpecialPowerAtObject( Object *obj, UnsignedInt commandOp
 // ------------------------------------------------------------------------------------------------
 void OCLSpecialPower::doSpecialPower( UnsignedInt commandOptions )
 {
-	if (getObject()->isDisabled())
+	if (!canDoSpecialPower())
 		return;
 
 	Coord3D creationCoord;
-	creationCoord.set( getObject()->getPosition() );
+	creationCoord.set( *getObject()->getPosition() );
 
 	// call the base class action cause we are *EXTENDING* functionality
 	SpecialPowerModule::doSpecialPowerAtLocation( &creationCoord, INVALID_ANGLE, commandOptions );
+
+#if RETAIL_COMPATIBLE_CRC
+	// TheSuperHackers @info Leave early when an update module refused the launch
+	// and marked this power with an invalid ready frame.
+	if (m_availableOnFrame == 0xFFFFFFFF)
+		return;
+#endif
 
 	const ObjectCreationList* ocl = findOCL();
 	ObjectCreationList::create( ocl, getObject(), &creationCoord, &creationCoord, false );

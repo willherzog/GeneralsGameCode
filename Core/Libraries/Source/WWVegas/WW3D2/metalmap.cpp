@@ -33,48 +33,24 @@
  *                    $Revision:: 4                                                           $*
  *                                                                                             *
  * 08/05/02 KM Texture class redesign
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
- *   MMMC::MetalMapManagerClass -- Create metal map manager according to given metal parameters*
- *   MMMC::MetalMapManagerClass -- Create metal map manager from INI                           *
- *   MMMC::~MetalMapManagerClass -- MetalMapManagerClass destructor                            *
- *   MMMC::Get_Metal_Map -- Get the texture for a metal map by id number                       *
- *   MMMC::Metal_Map_Count -- Get the number of metal maps in the manager                      *
- *   MMMC::Update_Lighting -- Update the lighting parameters used for generating the maps      *
- *   MMMC::Update_Textures -- Update  metal map textures (call once/frame before rendering)    *
- *   MMMC::initialize_normal_table -- Utility function to initialize the normal table          *
- *   MMMC::initialize_metal_params -- Utility function (shared CTor code)                      *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #include "metalmap.h"
 #include "texture.h"
 #include "ww3dformat.h"
 #include "ww3d.h"
-#include <vp.h>
-#include <INI.h>
-#include <Point.h>
-#include <hashtemplate.h>
-#include <wwstring.h>
-#include <wwmath.h>
+#include <WWMath/vp.h>
+#include <WWLib/INI.h>
+#include <WWLib/Point.h>
+#include <WWLib/hashtemplate.h>
+#include <WWLib/wwstring.h>
+#include <WWMath/wwmath.h>
 
 /*
 ** Class static members:
 */
 Vector3 * MetalMapManagerClass::_NormalTable = nullptr;
 
-/***********************************************************************************************
- * MMMC::MetalMapManagerClass -- Create metal map manager from INI                             *
- *                                                                                             *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   11/23/1999 NH : Created.                                                                  *
- *=============================================================================================*/
 MetalMapManagerClass::MetalMapManagerClass(INIClass &ini) :
 	MapCount(0),
 	Textures(nullptr),
@@ -154,19 +130,6 @@ MetalMapManagerClass::MetalMapManagerClass(INIClass &ini) :
 }
 
 
-/***********************************************************************************************
- * MMMC::~MetalMapManagerClass -- MetalMapManagerClass destructor                              *
- *                                                                                             *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   11/19/1999 NH : Created.                                                                  *
- *=============================================================================================*/
 MetalMapManagerClass::~MetalMapManagerClass()
 {
 	if (Textures) {
@@ -182,19 +145,6 @@ MetalMapManagerClass::~MetalMapManagerClass()
 }
 
 
-/***********************************************************************************************
- * MMMC::Get_Metal_Map -- Get the texture for a metal map by id number                         *
- *                                                                                             *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   11/19/1999 NH : Created.                                                                  *
- *=============================================================================================*/
 TextureClass * MetalMapManagerClass::Get_Metal_Map(int id)
 {
 	if (id < 0 || id >= MapCount) return nullptr;
@@ -203,38 +153,12 @@ TextureClass * MetalMapManagerClass::Get_Metal_Map(int id)
 }
 
 
-/***********************************************************************************************
- * MMMC::Metal_Map_Count -- Get the number of metal maps in the manager                        *
- *                                                                                             *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   11/19/1999 NH : Created.                                                                  *
- *=============================================================================================*/
 int MetalMapManagerClass::Metal_Map_Count()
 {
 	return MapCount;
 }
 
 
-/***********************************************************************************************
- * MMMC::Update_Lighting -- Update the lighting parameters used for generating the maps        *
- *                                                                                             *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   11/19/1999 NH : Created.                                                                  *
- *=============================================================================================*/
 void MetalMapManagerClass::Update_Lighting(const Vector3& ambient, const Vector3& main_light_color,
 	const Vector3& main_light_dir, const Vector3& camera_dir)
 {
@@ -244,19 +168,7 @@ void MetalMapManagerClass::Update_Lighting(const Vector3& ambient, const Vector3
 	CurrentCameraDir= camera_dir;
 }
 
-/***********************************************************************************************
- * MMMC::Update_Textures -- Update  metal map textures (call once/frame before rendering)      *
- *                                                                                             *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   11/19/1999 NH : Created.                                                                  *
- *=============================================================================================*/
+// Call once per frame before rendering.
 void MetalMapManagerClass::Update_Textures()
 {
 	// Currently the lighting is done using a simple Phong (actually Blinn) model.
@@ -316,9 +228,9 @@ void MetalMapManagerClass::Update_Textures()
 				result.Update_Min(white);	// Clamp to white
 
 				unsigned char b,g,r,a;
-				b= (unsigned char)WWMath::Floor(result.Z * 255.99f);	// B
-				g= (unsigned char)WWMath::Floor(result.Y * 255.99f);	// G
-				r= (unsigned char)WWMath::Floor(result.X * 255.99f);	// R
+				b= (unsigned char)WWMath::Floorf(result.Z * 255.99f);	// B
+				g= (unsigned char)WWMath::Floorf(result.Y * 255.99f);	// G
+				r= (unsigned char)WWMath::Floorf(result.X * 255.99f);	// R
 				a= 0xFF;													// A
 
 				if (Use16Bit) {
@@ -343,19 +255,6 @@ void MetalMapManagerClass::Update_Textures()
 	}
 }
 
-/***********************************************************************************************
- * MMMC::initialize_normal_table -- Utility function to initialize the normal table            *
- *                                                                                             *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   11/19/1999 NH : Created.                                                                  *
- *=============================================================================================*/
 void MetalMapManagerClass::initialize_normal_table()
 {
 	// NOTE: changing the actual static _NormalTable member must be the last thing this function
@@ -385,19 +284,7 @@ void MetalMapManagerClass::initialize_normal_table()
 
 }
 
-/***********************************************************************************************
- * MMMC::initialize_metal_params -- Utility function (shared CTor code)                        *
- *                                                                                             *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   11/23/1999 NH : Created.                                                                  *
- *=============================================================================================*/
+// Shared constructor code.
 void MetalMapManagerClass::initialize_metal_params(int map_count, MetalParams *metal_params)
 {
 	MapCount = map_count;

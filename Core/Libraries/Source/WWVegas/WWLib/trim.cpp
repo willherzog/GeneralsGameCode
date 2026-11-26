@@ -30,8 +30,6 @@
  *                                                                                             *
  *                    $Revision:: 4                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #include	"always.h"
@@ -41,21 +39,7 @@
 #include	<wctype.h>
 #endif // _UNIX
 
-/***********************************************************************************************
- * strtrim -- Trim leading and trailing white space off of string.                             *
- *                                                                                             *
- *    This routine will remove the leading and trailing whitespace from the string specified.  *
- *    The string is modified in place.                                                         *
- *                                                                                             *
- * INPUT:   buffer   -- Pointer to the string to be trimmed.                                   *
- *                                                                                             *
- * OUTPUT:  none                                                                               *
- *                                                                                             *
- * WARNINGS:   none                                                                            *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   02/06/1997 JLB : Created.                                                                 *
- *=============================================================================================*/
+// The string is modified in place.
 char* strtrim(char* buffer)
 {
 	if (buffer) {
@@ -85,11 +69,11 @@ char* strtrim(char* buffer)
 }
 
 
-wchar_t* wcstrim(wchar_t* buffer)
+unichar* wcstrim(unichar* buffer)
 {
 	if (buffer) {
 		/* Strip leading white space from the string. */
-		wchar_t* source = buffer;
+		unichar* source = buffer;
 
 		while ((*source != 0) && ((unsigned int)*source <= 32)) {
 			++source;
@@ -97,7 +81,7 @@ wchar_t* wcstrim(wchar_t* buffer)
 
 		if (source != buffer) {
 			// TheSuperHackers @fix Mauller 04/04/2025 Replace wcscpy with safer memmove as memory regions can overlap when part of string is copied to itself
-			memmove(buffer, source, (wcslen(source) + 1) * sizeof(wchar_t));
+			memmove(buffer, source, (wcslen(source) + 1) * sizeof(unichar));
 		}
 
 		/* Clip trailing white space from the string. */

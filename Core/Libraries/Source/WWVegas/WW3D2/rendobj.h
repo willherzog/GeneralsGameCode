@@ -34,18 +34,15 @@
  *                                                                                             *
  * 06/27/02 KM Shader system classid addition                                       *
  * 07/01/02 KM Coltype enum change to avoid MAX conflicts									   *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
 
-#include "always.h"
-#include "sphere.h"
+#include "WWLib/always.h"
+#include "WWMath/sphere.h"
 #include "coltype.h"
-#include "aabox.h"
-#include "persist.h"
-#include "multilist.h"
+#include "WWMath/aabox.h"
+#include "WWLib/multilist.h"
 #include "robjlist.h"
 #include <float.h>
 
@@ -148,7 +145,7 @@ private:
 };
 
 // RenderObjClass definition
-class RenderObjClass : public RefCountClass , public PersistClass, public MultiListObjectClass
+class RenderObjClass : public RefCountClass , public MultiListObjectClass
 {
 public:
 
@@ -482,13 +479,6 @@ public:
 	void								Unset_Is_Self_Shadowed()													{ Bits&=~IS_SELF_SHADOWED; }
 	int								Is_Self_Shadowed() const													{ return (Bits&IS_SELF_SHADOWED); }
 
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// Persistent object save-load interface
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	virtual const PersistFactoryClass &	Get_Factory () const override;
-	virtual bool					Save (ChunkSaveClass &csave) override;
-	virtual bool					Load (ChunkLoadClass &cload) override;
-
 	// Application-specific render hook:
 	RenderHookClass *				Get_Render_Hook() { return RenderHook; }
 	void								Set_Render_Hook(RenderHookClass *hook) { if (RenderHook) delete RenderHook; RenderHook = hook; }
@@ -561,18 +551,7 @@ WWINLINE const AABoxClass & RenderObjClass::Get_Bounding_Box() const
 	return CachedBoundingBox;
 }
 
-/**************************************************************************
- * Bound_Degrees -- Bounds a degree value between 0 and 360.              *
- *                                                                        *
- * INPUT:                                                                 *
- *                                                                        *
- * OUTPUT:                                                                *
- *                                                                        *
- * WARNINGS:                                                              *
- *                                                                        *
- * HISTORY:                                                               *
- *   09/22/1997 PWG : Created.                                            *
- *========================================================================*/
+// Bounds a degree value between 0 and 360.
 WWINLINE float Bound_Degrees(float angle)
 {
 	while (angle > 359) angle -= 360;
@@ -580,21 +559,8 @@ WWINLINE float Bound_Degrees(float angle)
 	return angle;
 }
 
-/***********************************************************************************************
- * RenderObjClass::Get_Transform -- returns the transform for the object                       *
- *                                                                                             *
- * If the transform is invalid (a container has been moved or animated) then the transform     *
- * will be recalculated.                                                                       *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   2/25/99    GTH : Created.                                                                 *
- *=============================================================================================*/
+// If the transform is invalid (a container has been moved or animated) then the transform will be
+// recalculated.
 WWINLINE const Matrix3D & RenderObjClass::Get_Transform() const
 {
 	Validate_Transform();

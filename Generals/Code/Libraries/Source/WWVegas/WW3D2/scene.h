@@ -30,22 +30,18 @@
  *                                                                                             *
  *                    $Revision:: 10                                                          $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
 
-#include "always.h"
-#include "vector3.h"
-#include "robjlist.h"
-#include "wwdebug.h"
+#include "WWLib/always.h"
+#include "WWMath/vector3.h"
+#include "WW3D2/robjlist.h"
+#include "WWDebug/wwdebug.h"
 
 class	RenderObjClass;
 class	RenderInfoClass;
 class CameraClass;
-class ChunkLoadClass;
-class ChunkSaveClass;
 
 /*
 ** SceneIterator
@@ -169,13 +165,6 @@ public:
 	virtual float				Compute_Point_Visibility(	RenderInfoClass & rinfo,
 																		const Vector3 & point)	{ return 1.0f; }
 
-
-	///////////////////////////////////////////////////////////////////////////////////
-	//	Save-Load, records the fog, depth cue, etc settings into a chunk
-	///////////////////////////////////////////////////////////////////////////////////
-	virtual void				Save(ChunkSaveClass & csave);
-	virtual void				Load(ChunkLoadClass & cload);
-
 protected:
 	virtual void	Render(RenderInfoClass & rinfo);	//Made virtual so we can override -MW
 
@@ -220,7 +209,7 @@ public:
 	SimpleSceneClass();
 	virtual ~SimpleSceneClass() override;
 
-	virtual int	Get_Scene_ID()	{	return SCENE_ID_SIMPLE;	}
+	virtual int	Get_Scene_ID() const override {	return SCENE_ID_SIMPLE;	}
 
 	virtual void Add_Render_Object(RenderObjClass * obj) override;
 	virtual void Remove_Render_Object(RenderObjClass * obj) override;

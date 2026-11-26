@@ -30,19 +30,6 @@
  *                                                                                             *
  *                    $Revision:: 6                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
- *   WindowsVersionInfo::Major -- Get the major version of the OS							   *
- *   WindowsVersionInfo::Minor -- Get the minor version of the OS							   *
- *   WindowsVersionInfo::Build -- Get the build level of the OS								   *
- *   WindowsVersionInfo::Info -- Get additional system information							   *
- *   WindowsVersionInfo::Is_Win9x -- Determine if we are running on a non-NT system.		   *
- *   WindowsVersionInfo::Is_Win95 -- Determine if we are running on a Win95 system.			   *
- *   WindowsVersionInfo::Is_Win98 -- Determine if we are running on a Win98 system.			   *
- *   WindowsVersionInfo::Is_WinNT -- Determine if we are running on an NT system.			   *
- *   WindowsVersionInfo::Is_WinNT5 -- Determine if we are running on an NT 5 system.		   *
- *   WindowsVersionInfo::Version	--														   *
- *   WindowsVersionInfo::IsOSR2Release --													   *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
@@ -57,26 +44,26 @@
 class WindowsVersionInfo
 {
 	public:
-		WindowsVersionInfo	(void);
-		~WindowsVersionInfo	(void) {}
+		WindowsVersionInfo	();
+		~WindowsVersionInfo	() {}
 
-		int 	Major								( void ) const { return( MajorVersionNumber ); }
-		int 	Minor								( void ) const { return( MinorVersionNumber ); }
-		int 	Build								( void ) const { return( BuildNumber ); }
-		bool 	Is_Win9x							( void ) const { return( IsWin9x ); }									// Win 9x
-		bool 	Is_Win95							( void ) const { return( IsWin95 ); }									// Win 95
-		bool 	Is_Win98							( void ) const { return( IsWin98 ); }									// Win 98
-		bool 	Is_WinNT							( void ) const { return( IsWinNT ); }									// Win NT
-		bool 	Is_WinNT4							( void ) const { return( IsWinNT && MajorVersionNumber == 4 ); }		// Win NT
-		bool	Is_WinNT5							( void ) const { return( IsWinNT && MajorVersionNumber == 5 ); }		// Win NT
-		bool	Is_Win_2000							( void ) const { return( IsWin2000 ); }								// Win 2000
-		bool	Is_Win_XP							( void ) const { return( IsWinXP ); }									// Win XP
-		int		Version								( void ) const { return( WindowsVersion );	}
-		int		IsOSR2Release						( void ) const { return( RunningOSR2 );		}
-		const char * Info							( void ) const { return( &AdditionalInfo[0] ); }
-		char *	Version_String						( void );
-		char *	Version_Name						( void );
-		bool	Meets_Minimum_Version_Requirements	( void );
+		int 	Major								() const { return( MajorVersionNumber ); }
+		int 	Minor								() const { return( MinorVersionNumber ); }
+		int 	Build								() const { return( BuildNumber ); }
+		bool 	Is_Win9x							() const { return( IsWin9x ); }									// Win 9x
+		bool 	Is_Win95							() const { return( IsWin95 ); }									// Win 95
+		bool 	Is_Win98							() const { return( IsWin98 ); }									// Win 98
+		bool 	Is_WinNT							() const { return( IsWinNT ); }									// Win NT
+		bool 	Is_WinNT4							() const { return( IsWinNT && MajorVersionNumber == 4 ); }		// Win NT
+		bool	Is_WinNT5							() const { return( IsWinNT && MajorVersionNumber == 5 ); }		// Win NT
+		bool	Is_Win_2000							() const { return( IsWin2000 ); }								// Win 2000
+		bool	Is_Win_XP							() const { return( IsWinXP ); }									// Win XP
+		int		Version								() const { return( WindowsVersion );	}
+		int		IsOSR2Release						() const { return( RunningOSR2 );		}
+		const char * Info							() const { return( &AdditionalInfo[0] ); }
+		char *	Version_String						();
+		char *	Version_Name						();
+		bool	Meets_Minimum_Version_Requirements	();
 
 	private:
 		/*-----------------------------------------------------------------------

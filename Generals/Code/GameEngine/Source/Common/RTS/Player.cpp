@@ -96,6 +96,7 @@
 #include "GameLogic/Module/SpecialPowerModule.h"
 #include "GameLogic/Module/SupplyTruckAIUpdate.h"
 #include "GameLogic/Module/BattlePlanUpdate.h"
+#include "GameLogic/Module/ProductionUpdate.h"
 #include "GameLogic/VictoryConditions.h"
 
 #include "GameNetwork/GameInfo.h"
@@ -195,8 +196,8 @@ void dumpBattlePlanBonuses(const BattlePlanBonusesData *b, AsciiString name, con
 		kindofMaskAsAsciiString(b->m_invalidKindOf).str()));
 }
 #else
-#define DUMPBATTLEPLANBONUSES(x,y,z) {}
-#define CRCDUMPBATTLEPLANBONUSES(x,y,z) {}
+#define DUMPBATTLEPLANBONUSES(x,y,z)
+#define CRCDUMPBATTLEPLANBONUSES(x,y,z)
 #endif // DEBUG_CRC
 
 // ------------------------------------------------------------------------------------------------
@@ -408,6 +409,9 @@ void Player::init(const PlayerTemplate* pt)
 #if defined(RTS_DEBUG)
 	m_DEMO_ignorePrereqs = FALSE;
 	m_DEMO_freeBuild = FALSE;
+#endif
+
+#if defined(RTS_DEBUG) || defined(_ALLOW_DEBUG_CHEATS_IN_RELEASE)
 	m_DEMO_instantBuild = FALSE;
 #endif
 
@@ -486,6 +490,9 @@ void Player::init(const PlayerTemplate* pt)
 		deleteInstance(tof);
 	}
 
+	//Always off at the beginning of a game! Only GameLogic::update has
+	//the power to turn it on. Don't want to cause desyncs!
+	m_logicalRetaliationModeEnabled = FALSE;
 }
 
 //=============================================================================
@@ -674,7 +681,7 @@ void Player::update()
 		}
 	}
 
-#if !PRESERVE_RETAIL_BEHAVIOR && !RETAIL_COMPATIBLE_CRC
+#if !(RETAIL_COMPATIBLE_CRC || PRESERVE_TUNNEL_HEAL_STACKING)
 	// TheSuperHackers @bugfix Stubbjax 26/09/2025 The Tunnel System now heals
 	// all units once per frame instead of once per frame per Tunnel Network.
 	TunnelTracker* tunnelSystem = getTunnelSystem();
@@ -1009,9 +1016,9 @@ void Player::becomingTeamMember(Object *obj, Bool yes)
 	}
 
 
-	if (obj->isKindOf(KINDOF_DOZER)
-			&& obj->getAIUpdateInterface()
-			&& obj->getAIUpdateInterface()->isIdle())
+	if (obj->isKindOf(KINDOF_DOZER) &&
+			obj->getAIUpdateInterface() &&
+			obj->getAIUpdateInterface()->isIdle())
 	{
 		// Need to remove it from the pick a peasant button
 		if (yes)
@@ -1126,41 +1133,333 @@ Player  *Player::getCurrentEnemy()
 }
 
 //-------------------------------------------------------------------------------------------------
-/** return the player's command center.
-		if he has none, return null.
-		if he has multiple, return one arbitrarily. */
+// PlayerObjectFindInfo is used to find a player's object. For example, we iterate through
+// to find a player's command center, or a specific building capable of firing the specified
+// special power.
+//
+// if he has none, return null.
+// if he has multiple, return one arbitrarily.
 //-------------------------------------------------------------------------------------------------
 
-	struct FCCInfo
+//-------------------------------------------------------------------------------------------------
+// Iterator data struct
+//-------------------------------------------------------------------------------------------------
+struct PlayerObjectFindInfo
+{
+	Player* player;
+	Object* obj;
+	SpecialPowerType spType;
+	const ThingTemplate *thing;
+	UnsignedInt lowestReadyFrame;
+	UnsignedInt highestPercentage;
+	UnsignedInt numReady;
+};
+
+//-------------------------------------------------------------------------------------------------
+// Iterator function
+// Find the first available command center that is naturally ours (not captured from enemy).
+//-------------------------------------------------------------------------------------------------
+static void doFindCommandCenter(Object* obj, void* userData)
+{
+	PlayerObjectFindInfo* info = (PlayerObjectFindInfo*)userData;
+
+	if (info->obj == nullptr &&
+			obj->isKindOf(KINDOF_COMMANDCENTER) &&
+			obj->getTemplate()->getDefaultOwningSide() == info->player->getSide() &&
+			!obj->testStatus(OBJECT_STATUS_UNDER_CONSTRUCTION) &&
+			!obj->testStatus(OBJECT_STATUS_SOLD))
 	{
-		Player* player;
-		Object* cmdCenter;
-	};
+		info->obj = obj;
+	}
+}
 
-	static void doFindCommandCenter(Object* obj, void* userData)
+//-------------------------------------------------------------------------------------------------
+// Iterator function
+// Find first object capable of firing specified special power right now.
+//-------------------------------------------------------------------------------------------------
+static void doFindSpecialPowerSourceObject( Object *obj, void *userData )
+{
+	PlayerObjectFindInfo* info = (PlayerObjectFindInfo*)userData;
+
+	if( info->lowestReadyFrame == 0 )
 	{
-		if (!obj)
-			return;
-
-		FCCInfo* info = (FCCInfo*)userData;
-
-		if (info->cmdCenter == nullptr
-				&& obj->isKindOf(KINDOF_COMMANDCENTER)
-				&& obj->getTemplate()->getDefaultOwningSide() == info->player->getSide()
-				&& !obj->testStatus(OBJECT_STATUS_UNDER_CONSTRUCTION)
-				&& !obj->testStatus(OBJECT_STATUS_SOLD))
+		//We already found the best case scenario, so no need to iterate any more.
+		return;
+	}
+	if( !obj->testStatus( OBJECT_STATUS_UNDER_CONSTRUCTION ) &&
+			!obj->testStatus( OBJECT_STATUS_SOLD ) &&
+			!obj->isEffectivelyDead() )
+	{
+		if( info->spType == SPECIAL_INVALID && obj->hasAnySpecialPower() )
 		{
-			info->cmdCenter = obj;
+			//We just care about find an object that has *any* shortcut capable special power.
+			//Iterate through the special power modules and look for one.
+			SpecialPowerModuleInterface *spmInterface = obj->findAnyShortcutSpecialPowerModuleInterface();
+			if( spmInterface && !spmInterface->isScriptOnly() )
+			{
+				info->obj = obj;
+				info->lowestReadyFrame = 0;
+				return;
+			}
+		}
+		else if( obj->hasSpecialPower( info->spType ) )
+		{
+			SpecialPowerModuleInterface *spmInterface = obj->findSpecialPowerModuleInterface( info->spType );
+			if( spmInterface && !spmInterface->isScriptOnly() )
+			{
+				UnsignedInt readyFrame = spmInterface->getReadyFrame();
+
+#if defined(RTS_DEBUG) || defined(_ALLOW_DEBUG_CHEATS_IN_RELEASE)
+				// Everything is ready if timers are debug off'd
+				if( ! TheGlobalData->m_specialPowerUsesDelay )
+					readyFrame = 0;
+#endif
+				// A disabled guy should only be considered as a last resort.  We need it to be counted
+				// so that a disabled button can appear on the shortcut.
+				if( obj->isDisabled() )
+					readyFrame = UINT_MAX - 10;
+
+				if( readyFrame < TheGameLogic->getFrame())
+				{
+					//This special power is ready now and matches, so simply return the
+					//first one.
+					info->obj = obj;
+					info->lowestReadyFrame = 0;
+					return;
+				}
+				else if( readyFrame < info->lowestReadyFrame )
+				{
+					//This special power isn't ready, but it is going to be ready sooner than any others
+					//we checked (or it's the first one we checked).
+					info->obj = obj;
+					info->lowestReadyFrame = readyFrame;
+					return;
+				}
+			}
 		}
 	}
+}
 
+//-------------------------------------------------------------------------------------------------
+// Iterator function
+// Count number of specified special powers that are ready to fire now.
+//-------------------------------------------------------------------------------------------------
+static void doCountSpecialPowersReady( Object *obj, void *userData )
+{
+	PlayerObjectFindInfo* info = (PlayerObjectFindInfo*)userData;
+
+	if( !obj->testStatus( OBJECT_STATUS_UNDER_CONSTRUCTION ) &&
+			!obj->testStatus( OBJECT_STATUS_SOLD ) &&
+			!obj->isEffectivelyDead() )
+	{
+		if( obj->hasSpecialPower( info->spType ) )
+		{
+			SpecialPowerModuleInterface *spmInterface = obj->findSpecialPowerModuleInterface( info->spType );
+			if( spmInterface && !spmInterface->isScriptOnly() )
+			{
+
+	      if( spmInterface->getSpecialPowerTemplate()->isSharedNSync() && info->numReady == 1 )
+				{
+					//Shared powers don't stack after the first one is counted.
+					return;
+				}
+
+				UnsignedInt readyFrame = spmInterface->getReadyFrame();
+
+#if defined(RTS_DEBUG) || defined(_ALLOW_DEBUG_CHEATS_IN_RELEASE)
+				// Everything is ready if timers are debug off'd
+				if( ! TheGlobalData->m_specialPowerUsesDelay )
+					readyFrame = 0;
+#endif
+
+				// A disabled guy should only be considered as a last resort.  We do not want him counted here
+				// so that Disabled guys do not go in to the number on the shortcut button.
+				if( obj->isDisabled() )
+					readyFrame = UINT_MAX - 10;
+
+				if( readyFrame < TheGameLogic->getFrame())
+				{
+					//This special power is ready now and matches, so simply return the
+					//first one.
+					info->numReady++;
+				}
+			}
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------------------
+static void doFindMostReadyWeaponForThing( Object *obj, void *userData )
+{
+	PlayerObjectFindInfo* info = (PlayerObjectFindInfo*)userData;
+
+	if( info->highestPercentage >= 100 )
+	{
+		//We already found the best case scenario, so no need to iterate any more.
+		return;
+	}
+
+	if( info->thing && info->thing->isEquivalentTo( obj->getTemplate() ) )
+	{
+		if( !obj->testStatus( OBJECT_STATUS_UNDER_CONSTRUCTION ) &&
+				!obj->testStatus( OBJECT_STATUS_SOLD ) &&
+				!obj->isEffectivelyDead() )
+		{
+			if( obj->hasAnyWeapon() )
+			{
+				UnsignedInt percentage = obj->getMostPercentReadyToFireAnyWeapon();
+				if( percentage > info->highestPercentage )
+				{
+					//This weapon is more ready than any others we've checked.
+					info->obj = obj;
+					info->highestPercentage = percentage;
+					return;
+				}
+			}
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------------------
+static void doFindMostReadySpecialPowerForThing( Object *obj, void *userData )
+{
+	PlayerObjectFindInfo* info = (PlayerObjectFindInfo*)userData;
+
+	if( info->highestPercentage >= 100 )
+	{
+		//We already found the best case scenario, so no need to iterate any more.
+		return;
+	}
+
+	if( info->thing && info->thing->isEquivalentTo( obj->getTemplate() ) )
+	{
+		if( !obj->testStatus( OBJECT_STATUS_UNDER_CONSTRUCTION ) &&
+				!obj->testStatus( OBJECT_STATUS_SOLD ) &&
+				!obj->isEffectivelyDead() )
+		{
+			// search the modules for the one with the matching template
+			for( BehaviorModule** m = obj->getBehaviorModules(); *m; ++m )
+			{
+				SpecialPowerModuleInterface* sp = (*m)->getSpecialPower();
+				if (!sp)
+					continue;
+
+				UnsignedInt percentage = sp->getPercentReady();
+				if( percentage > info->highestPercentage )
+				{
+					//This weapon is more ready than any others we've checked.
+					info->obj = obj;
+					info->highestPercentage = percentage;
+				}
+			}
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------------------
+static void doFindExistingObjectWithThingTemplate( Object *obj, void *userData )
+{
+	PlayerObjectFindInfo* info = (PlayerObjectFindInfo*)userData;
+
+	if( info->obj )
+	{
+		//We already found a matching obj, so return
+		return;
+	}
+
+	if( info->thing && info->thing->isEquivalentTo( obj->getTemplate() ) )
+	{
+		if( !obj->testStatus( OBJECT_STATUS_UNDER_CONSTRUCTION ) &&
+				!obj->testStatus( OBJECT_STATUS_SOLD ) &&
+				!obj->isEffectivelyDead() )
+		{
+			//We found one.
+			info->obj = obj;
+		}
+	}
+}
+
+//-------------------------------------------------------------------------------------------------
 Object* Player::findNaturalCommandCenter()
 {
-	FCCInfo info;
+	PlayerObjectFindInfo info;
 	info.player = this;
-	info.cmdCenter = nullptr;
+	info.obj = nullptr;
 	iterateObjects(doFindCommandCenter, &info);
-	return info.cmdCenter;
+	return info.obj;
+}
+
+//-------------------------------------------------------------------------------------------------
+Object* Player::findMostReadyShortcutSpecialPowerOfType( SpecialPowerType spType )
+{
+	PlayerObjectFindInfo info;
+	info.player = this;
+	info.obj = nullptr;
+	info.spType = spType;
+	info.lowestReadyFrame = 0xffffffff;
+	iterateObjects( doFindSpecialPowerSourceObject, &info );
+	return info.obj;
+}
+
+//-------------------------------------------------------------------------------------------------
+Object* Player::findMostReadyShortcutWeaponForThing( const ThingTemplate *thing, UnsignedInt &mostReadyPercentage )
+{
+	PlayerObjectFindInfo info;
+	info.player = this;
+	info.obj = nullptr;
+	info.thing = thing;
+	info.highestPercentage = 0;
+	iterateObjects( doFindMostReadyWeaponForThing, &info );
+	mostReadyPercentage = info.highestPercentage;
+	return info.obj;
+}
+
+//-------------------------------------------------------------------------------------------------
+Object* Player::findMostReadyShortcutSpecialPowerForThing( const ThingTemplate *thing, UnsignedInt &mostReadyPercentage )
+{
+	PlayerObjectFindInfo info;
+	info.player = this;
+	info.obj = nullptr;
+	info.thing = thing;
+	info.highestPercentage = 0;
+	iterateObjects( doFindMostReadySpecialPowerForThing, &info );
+	mostReadyPercentage = info.highestPercentage;
+	return info.obj;
+}
+
+//-------------------------------------------------------------------------------------------------
+Object* Player::findAnyExistingObjectWithThingTemplate( const ThingTemplate *thing )
+{
+	PlayerObjectFindInfo info;
+	info.player = this;
+	info.obj = nullptr;
+	info.thing = thing;
+	iterateObjects( doFindExistingObjectWithThingTemplate, &info );
+	return info.obj;
+}
+
+//-------------------------------------------------------------------------------------------------
+// Finds a short-cut firing special power of any type arbitrarily.
+//-------------------------------------------------------------------------------------------------
+Bool Player::hasAnyShortcutSpecialPower()
+{
+	PlayerObjectFindInfo info;
+	info.player = this;
+	info.obj = nullptr;
+	info.spType = SPECIAL_INVALID; //Invalid dictates that we don't care about the type.
+	info.lowestReadyFrame = 0xffffffff;
+	iterateObjects( doFindSpecialPowerSourceObject, &info );
+	return info.obj;
+}
+
+//-------------------------------------------------------------------------------------------------
+Int Player::countReadyShortcutSpecialPowersOfType( SpecialPowerType spType )
+{
+	PlayerObjectFindInfo info;
+	info.spType = spType;
+	info.numReady = 0;
+	iterateObjects( doCountSpecialPowersReady, &info );
+	return info.numReady;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -1375,7 +1674,7 @@ void Player::healAllObjects()
 }
 
 //=============================================================================
-void Player::iterateObjects( ObjectIterateFunc func, void *userData )
+void Player::iterateObjects( ObjectIterateFunc func, void *userData ) const
 {
 	for (PlayerTeamList::const_iterator it = m_playerTeamPrototypes.begin();
 			 it != m_playerTeamPrototypes.end(); ++it)
@@ -1732,12 +2031,51 @@ void Player::setObjectsEnabled(AsciiString templateTypeToAffect, Bool enable)
 }
 
 //=============================================================================
+static void cancelUpgradeInProduction(Object* obj, void* userData)
+{
+	const UpgradeTemplate* upgradeTemplate = static_cast<const UpgradeTemplate*>(userData);
+	ProductionUpdateInterface* pui = ProductionUpdate::getProductionUpdateInterfaceFromObject(obj);
+
+	if (pui && pui->isUpgradeInQueue(upgradeTemplate))
+	{
+		pui->cancelUpgrade(upgradeTemplate);
+	}
+}
+
+//=============================================================================
 void Player::transferAssetsFromThat(Player *that)
 {
 	Team *defaultTeam = getDefaultTeam();
 	if (!defaultTeam) {
 		return;
 	}
+
+#if !RETAIL_COMPATIBLE_CRC
+	// TheSuperHackers @bugfix Stubbjax 03/02/2026 Cancel any in-progress player upgrades 'that'
+	// player currently has in progress that 'this' player already has in progress or completed.
+	std::vector<const UpgradeTemplate*> upgradesToCancel;
+	for (Upgrade* upgrade = that->m_upgradeList; upgrade; upgrade = upgrade->friend_getNext())
+	{
+		const UpgradeTemplate* upgradeTemplate = upgrade->getTemplate();
+
+		if (upgrade->getStatus() == UPGRADE_STATUS_IN_PRODUCTION &&
+			upgradeTemplate->getUpgradeType() == UPGRADE_TYPE_PLAYER &&
+			(hasUpgradeComplete(upgradeTemplate) || hasUpgradeInProduction(upgradeTemplate)))
+		{
+			upgradesToCancel.push_back(upgradeTemplate);
+		}
+	}
+
+	for (std::vector<const UpgradeTemplate*>::iterator cancelIt = upgradesToCancel.begin(); cancelIt != upgradesToCancel.end(); ++cancelIt)
+	{
+		const UpgradeTemplate* upgradeTemplate = *cancelIt;
+		that->iterateObjects(cancelUpgradeInProduction, const_cast<UpgradeTemplate*>(upgradeTemplate));
+	}
+
+	// TheSuperHackers @bugfix Stubbjax 03/02/2026 Ensure the in-progress upgrade mask is copied from 'that'
+	// player to 'this' player to prevent duplicate player upgrades being purchased.
+	m_upgradesInProgress.set(that->m_upgradesInProgress);
+#endif
 
 	std::list<Object *> objsToTransfer;
 
@@ -2032,7 +2370,7 @@ void Player::doBountyForKill(const Object* killer, const Object* victim)
 	Int bounty = REAL_TO_INT_CEIL(costToBuild * m_cashBountyPercent);
 #else
 	// TheSuperHackers @bugfix Stubbjax 20/02/2026 Subtract epsilon to ensure bounty is rounded up correctly.
-	Int bounty = ceil((costToBuild * m_cashBountyPercent) - WWMATH_EPSILON);
+	Int bounty = WWMath::Ceil((costToBuild * m_cashBountyPercent) - WWMATH_EPSILON);
 #endif
 
 	if( bounty )
@@ -2046,7 +2384,7 @@ void Player::doBountyForKill(const Object* killer, const Object* victim)
 		moneyString.format( TheGameText->fetch( "GUI:AddCash" ), bounty );
 		Coord3D pos;
 		pos.zero();
-		pos.add( killer->getPosition() );
+		pos.add( *killer->getPosition() );
 		pos.z += 10.0f; //add a little z to make it show up above the unit.
 		TheInGameUI->addFloatingText( moneyString, &pos, GameMakeColor( 255, 255, 0, 255 ) );
 	}
@@ -2424,6 +2762,76 @@ ScienceAvailabilityType Player::getScienceAvailabilityTypeFromString( const Asci
 	return SCIENCE_AVAILABILITY_INVALID;
 }
 
+namespace
+{
+  // ------------------------------------------------------------------------------------------------
+  // For countExisting
+  struct TypeCountData
+  {
+    UnsignedInt count;
+    const ThingTemplate *type;
+    NameKeyType linkKey;
+    Bool        checkProductionInterface;
+  };
+}
+
+// ------------------------------------------------------------------------------------------------
+/** Count all the units of a given type that exist or are in any production queues for a player */
+// ------------------------------------------------------------------------------------------------
+static void countExisting( Object *obj, void *userData )
+{
+  // Don't care about dead objects
+  if ( obj->isEffectivelyDead() )
+    return;
+
+  TypeCountData *typeCountData = (TypeCountData *)userData;
+
+  // Compare templates
+  if ( ( typeCountData->type && typeCountData->type->isEquivalentTo( obj->getTemplate() ) ) ||
+       ( typeCountData->linkKey != NAMEKEY_INVALID && obj->getTemplate() != nullptr && typeCountData->linkKey == obj->getTemplate()->getMaxSimultaneousLinkKey() ) )
+  {
+    typeCountData->count++;
+  }
+
+  // Also consider objects that have a production update interface
+  if ( typeCountData->checkProductionInterface )
+  {
+    ProductionUpdateInterface *pui = ProductionUpdate::getProductionUpdateInterfaceFromObject( obj );
+    if( pui )
+    {
+      // add the count of this type that are in the queue
+      typeCountData->count += pui->countUnitTypeInQueue( typeCountData->type );
+    }
+  }
+}
+
+//=============================================================================
+// Make sure that building another of this unit/structure/object won't exceed MaxSimultaneousOfType()
+Bool Player::canBuildMoreOfType( const ThingTemplate *whatToBuild ) const
+{
+  // make sure we're not maxed out for this type of unit.
+  UnsignedInt maxSimultaneousOfType = whatToBuild->getMaxSimultaneousOfType();
+  if (maxSimultaneousOfType != 0)
+  {
+
+    TypeCountData typeCountData;
+    typeCountData.count = 0;
+    typeCountData.type = whatToBuild;
+    typeCountData.linkKey = whatToBuild->getMaxSimultaneousLinkKey();
+    // Assumption: Things with a KINDOF_STRUCTURE flag can never be built from
+    // a factory (ProductionUpdateInterface), because the building can't move
+    // out of the factory. When we do our Starcraft port and have flying Terran
+    // buildings, we'll have to change this ;-)
+    // Remember: To ASSUME makes an ASS out of U and ME.
+    typeCountData.checkProductionInterface = !whatToBuild->isKindOf( KINDOF_STRUCTURE );
+
+    iterateObjects( countExisting, &typeCountData );
+    if( typeCountData.count >= maxSimultaneousOfType )
+      return false;
+  }
+  return true;
+}
+
 //=============================================================================
 Bool Player::canBuild(const ThingTemplate *tmplate) const
 {
@@ -2643,8 +3051,8 @@ void Player::removeUpgrade( const UpgradeTemplate *upgradeTemplate )
 		if( upgrade->getStatus() == UPGRADE_STATUS_COMPLETE )
 			onUpgradeRemoved();
 
+		deleteInstance(upgrade);
 	}
-
 }
 
 
@@ -2652,11 +3060,11 @@ void Player::removeUpgrade( const UpgradeTemplate *upgradeTemplate )
 Bool Player::okToPlayRadarEdgeSound()
 {
 	return (
-		! TheVictoryConditions->hasSinglePlayerBeenDefeated( this )
-		&& ! m_isPlayerDead
-		&& ! TheInGameUI->isClientQuiet()
-		&& TheGameLogic->isInGameLogicUpdate()
-		&& TheGameLogic->getFrame() > 0 );
+		! TheVictoryConditions->hasSinglePlayerBeenDefeated( this ) &&
+		! m_isPlayerDead &&
+		! TheInGameUI->isClientQuiet() &&
+		TheGameLogic->isInGameLogicUpdate() &&
+		TheGameLogic->getFrame() > 0 );
 
 }
 
@@ -2711,8 +3119,8 @@ void Player::disableRadar()
 	Bool hadRadar = hasRadar();
 	m_radarDisabled = TRUE;
 
-	if( hadRadar
-		&& !hasRadar() && okToPlayRadarEdgeSound() )
+	if( hadRadar &&
+		!hasRadar() && okToPlayRadarEdgeSound() )
 	{
 		// This player just lost radar, so play the "You lost Radar!" sound
 		AudioEventRTS soundToPlay = TheAudio->getMiscAudio()->m_radarOfflineSound;
@@ -3194,7 +3602,7 @@ void Player::processCreateTeamGameMessage(Int hotkeyNum, const GameMessage *msg)
 //-------------------------------------------------------------------------------------------------
 /** Select a hotkey team based on this GameMessage */
 //-------------------------------------------------------------------------------------------------
-void Player::processSelectTeamGameMessage(Int hotkeyNum, GameMessage *msg) {
+void Player::processSelectTeamGameMessage(Int hotkeyNum) {
 	if ((hotkeyNum < 0) || (hotkeyNum >= NUM_HOTKEY_SQUADS)) {
 		DEBUG_CRASH(("processSelectTeamGameMessage got an invalid hotkey number"));
 		return;
@@ -3206,7 +3614,7 @@ void Player::processSelectTeamGameMessage(Int hotkeyNum, GameMessage *msg) {
 
 	m_currentSelection->clearSquad();
 
-	VecObjectPtr objectList = m_squads[hotkeyNum]->getLiveObjects();
+	const VecObjectPtr& objectList = m_squads[hotkeyNum]->getLiveObjects();
 	Int numObjs = objectList.size();
 
 	for (Int i = 0; i < numObjs; ++i) {
@@ -3217,7 +3625,7 @@ void Player::processSelectTeamGameMessage(Int hotkeyNum, GameMessage *msg) {
 //-------------------------------------------------------------------------------------------------
 /** Select a hotkey team based on this GameMessage */
 //-------------------------------------------------------------------------------------------------
-void Player::processAddTeamGameMessage(Int hotkeyNum, GameMessage *msg) {
+void Player::processAddTeamGameMessage(Int hotkeyNum) {
 	if ((hotkeyNum < 0) || (hotkeyNum >= NUM_HOTKEY_SQUADS)) {
 		DEBUG_CRASH(("processAddTeamGameMessage got an invalid hotkey number"));
 		return;
@@ -3231,7 +3639,7 @@ void Player::processAddTeamGameMessage(Int hotkeyNum, GameMessage *msg) {
 		m_currentSelection = newInstance( Squad );
 	}
 
-	VecObjectPtr objectList = m_squads[hotkeyNum]->getLiveObjects();
+	const VecObjectPtr& objectList = m_squads[hotkeyNum]->getLiveObjects();
 	Int numObjs = objectList.size();
 
 	for (Int i = 0; i < numObjs; ++i) {

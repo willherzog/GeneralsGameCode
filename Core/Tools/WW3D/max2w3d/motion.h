@@ -31,17 +31,15 @@
  *                                                                                             *
  *                    $Revision:: 13                                                          $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
 
 #ifndef ALWAYS_H
-#include "always.h"
+#include "WWLib/always.h"
 #endif
 
-#include <max.h>
+#include "max_sdk.h"
 
 #ifndef HIERSAVE_H
 #include "hiersave.h"
@@ -52,11 +50,11 @@
 #endif
 
 #ifndef CHUNKIO_H
-#include "chunkio.h"
+#include "WWLib/chunkio.h"
 #endif
 
 #ifndef VECTOR_H
-#include "Vector.h"
+#include "WWLib/Vector.h"
 #endif
 
 #ifndef LOGDLG_H
@@ -96,7 +94,7 @@ public:
 																	// base object space (for damage animations)
 					);
 
-	~MotionClass(void);
+	~MotionClass();
 
 	bool Save(ChunkSaveClass & csave);
 
@@ -153,6 +151,6 @@ private:
 	bool			save_header(ChunkSaveClass & csave);
 	bool			save_channels(ChunkSaveClass & csave);
 
-	void			init(void);
+	void			init();
 
 };

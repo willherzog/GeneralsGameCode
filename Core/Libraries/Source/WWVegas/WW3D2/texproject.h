@@ -33,20 +33,18 @@
  *                    $Revision:: 8                                                           $*
  *                                                                                             *
  * 06/27/02 KM Render to shadow buffer texture support														*
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
 
-#include "always.h"
-#include "matrix3d.h"
-#include "matrix4.h"
-#include "obbox.h"
+#include "WWLib/always.h"
+#include "WWMath/matrix3d.h"
+#include "WWMath/matrix4.h"
+#include "WWMath/obbox.h"
 #include "matpass.h"
-#include "matrixmapper.h"
-#include "cullsys.h"
-#include "multilist.h"
+#include "WW3D2/matrixmapper.h"
+#include "WWMath/cullsys.h"
+#include "WWLib/multilist.h"
 #include "projector.h"
 
 

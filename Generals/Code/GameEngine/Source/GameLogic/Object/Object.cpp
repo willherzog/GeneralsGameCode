@@ -44,6 +44,9 @@
 #include "Common/Team.h"
 #include "Common/ThingFactory.h"
 #include "Common/ThingTemplate.h"
+#if RTS_GENERALS && RETAIL_COMPATIBLE_CRC
+#include "Common/TunnelTracker.h"
+#endif
 #include "Common/Upgrade.h"
 #include "Common/WellKnownKeys.h"
 #include "Common/Xfer.h"
@@ -109,7 +112,7 @@ ObjectID TheObjectIDToDebug = INVALID_ID;
 #endif
 
 // ------------------------------------------------------------------------------------------------
-static const ModelConditionFlags s_allWeaponFireFlags[WEAPONSLOT_COUNT] =
+static const ModelConditionFlags s_allWeaponFireFlags[] =
 {
 	MAKE_MODELCONDITION_MASK5(
 		MODELCONDITION_FIRING_A,
@@ -133,6 +136,7 @@ static const ModelConditionFlags s_allWeaponFireFlags[WEAPONSLOT_COUNT] =
 		MODELCONDITION_USING_WEAPON_C
 	)
 };
+static_assert(ARRAY_SIZE(s_allWeaponFireFlags) == WEAPONSLOT_COUNT, "Incorrect array size");
 
 //-------------------------------------------------------------------------------------------------
 extern void addIcon(const Coord3D *pos, Real width, Int numFramesDuration, RGBColor color);
@@ -254,8 +258,8 @@ Object::Object( const ThingTemplate *tt, const ObjectStatusMaskType &objectStatu
 
 	m_constructionPercent = CONSTRUCTION_COMPLETE;  // complete by default
 
-	m_visionRange = tt->friend_getVisionRange();
-	m_shroudClearingRange = tt->friend_getShroudClearingRange();
+	m_visionRange = tt->friend_calcVisionRange();
+	m_shroudClearingRange = tt->friend_calcShroudClearingRange();
 	if( m_shroudClearingRange == -1.0f )
 		m_shroudClearingRange = m_visionRange;// Backwards compatible, and perfectly logical default to assign
 	m_shroudRange = 0.0f;
@@ -290,9 +294,9 @@ Object::Object( const ThingTemplate *tt, const ObjectStatusMaskType &objectStatu
 	m_smcHelper = newInstance(ObjectSMCHelper)(this, &smcModuleData);
 	*curB++ = m_smcHelper;
 
-	if (TheAI != nullptr
-			&& TheAI->getAiData()->m_enableRepulsors
-			&& isKindOf(KINDOF_CAN_BE_REPULSED))
+	if (TheAI != nullptr &&
+			TheAI->getAiData()->m_enableRepulsors &&
+			isKindOf(KINDOF_CAN_BE_REPULSED))
 	{
 		// if we can ever be a temporary-repulsor, make a repulsor helper. (srj)
 		static const NameKeyType repulsorHelperModuleDataTagNameKey = NAMEKEY( "ModuleTag_RepulsorHelper" );
@@ -621,6 +625,9 @@ void Object::onContainedBy( Object *containedBy )
 		clearStatus( MAKE_OBJECT_STATUS_MASK( OBJECT_STATUS_MASKED ) );
 	m_containedBy = containedBy;
 	m_containedByFrame = TheGameLogic->getFrame();
+
+	DEBUG_ASSERTCRASH(containedBy == nullptr || !containedBy->isDestroyed(),
+		("Object::onContainedBy - Adding to a destroyed container"));
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -632,6 +639,23 @@ void Object::onRemovedFrom( Object *removedFrom )
 	m_containedBy = nullptr;
 	m_containedByFrame = 0;
 }
+
+#if RTS_GENERALS && RETAIL_COMPATIBLE_CRC
+//-------------------------------------------------------------------------------------------------
+void Object::removeFromTunnelContain()
+{
+	for (Int i = 0; i < ThePlayerList->getPlayerCount(); ++i)
+	{
+		TunnelTracker* tracker = ThePlayerList->getNthPlayer(i)->getTunnelSystem();
+		if (tracker && tracker->removeFromContain(this))
+		{
+			break;
+		}
+	}
+
+	onRemovedFrom(nullptr);
+}
+#endif
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -652,6 +676,15 @@ Int Object::getTransportSlotCount() const
 		}
 	}
 	return count;
+}
+
+void Object::friend_setContainedBy(Object* containedBy)
+{
+	m_containedBy = containedBy;
+
+#if !RETAIL_COMPATIBLE_CRC
+	m_containedByFrame = containedBy ? TheGameLogic->getFrame() : 0;
+#endif
 }
 
 const Object* Object::getEnclosingContainedBy() const
@@ -683,7 +716,26 @@ void Object::onDestroy()
 	// This is the old cleanUpContain safeguard.  Say goodbye so they don't try to look us up.
 	if( m_containedBy && m_containedBy->getContain() )
 	{
-		m_containedBy->getContain()->removeFromContain( this );
+#if RETAIL_COMPATIBLE_CRC
+		// TheSuperHackers @bugfix Caball009 17/10/2026 Check if m_containedBy is still valid to avoid potential crashes.
+		if (!TheGameLogic->findObjectByID(m_containedBy->getID()))
+		{
+#if RTS_GENERALS
+			// TheSuperHackers @bugfix bobtista / Caball009 17/09/2026 Remove stranded tunnel occupants during destruction.
+			// Surrendering can transfer a tunnel without updating its tunnel tracker. If that tunnel is destroyed,
+			// m_containedBy still points to the freed tunnel, and its ID is read here through that stale pointer.
+			// An unregistered ID means the tunnel is gone, so this object is removed from the tunnel trackers directly.
+			// This is a limited workaround that keeps retail compatibility. It cannot detect reuse of the freed memory.
+			removeFromTunnelContain();
+#else
+			onRemovedFrom(nullptr);
+#endif
+		}
+		else
+#endif
+		{
+			m_containedBy->getContain()->removeFromContain(this);
+		}
 	}
 
 	//
@@ -1109,6 +1161,12 @@ Bool Object::hasAnyDamageWeapon() const
 		return FALSE;
 	}
 	return TRUE;
+}
+
+//=============================================================================
+UnsignedInt Object::getMostPercentReadyToFireAnyWeapon() const
+{
+	return m_weaponSet.getMostPercentReadyToFireAnyWeapon();
 }
 
 //=============================================================================
@@ -1588,13 +1646,13 @@ inline Bool isPosDifferent(const Coord3D* a, const Coord3D* b)
 	// so we must put in some cleverness...
 	const Real THRESH = 0.01f;
 
-	if (fabs(a->x - b->x) > THRESH)
+	if (WWMath::Fabs(a->x - b->x) > THRESH)
 		return true;
 
-	if (fabs(a->y - b->y) > THRESH)
+	if (WWMath::Fabs(a->y - b->y) > THRESH)
 		return true;
 
-	if (fabs(a->z - b->z) > THRESH)
+	if (WWMath::Fabs(a->z - b->z) > THRESH)
 		return true;
 
 	return false;
@@ -1610,7 +1668,7 @@ inline Bool isAngleDifferent(Real a, Real b)
 
 	const Real THRESH = 0.01f;	// in radians, this is approx 1/2 degree.
 
-	if (fabs(a - b) > THRESH)
+	if (WWMath::Fabs(a - b) > THRESH)
 		return true;
 
 	return false;
@@ -1640,7 +1698,8 @@ void Object::reactToTurretChange( WhichTurretType turret, Real oldRotation, Real
 void Object::reactToTransformChange(const Matrix3D* oldMtx, const Coord3D* oldPos, Real oldAngle)
 {
 	//USE_PERF_TIMER(Object_reactToTransformChange)
-	if(_isnan(getPosition()->x) || _isnan(getPosition()->y) || _isnan(getPosition()->z)) {
+	if(std::isnan(getPosition()->x) || std::isnan(getPosition()->y) || std::isnan(getPosition()->z))
+	{
 		DEBUG_CRASH(("Object pos is nan."));
 		TheGameLogic->destroyObject(this);
 	}
@@ -1667,7 +1726,7 @@ void Object::reactToTransformChange(const Matrix3D* oldMtx, const Coord3D* oldPo
 
 		Region3D mapExtent;
 		TheTerrainLogic->getExtent(&mapExtent);
-		if (mapExtent.isInRegionNoZ(getPosition()))
+		if (mapExtent.containsWithin(getPosition()->asCoord2D()))
 			m_privateStatus &= ~OFF_MAP;
 		else
 			m_privateStatus |= OFF_MAP;
@@ -1710,7 +1769,8 @@ void Object::attemptDamage( DamageInfo *damageInfo )
 			damageInfo->in.m_damageType != DAMAGE_HEALING &&
 			!BitIsSet(damageInfo->in.m_sourcePlayerMask, getControllingPlayer()->getPlayerMask()) &&
 			m_radarData != nullptr &&
-			isLocallyControlled() )
+			isLocallyControlled() &&
+			!isKindOf( KINDOF_NO_ATTACK_WARNING ) )
 		TheRadar->tryUnderAttackEvent( this );
 
 }
@@ -1741,7 +1801,8 @@ ObjectID Object::getSoleHealingBenefactor() const
 }
 
 Bool Object::attemptHealingFromSoleBenefactor ( Real amount, const Object* source, UnsignedInt duration )
-{///< for the non-stacking healers like ambulance and propaganda
+{
+	///< for the non-stacking healers like ambulance and propaganda
 
 	if( ! source ) // sanity
 		return FALSE;
@@ -2568,7 +2629,7 @@ void Object::friend_notifyOfNewMapBoundary()
 
 	Region3D mapExtent;
 	TheTerrainLogic->getExtent(&mapExtent);
-	if (mapExtent.isInRegionNoZ(getPosition()))
+	if (mapExtent.containsWithin(getPosition()->asCoord2D()))
 		m_privateStatus &= ~OFF_MAP;
 	else
 		m_privateStatus |= OFF_MAP;
@@ -2719,10 +2780,13 @@ void Object::friend_bindToDrawable( Drawable *draw )
 		for (int i = 0; i < WEAPONSET_COUNT; ++i)
 		{
 			ModelConditionFlagType mcs = TheWeaponSetTypeToModelConditionTypeMap[i];
-			if (m_curWeaponSetFlags.test(i))
-				set.set(mcs);
-			else
-				clr.set(mcs);
+			if( mcs != MODELCONDITION_INVALID )
+			{
+				if (m_curWeaponSetFlags.test(i))
+					set.set(mcs);
+				else
+					clr.set(mcs);
+			}
 		}
 		if (TheGlobalData)
 		{
@@ -2758,11 +2822,11 @@ void Object::setSelectable(Bool selectable)
 //-------------------------------------------------------------------------------------------------
 Bool Object::isSelectable() const
 {
-	return getTemplate()->isKindOf(KINDOF_ALWAYS_SELECTABLE)
-				|| (m_isSelectable
-						&& !testStatus(OBJECT_STATUS_UNSELECTABLE)
-						&& !isEffectivelyDead()
-						&& !getTemplate()->isKindOf(KINDOF_DRONE)//Most drones are unselectable from being slaved, but the SpyDrone needs help
+	return getTemplate()->isKindOf(KINDOF_ALWAYS_SELECTABLE) ||
+				(m_isSelectable &&
+						!testStatus(OBJECT_STATUS_UNSELECTABLE) &&
+						!isEffectivelyDead() &&
+						!getTemplate()->isKindOf(KINDOF_NO_SELECT)
 						);
 }
 
@@ -2798,6 +2862,12 @@ void Object::clearWeaponSetFlag(WeaponSetType wst)
 Bool Object::hasSpecialPower( SpecialPowerType type ) const
 {
 	return TEST_SPECIALPOWERMASK( m_specialPowerBits, type );
+}
+
+//-------------------------------------------------------------------------------------------------
+Bool Object::hasAnySpecialPower() const
+{
+  return SPECIALPOWERMASK_ANY_SET( m_specialPowerBits );
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -2855,10 +2925,10 @@ void Object::onVeterancyLevelChanged( VeterancyLevel oldLevel, VeterancyLevel ne
 			break;
 	}
 
-	Bool doAnimation = provideFeedback
-		&& newLevel > oldLevel
-		&& !isKindOf(KINDOF_IGNORED_IN_GUI)
-		&& isLogicallyVisible();
+	Bool doAnimation = provideFeedback &&
+		newLevel > oldLevel &&
+		!isKindOf(KINDOF_IGNORED_IN_GUI) &&
+		isLogicallyVisible();
 
 	if (doAnimation)
 		createVeterancyLevelFX(oldLevel, newLevel);
@@ -2878,7 +2948,7 @@ void Object::createVeterancyLevelFX(VeterancyLevel oldLevel, VeterancyLevel newL
 			Anim2DTemplate *animTemplate = TheAnim2DCollection->findTemplate( TheGlobalData->m_levelGainAnimationName );
 
 			Coord3D pos = *getPosition();
-			pos.add(&m_healthBoxOffset);
+			pos.add(m_healthBoxOffset);
 
 			TheInGameUI->addWorldAnimation( animTemplate,
 																			&pos,
@@ -3065,7 +3135,7 @@ void Object::getHealthBoxPosition(Coord3D& pos) const
 {
 	pos = *getPosition();
 	pos.z += getGeometryInfo().getMaxHeightAbovePosition() + 10;
-	pos.add(&m_healthBoxOffset);
+	pos.add(m_healthBoxOffset);
 
 	// this needs to get moved to the mobspawnerupdate
 	if (isKindOf(KINDOF_MOB_NEXUS)) // quicker idiot test
@@ -3349,6 +3419,12 @@ void Object::friend_adjustPowerForPlayer( Bool incoming )
 //-------------------------------------------------------------------------------------------------
 void Object::onDisabledEdge(Bool becomingDisabled)
 {
+#if !(RTS_GENERALS && RETAIL_COMPATIBLE_CRC)
+	// rip through the behavior modules and call the onDisabledEdge for any modules that care
+	for( BehaviorModule **module = m_behaviors; *module; ++module )
+		(*module)->onDisabledEdge( becomingDisabled );
+#endif
+
 	Player* controller = getControllingPlayer();
 	// can be called during game teardown, thus controller can be null
 	if (controller)
@@ -3542,14 +3618,26 @@ void Object::crc( Xfer *xfer )
 	* 5: m_isReceivingDifficultyBonus
 	* 6: We do indeed need to save m_containedBy.  The comment misrepresents what the contain module will do.
 	* 7: save full mtx, not pos+orient.
-	* 8: Kris: Conversion of object status bits from UnsignedInt to BitFlags<>
+	* 8: Kris: Conversion of object status bits from UnsignedInt to BitFlags<>. Added in Zero Hour
+	*    TheSuperHackers @tweak Serialize all object status types (m_status) and disabled types (m_disabledTillFrame)
+	*    including Zero Hour specific entries.
 	*/
 //-------------------------------------------------------------------------------------------------
 void Object::xfer( Xfer *xfer )
 {
 
 	// version
+#if RTS_GENERALS
+
+#if RETAIL_COMPATIBLE_XFER_SAVE
+	const XferVersion currentVersion = 7;
+#else
 	const XferVersion currentVersion = 8;
+#endif
+
+#else
+	const XferVersion currentVersion = 9;
+#endif
 	XferVersion version = currentVersion;
 	xfer->xferVersion( &version, currentVersion );
 
@@ -3596,12 +3684,10 @@ void Object::xfer( Xfer *xfer )
 	Drawable *draw = getDrawable();
 	DrawableID drawableID = draw ? draw->getID() : INVALID_DRAWABLE_ID;
 	xfer->xferDrawableID( &drawableID );
-	if( xfer->getXferMode() == XFER_LOAD )
+	if (draw && xfer->getXferMode() == XFER_LOAD)
 	{
-
 		// change the ID of the drawable attached to be the same ID as it was when it was saved
-		draw->setID( drawableID );
-
+		draw->setID(drawableID);
 	}
 
 	// internal name
@@ -3614,20 +3700,30 @@ void Object::xfer( Xfer *xfer )
 	}
 	else
 	{
-		//We are loading an old version, so we must convert it from a 32-bit int to a bitflag
-		UnsignedInt oldStatus;
-		xfer->xferUnsignedInt( &oldStatus );
+#if RTS_GENERALS
+		// TheSuperHackers @info Originally OBJECT_STATUS_IS_CARBOMB (28) + 1 would equal OBJECT_STATUS_COUNT,
+		// but the enum has been expanded with Zero Hour specific entries.
+		constexpr const UnsignedInt count = OBJECT_STATUS_IS_CARBOMB + 1;
+		constexpr const UnsignedInt mask = (1 << count) - 1;
+		static_assert(count == 29, "This code needs to be updated when inserting new entries into ObjectStatusTypes");
 
-		//Clear our status
+		// shift by one bit: OBJECT_STATUS_NONE (0) has a dedicated bit in the bitset but not in the integer
+		UnsignedInt status = (m_status.toUnsignedInt() & mask) >> 1;
+#else
+		// Zero Hour uses this branch only for XFER_LOAD
+		UnsignedInt status;
+#endif
+		xfer->xferUnsignedInt(&status);
+
 		m_status.clear();
 
 		for( int i = 0; i < 32; i++ )
 		{
-			UnsignedInt bit = 1<<i;
-			if( oldStatus & bit )
+			UnsignedInt bit = 1u<<i;
+			if( status & bit )
 			{
-				ObjectStatusTypes status = (ObjectStatusTypes)(i+1);
-				m_status.set( MAKE_OBJECT_STATUS_MASK( status ) );
+				ObjectStatusTypes type = (ObjectStatusTypes)(i + 1);
+				m_status.set( MAKE_OBJECT_STATUS_MASK( type ) );
 			}
 		}
 	}
@@ -3678,7 +3774,44 @@ void Object::xfer( Xfer *xfer )
 	}
 
 	// disabled till frame
-	xfer->xferUser( m_disabledTillFrame, sizeof( UnsignedInt ) * DISABLED_COUNT );
+	{
+		static_assert(DISABLED_DEFAULT             == 0,  "Unexpected enum value");
+		static_assert(DISABLED_HACKED              == 1,  "Unexpected enum value");
+		static_assert(DISABLED_EMP                 == 2,  "Unexpected enum value");
+		static_assert(DISABLED_HELD                == 3,  "Unexpected enum value");
+		static_assert(DISABLED_PARALYZED           == 4,  "Unexpected enum value");
+		static_assert(DISABLED_UNMANNED            == 5,  "Unexpected enum value");
+		static_assert(DISABLED_UNDERPOWERED        == 6,  "Unexpected enum value");
+		static_assert(DISABLED_FREEFALL            == 7,  "Unexpected enum value");
+		static_assert(DISABLED_AWESTRUCK           == 8,  "Unexpected enum value");
+		static_assert(DISABLED_BRAINWASHED         == 9,  "Unexpected enum value");
+		static_assert(DISABLED_SUBDUED             == 10, "Unexpected enum value");
+		static_assert(DISABLED_SCRIPT_DISABLED     == 11, "Unexpected enum value");
+		static_assert(DISABLED_SCRIPT_UNDERPOWERED == 12, "Unexpected enum value");
+		static_assert(DISABLED_COUNT               == 13, "Unexpected enum value");
+
+		xfer->xferUnsignedInt(&m_disabledTillFrame[DISABLED_DEFAULT]);
+		xfer->xferUnsignedInt(&m_disabledTillFrame[DISABLED_HACKED]);
+		xfer->xferUnsignedInt(&m_disabledTillFrame[DISABLED_EMP]);
+		xfer->xferUnsignedInt(&m_disabledTillFrame[DISABLED_HELD]);
+		xfer->xferUnsignedInt(&m_disabledTillFrame[DISABLED_PARALYZED]);
+		xfer->xferUnsignedInt(&m_disabledTillFrame[DISABLED_UNMANNED]);
+		xfer->xferUnsignedInt(&m_disabledTillFrame[DISABLED_UNDERPOWERED]);
+		xfer->xferUnsignedInt(&m_disabledTillFrame[DISABLED_FREEFALL]);
+
+#if RTS_GENERALS
+		if (version >= 8)
+#endif
+		{
+			// TheSuperHackers @info These 3 types are Zero Hour specific, but inserted in the middle of the enum.
+			xfer->xferUnsignedInt(&m_disabledTillFrame[DISABLED_AWESTRUCK]);
+			xfer->xferUnsignedInt(&m_disabledTillFrame[DISABLED_BRAINWASHED]);
+			xfer->xferUnsignedInt(&m_disabledTillFrame[DISABLED_SUBDUED]);
+		}
+
+		xfer->xferUnsignedInt(&m_disabledTillFrame[DISABLED_SCRIPT_DISABLED]);
+		xfer->xferUnsignedInt(&m_disabledTillFrame[DISABLED_SCRIPT_UNDERPOWERED]);
+	}
 
 	// OK, now that we have xferred our status bits and disabled data, it's safe to set the team...
 	// TheSuperHackers @todo Refactor so that this code can be moved to loadPostProcess.
@@ -4137,6 +4270,7 @@ void Object::onDie( DamageInfo *damageInfo )
 	handlePartitionCellMaintenance();
 	if(m_team)
 		m_team->notifyTeamOfObjectDeath();
+#if RTS_GENERALS && RETAIL_COMPATIBLE_DATA
 	// Play death sound here.
 
 	AudioEventRTS deathSound = *getTemplate()->getSoundDie();
@@ -4158,6 +4292,7 @@ void Object::onDie( DamageInfo *damageInfo )
 	PlayerIndex index = getControllingPlayer() ? getControllingPlayer()->getPlayerIndex() : 0;
 	deathSound.setPlayerIndex( index );
 	TheAudio->addAudioEvent(&deathSound);
+#endif
 
 	if (isLocallyViewed() && !selfInflicted) // wasLocallyViewed? :-)
 	{
@@ -4221,7 +4356,7 @@ void Object::adjustModelConditionForWeaponStatus()
 		{
 			WeaponStatus newStatus = w->getStatus();
 
-			const static WeaponSetConditionType s_wsfLookup[WEAPON_STATUS_COUNT] =
+			const static WeaponSetConditionType s_wsfLookup[] =
 			{
 				WSF_NONE,				// READY_TO_FIRE,
 				WSF_NONE,				// OUT_OF_AMMO,
@@ -4229,6 +4364,7 @@ void Object::adjustModelConditionForWeaponStatus()
 				WSF_RELOADING,	// RELOADING_CLIP,
 				WSF_PREATTACK		// PRE_ATTACK,
 			};
+			static_assert(ARRAY_SIZE(s_wsfLookup) == WEAPON_STATUS_COUNT, "Incorrect array size");
 			conditionToSet = s_wsfLookup[newStatus];
 
 			// special case this: say we are firing in bursts: pow-pow-pow-pause, etc.
@@ -4434,9 +4570,9 @@ void Object::look()
 		// I removed the check for objects under construction by request of designers since
 		// they want constructing objects to have a reduced sight range now. -MW
 		// dead or blind things don't reveal shroud
-		if( ( ! isDestroyed() )// Some things get Destroyed directly without hitting Death.
-				&& ( ! isEffectivelyDead() )
-				&& ( getShroudClearingRange() > 0.0f )
+		if( ( ! isDestroyed() ) &&// Some things get Destroyed directly without hitting Death.
+				( ! isEffectivelyDead() ) &&
+				( getShroudClearingRange() > 0.0f )
 			)
 		{
 			PlayerMaskType lookingMask = 0;
@@ -4499,10 +4635,10 @@ void Object::unlook()
 
 //			DEBUG_LOG(( "A %s queues an unlook at %f, %f for %x at range %f",
 //									getTemplate()->getName().str(),
-//									m_partitionLastLook.m_where.x,
-//									m_partitionLastLook.m_where.y,
-//									m_partitionLastLook.m_forWhom,
-//									m_partitionLastLook.m_howFar
+//									m_partitionLastLook->m_where.x,
+//									m_partitionLastLook->m_where.y,
+//									m_partitionLastLook->m_forWhom,
+//									m_partitionLastLook->m_howFar
 //									));
 
 	m_partitionLastLook->reset();
@@ -5337,10 +5473,10 @@ Bool Object::canProduceUpgrade( const UpgradeTemplate *upgrade )
  	for( Int buttonIndex = 0; buttonIndex < MAX_COMMANDS_PER_SET; buttonIndex++ )
  	{
  		const CommandButton *button = set->getCommandButton(buttonIndex);
- 		if( button
-				&&  ( (button->getCommandType() == GUI_COMMAND_PLAYER_UPGRADE)  ||  (button->getCommandType() == GUI_COMMAND_OBJECT_UPGRADE) ) // Or else a button that requires an upgrade will appear the same as a button that gives an upgrade
-				&&  button->getUpgradeTemplate()
-				&&  (button->getUpgradeTemplate() == upgrade)
+ 		if( button &&
+				( (button->getCommandType() == GUI_COMMAND_PLAYER_UPGRADE)  ||  (button->getCommandType() == GUI_COMMAND_OBJECT_UPGRADE) ) && // Or else a button that requires an upgrade will appear the same as a button that gives an upgrade
+				button->getUpgradeTemplate() &&
+				(button->getUpgradeTemplate() == upgrade)
 				)
  			return TRUE; // getUpgradeTemplate only returns something if it is actually an upgrade
  	}
@@ -5543,11 +5679,7 @@ void Object::enterGroup( AIGroup *group )
 	// if we are in another group, remove ourselves from it first
 	leaveGroup();
 
-#if RETAIL_COMPATIBLE_AIGROUP
 	m_group = group;
-#else
-	m_group = AIGroupPtr::Create_AddRef(group);
-#endif
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -5564,3 +5696,8 @@ void Object::leaveGroup()
 	}
 }
 
+//-------------------------------------------------------------------------------------------------
+Real Object::getCarrierDeckHeight() const
+{
+	return 0.0f;
+}

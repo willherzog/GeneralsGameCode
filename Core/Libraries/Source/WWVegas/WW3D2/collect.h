@@ -30,18 +30,16 @@
  *                                                                                             *
  *                    $Revision:: 1                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
 
 #include "rendobj.h"
 #include "composite.h"
-#include "Vector.h"
+#include "WWLib/Vector.h"
 #include "proto.h"
-#include "w3d_file.h"
-#include "wwstring.h"
+#include "WW3D2/w3d_file.h"
+#include "WWLib/wwstring.h"
 #include "proxy.h"
 
 class CollectionDefClass;

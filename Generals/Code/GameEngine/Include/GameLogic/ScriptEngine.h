@@ -47,7 +47,7 @@ class Player;
 class PolygonTrigger;
 class ObjectTypes;
 
-#ifdef RTS_PROFILE
+#ifdef RTS_PROFILE_LEGACY
 #define SPECIAL_SCRIPT_PROFILING
 #endif
 
@@ -99,7 +99,7 @@ typedef std::pair<AsciiString, UnsignedInt> PairAsciiStringUINT;
 typedef std::list<PairAsciiStringUINT> ListAsciiStringUINT;
 typedef ListAsciiStringUINT::iterator ListAsciiStringUINTIt;
 
-typedef std::map< const ThingTemplate *, Int, std::less<const ThingTemplate *> > AttackPriorityMap;
+typedef std::map< const ThingTemplate *, Int, std::less<const ThingTemplate *>/**/> AttackPriorityMap;
 typedef std::pair<AsciiString, ObjectID> AsciiStringObjectIDPair;
 typedef std::list<AsciiStringObjectIDPair> ListAsciiStringObjectID;
 typedef std::list<AsciiStringObjectIDPair>::iterator ListAsciiStringObjectIDIt;
@@ -309,6 +309,9 @@ public:
 	void doFreezeTime();
 	void doUnfreezeTime();
 
+	void friend_notifyLetterBoxActive(Bool active);
+	Bool isLetterBoxActive() const; ///< Ask whether the letterbox has been activated by a script; indicates an active cinematic
+
 	/// The following functions are used to update and query the debug window
 	Bool isTimeFrozenDebug();		///< Ask whether the debug window has requested a pause.
 	Bool isTimeFast();		///< Ask whether the debug window has requested a fast forward.
@@ -429,6 +432,7 @@ protected:
 	Int								m_numAttackInfo;
 	Int								m_endGameTimer;
 	Int								m_closeWindowTimer;
+	Bool							m_letterBoxActive; ///< A scripted letterbox sequence is running
 	Team							*m_callingTeam;					///< Team that is calling script, used for THIS_TEAM
 	Object						*m_callingObject;					///< Object that is calling script, used for THIS_OBJECT
 	Team							*m_conditionTeam;				///< Team that is being used to evaluate conditions, used for THIS_TEAM

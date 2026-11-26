@@ -31,16 +31,14 @@
  *                                                                                             *
  *                    $Revision:: 1                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
 
-#include "always.h"
-#include "Vector.h"
-#include "wwstring.h"
-#include "hashtemplate.h"
+#include "WWLib/always.h"
+#include "WWLib/Vector.h"
+#include "WWLib/wwstring.h"
+#include "WWLib/hashtemplate.h"
 
 class PrototypeClass;
 class HTreeClass;

@@ -152,7 +152,7 @@ public:
 	// default OpenContain has unlimited capacity...!
 	virtual Bool isValidContainerFor(const Object* obj, Bool checkCapacity) const override;
 	virtual void addToContain( Object *obj ) override;				///< add 'obj' to contain list
-	virtual void addToContainList( Object *obj );		///< The part of AddToContain that inheritors can override (Can't do whole thing because of all the private stuff involved)
+	virtual void addToContainList( Object *obj ) override;		///< The part of AddToContain that inheritors can override (Can't do whole thing because of all the private stuff involved)
 	virtual void removeFromContain( Object *obj, Bool exposeStealthUnits = FALSE ) override;	///< remove 'obj' from contain list
 	virtual void removeAllContained( Bool exposeStealthUnits = FALSE ) override;				///< remove all objects on contain list
 	virtual void killAllContained() override;				///< kill all objects on contain list
@@ -171,6 +171,7 @@ public:
 	virtual void iterateContained( ContainIterateFunc func, void *userData, Bool reverse ) override;
 	virtual UnsignedInt getContainCount() const override { return m_containListSize; }
 	virtual const ContainedItemsList* getContainedItemsList() const override { return &m_containList; }
+	virtual Bool isContained( const Object *obj ) const override;
 	virtual const Object *friend_getRider() const override {return nullptr;} ///< Damn.  The draw order dependency bug for riders means that our draw module needs to cheat to get around it.
 	virtual Real getContainedItemsMass() const override;
 	virtual UnsignedInt getStealthUnitsContained() const override { return m_stealthUnitsContained; }
@@ -259,7 +260,7 @@ protected:
 	UnsignedInt					m_containListSize;							///< size of contained list
 private:
 
-	typedef std::map< ObjectID, ObjectEnterExitType, std::less<ObjectID> > ObjectEnterExitMap;
+	typedef std::map< ObjectID, ObjectEnterExitType, std::less<ObjectID>/**/> ObjectEnterExitMap;
 
 	ObjectEnterExitMap	m_objectEnterExitInfo;
 	UnsignedInt					m_stealthUnitsContained;				///< number of stealth units that can't be seen by enemy players.

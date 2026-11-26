@@ -30,14 +30,12 @@
  *                                                                                             *
  *                    $Revision:: 1                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
 
-#include "always.h"
-#include "w3d_file.h"
+#include "WWLib/always.h"
+#include "WW3D2/w3d_file.h"
 
 class FileClass;
 class ChunkLoadClass;

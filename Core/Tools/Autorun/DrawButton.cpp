@@ -30,14 +30,6 @@
  *																			  *
  *                   Last Update : October 2, 2000  [MML]					  *
  *																			  *
- *----------------------------------------------------------------------------*
- * Functions:																  *
- *		DrawButton::DrawButton												  *
- *		DrawButton::Is_Mouse_In_Region										  *
- *		DrawButton::Return_Bitmap											  *
- *		DrawButton::Return_Area												  *
- *		DrawButton::Set_Stretched_Width										  *
- *		DrawButton::Set_Stretched_Height									  *
  *----------------------------------------------------------------------------*/
 
 
@@ -153,7 +145,7 @@ DrawButton::DrawButton ( int id, RECT button_rect, const char *normal, const cha
 	Msg( __LINE__, TEXT(__FILE__), TEXT("	MyRect	= [%d,%d,%d,%d]"), MyRect.X, MyRect.Y, MyRect.Width, MyRect.Height );
 }
 
-DrawButton::DrawButton ( int id, RECT button_rect, const char *normal, const char *focus, const char *pressed, const wchar_t *string, TTFontClass *fontptr )
+DrawButton::DrawButton ( int id, RECT button_rect, const char *normal, const char *focus, const char *pressed, const unichar *string, TTFontClass *fontptr )
 {
 	Id = id;
 
@@ -325,7 +317,7 @@ bool DrawButton::Is_Mouse_In_Region ( int mouse_x, int mouse_y )
 //   07/15/1996  MML : Created.
 //=============================================================================
 
-char *DrawButton::Return_Bitmap ( void )
+char *DrawButton::Return_Bitmap ()
 {
 	if ( ButtonState == PRESSED_STATE ) {
 		return ( PressedBitmap );

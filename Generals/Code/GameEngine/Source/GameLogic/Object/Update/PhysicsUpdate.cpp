@@ -32,8 +32,10 @@
 #define NO_DEBUG_CRC
 
 #include "Common/PerfTimer.h"
+#include "Common/Player.h"
 #include "Common/ThingTemplate.h"
 #include "Common/Xfer.h"
+#include "GameClient/FXList.h"
 #include "GameLogic/GameLogic.h"
 #include "GameLogic/Module/AIUpdate.h"
 #include "GameLogic/Module/BodyModule.h"
@@ -93,7 +95,7 @@ static Real heightToSpeed(Real height)
 {
 	// don't bother trying to remember how far we've fallen; instead,
 	// back-calc it from our speed & gravity... v = sqrt(2*g*h)
-	return sqrt(fabs(2.0f * TheGlobalData->m_gravity * height));
+	return WWMath::Sqrt(WWMath::Fabs(2.0f * TheGlobalData->m_gravity * height));
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -237,8 +239,6 @@ void PhysicsBehavior::onObjectCreated()
 //-------------------------------------------------------------------------------------------------
 PhysicsBehavior::~PhysicsBehavior()
 {
-	deleteInstance(m_bounceSound);
-	m_bounceSound = nullptr;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -297,9 +297,10 @@ void PhysicsBehavior::applyForce( const Coord3D *force )
 {
 // TheSuperHackers @info helmutbuhler 06/05/2025 This debug mutates the code to become CRC incompatible
 #if defined(RTS_DEBUG) || !RETAIL_COMPATIBLE_CRC
-	DEBUG_ASSERTCRASH(!(_isnan(force->x) || _isnan(force->y) || _isnan(force->z)), ("PhysicsBehavior::applyForce force NAN!"));
+	DEBUG_ASSERTCRASH(!(std::isnan(force->x) || std::isnan(force->y) || std::isnan(force->z)), ("PhysicsBehavior::applyForce force NAN!"));
 #endif
-	if (_isnan(force->x) || _isnan(force->y) || _isnan(force->z)) {
+	if (std::isnan(force->x) || std::isnan(force->y) || std::isnan(force->z))
+	{
 		return;
 	}
 	// F = ma  -->  a = F/m  (divide force by mass)
@@ -319,8 +320,8 @@ void PhysicsBehavior::applyForce( const Coord3D *force )
 	m_accel.y += modForce.y * massInv;
 	m_accel.z += modForce.z * massInv;
 
-	//DEBUG_ASSERTCRASH(!(_isnan(m_accel.x) || _isnan(m_accel.y) || _isnan(m_accel.z)), ("PhysicsBehavior::applyForce accel NAN!"));
-	//DEBUG_ASSERTCRASH(!(_isnan(m_vel.x) || _isnan(m_vel.y) || _isnan(m_vel.z)), ("PhysicsBehavior::applyForce vel NAN!"));
+	//DEBUG_ASSERTCRASH(!(std::isnan(m_accel.x) || std::isnan(m_accel.y) || std::isnan(m_accel.z)), ("PhysicsBehavior::applyForce accel NAN!"));
+	//DEBUG_ASSERTCRASH(!(std::isnan(m_vel.x) || std::isnan(m_vel.y) || std::isnan(m_vel.z)), ("PhysicsBehavior::applyForce vel NAN!"));
 	//DEBUG_ASSERTCRASH(fabs(force->z) < 3, ("unlikely z-force"));
 #ifdef SLEEPY_PHYSICS
 	if (getFlag(IS_IN_UPDATE))
@@ -438,7 +439,7 @@ Bool PhysicsBehavior::handleBounce(Real oldZ, Real newZ, Real groundZ, Coord3D* 
 		Real vz = getVelocity()->z;
 		if (oldZ > groundZ && vz < 0.0f)
 		{
-			desiredAccelZ = fabs(vz) * stiffness;
+			desiredAccelZ = WWMath::Fabs(vz) * stiffness;
 		}
 
 		bounceForce->x = 0.0f;
@@ -470,7 +471,7 @@ Bool PhysicsBehavior::handleBounce(Real oldZ, Real newZ, Real groundZ, Coord3D* 
 inline Bool isVerySmall3D(const Coord3D& v)
 {
 	const Real THRESH = 0.01f;
-	return (fabs(v.x) < THRESH && fabs(v.y) < THRESH && fabs(v.z) < THRESH);
+	return (WWMath::Fabs(v.x) < THRESH && WWMath::Fabs(v.y) < THRESH && WWMath::Fabs(v.z) < THRESH);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -515,14 +516,13 @@ void PhysicsBehavior::setBounceSound(const AudioEventRTS* bounceSound)
 	if (bounceSound)
 	{
 		if (m_bounceSound == nullptr)
-			m_bounceSound = newInstance(DynamicAudioEventRTS);
+			m_bounceSound.Assign_No_Add_Ref(newInstance(DynamicAudioEventRTS));
 
-		m_bounceSound->m_event = *bounceSound;
+		*m_bounceSound = *bounceSound;
 	}
 	else
 	{
-		deleteInstance(m_bounceSound);
-		m_bounceSound = nullptr;
+		m_bounceSound.Clear();
 	}
 }
 
@@ -569,9 +569,9 @@ UpdateSleepTime PhysicsBehavior::update()
 
 		// when vel gets tiny, just clamp to zero
 		const Real THRESH = 0.001f;
-		if (fabsf(m_vel.x) < THRESH) m_vel.x = 0.0f;
-		if (fabsf(m_vel.y) < THRESH) m_vel.y = 0.0f;
-		if (fabsf(m_vel.z) < THRESH) m_vel.z = 0.0f;
+		if (WWMath::Fabsf(m_vel.x) < THRESH) m_vel.x = 0.0f;
+		if (WWMath::Fabsf(m_vel.y) < THRESH) m_vel.y = 0.0f;
+		if (WWMath::Fabsf(m_vel.z) < THRESH) m_vel.z = 0.0f;
 
 		m_velMag = INVALID_VEL_MAG;
 
@@ -594,8 +594,9 @@ UpdateSleepTime PhysicsBehavior::update()
 			mtx.Adjust_Z_Translation(m_vel.z);
 		}
 
-		if (_isnan(mtx.Get_X_Translation()) || _isnan(mtx.Get_Y_Translation()) ||
-			_isnan(mtx.Get_Z_Translation())) {
+		if (std::isnan(mtx.Get_X_Translation()) || std::isnan(mtx.Get_Y_Translation()) ||
+			std::isnan(mtx.Get_Z_Translation()))
+		{
 			DEBUG_CRASH(("Object position is NAN, deleting."));
 			TheGameLogic->destroyObject(obj);
 		}
@@ -636,8 +637,8 @@ UpdateSleepTime PhysicsBehavior::update()
 			if (offset != 0.0f)
 			{
 				Vector3 xvec = mtx.Get_X_Vector();
-				Real xy = sqrtf(sqr(xvec.X) + sqr(xvec.Y));
-				Real pitchAngle = atan2(xvec.Z, xy);
+				Real xy = WWMath::Sqrtf(sqr(xvec.X) + sqr(xvec.Y));
+				Real pitchAngle = WWMath::Atan2(xvec.Z, xy);
 				Real remainingAngle = (offset > 0) ? ((PI/2) - pitchAngle) : (-(PI/2) + pitchAngle);
 				Real s = Sin(remainingAngle);
 				pitchRateToUse *= s;
@@ -737,8 +738,8 @@ UpdateSleepTime PhysicsBehavior::update()
 			// going down hills don't injure themselves (unless the hill is really steep)
 			const Real MIN_ANGLE_TAN = 3.0f;	//	roughly 71 degrees
 			const Real TINY_DELTA = 0.01f;
-			if ((fabs(m_vel.x) <= TINY_DELTA || fabs(activeVelZ / m_vel.x) >= MIN_ANGLE_TAN) &&
-				(fabs(m_vel.y) <= TINY_DELTA || fabs(activeVelZ / m_vel.y) >= MIN_ANGLE_TAN))
+			if ((WWMath::Fabs(m_vel.x) <= TINY_DELTA || WWMath::Fabs(activeVelZ / m_vel.x) >= MIN_ANGLE_TAN) &&
+				(WWMath::Fabs(m_vel.y) <= TINY_DELTA || WWMath::Fabs(activeVelZ / m_vel.y) >= MIN_ANGLE_TAN))
 			{
 				Real damageAmt = netSpeed * getMass() * d->m_fallHeightDamageFactor;
 
@@ -794,14 +795,14 @@ UpdateSleepTime PhysicsBehavior::update()
 UpdateSleepTime PhysicsBehavior::calcSleepTime() const
 {
 #ifdef SLEEPY_PHYSICS
-	if (isZero3D(m_vel)
-			&& isZero3D(m_accel)
-			&& !getFlag(HAS_PITCHROLLYAW)
-			&& !isMotive()
-			&& (getObject()->getLayer() == LAYER_GROUND && !getObject()->isAboveTerrain())
-			&& getCurrentOverlap() == INVALID_ID
-			&& getPreviousOverlap() == INVALID_ID
-			&& getFlag(UPDATE_EVER_RUN))
+	if (isZero3D(m_vel) &&
+			isZero3D(m_accel) &&
+			!getFlag(HAS_PITCHROLLYAW) &&
+			!isMotive() &&
+			(getObject()->getLayer() == LAYER_GROUND && !getObject()->isAboveTerrain()) &&
+			getCurrentOverlap() == INVALID_ID &&
+			getPreviousOverlap() == INVALID_ID &&
+			getFlag(UPDATE_EVER_RUN))
 	{
 		return UPDATE_SLEEP_FOREVER;
 	}
@@ -817,7 +818,7 @@ Real PhysicsBehavior::getVelocityMagnitude() const
 {
 	if (m_velMag == INVALID_VEL_MAG)
 	{
-		m_velMag = (Real)sqrtf( sqr(m_vel.x) + sqr(m_vel.y) + sqr(m_vel.z) );
+		m_velMag = (Real)WWMath::Sqrtf( sqr(m_vel.x) + sqr(m_vel.y) + sqr(m_vel.z) );
 	}
 	return m_velMag;
 }
@@ -830,21 +831,24 @@ Real PhysicsBehavior::getVelocityMagnitude() const
 Real PhysicsBehavior::getForwardSpeed2D() const
 {
 	const Coord3D *dir = getObject()->getUnitDirectionVector2D();
-
 	Real vx = m_vel.x * dir->x;
 	Real vy = m_vel.y * dir->y;
-
 	Real dot = vx + vy;
 
-	Real speedSquared = vx*vx + vy*vy;
-//	DEBUG_ASSERTCRASH( speedSquared != 0, ("zero speedSquared will overflow sqrtf()!") );// lorenzen... sanity check
+	if (useLegacyForwardSpeed())
+	{
+		Real speed = (Real)WWMath::Sqrtf( vx*vx + vy*vy );
+		if (dot >= 0.0f)
+			return speed;
+		return -speed;
+	}
 
-	Real speed = (Real)sqrtf( speedSquared );
-
-	if (dot >= 0.0f)
-		return speed;
-
-	return -speed;
+	// TheSuperHackers @bugfix xezon 30/07/2026 Now returns the dot product instead of +-sqrtf(vx*vx+vy*vy).
+	// The retail formula understates the forward speed by up to 1/sqrt(2) on diagonal headings, which made
+	// the Locomotor overshoot its goal speed there. The dot product is the true projection of the velocity
+	// onto the facing vector, so this now reports real distance per logic frame and can be used for distance
+	// and time calculations. The speeds the Locomotor commands are compensated to match, in LocomotorTemplate.
+	return dot;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -855,20 +859,33 @@ Real PhysicsBehavior::getForwardSpeed2D() const
 Real PhysicsBehavior::getForwardSpeed3D() const
 {
 	Vector3 dir = getObject()->getTransformMatrix()->Get_X_Vector();
-
 	Real vx = m_vel.x * dir.X;
 	Real vy = m_vel.y * dir.Y;
 	Real vz = m_vel.z * dir.Z;
-
 	Real dot = vx + vy + vz;
 
-	Real speed = (Real)sqrtf( vx*vx + vy*vy + vz*vz );
+	if (useLegacyForwardSpeed())
+	{
+		Real speed = (Real)WWMath::Sqrtf( vx*vx + vy*vy + vz*vz );
+		if (dot >= 0.0f)
+			return speed;
+		return -speed;
+	}
 
-	if (dot >= 0.0f)
-		return speed;
-
-	return -speed;
+	// TheSuperHackers @bugfix xezon 30/07/2026 Now returns the dot product instead of
+	// +-sqrtf(vx*vx+vy*vy+vz*vz). See getForwardSpeed2D for the rationale.
+	return dot;
 }
+
+#if USE_RETAIL_PHYSICS_FORWARD_SPEED_DISCREPANCY_IN_CINEMATICS()
+//-------------------------------------------------------------------------------------------------
+Bool PhysicsBehavior::useLegacyForwardSpeedInCinematics()
+{
+	// TheSuperHackers @info The retail speeds are kept for the duration of a cinematic, because
+	// legacy missions time their cinematics against them.
+	return TheScriptEngine->isLetterBoxActive();
+}
+#endif
 
 //-------------------------------------------------------------------------------------------------
 Bool PhysicsBehavior::isCurrentlyOverlapped(Object *obj) const
@@ -885,7 +902,7 @@ Bool PhysicsBehavior::wasPreviouslyOverlapped(Object *obj) const
 //-------------------------------------------------------------------------------------------------
 void PhysicsBehavior::scrubVelocityZ( Real desiredVelocity )
 {
-	if (fabs(desiredVelocity) < 0.001f)
+	if (WWMath::Fabs(desiredVelocity) < 0.001f)
 	{
 		m_vel.z = 0;
 	}
@@ -909,7 +926,7 @@ void PhysicsBehavior::scrubVelocity2D( Real desiredVelocity )
 	}
 	else
 	{
-		Real curVelocity = sqrtf(m_vel.x*m_vel.x + m_vel.y*m_vel.y);
+		Real curVelocity = WWMath::Sqrtf(m_vel.x*m_vel.x + m_vel.y*m_vel.y);
 		if (desiredVelocity > curVelocity)
 		{
 			return;
@@ -935,7 +952,7 @@ void PhysicsBehavior::transferVelocityTo(PhysicsBehavior* that) const
 {
 	if (that != nullptr)
 	{
-		that->m_vel.add(&m_vel);
+		that->m_vel.add(m_vel);
 		that->m_velMag = INVALID_VEL_MAG;
 	}
 }
@@ -944,7 +961,7 @@ void PhysicsBehavior::transferVelocityTo(PhysicsBehavior* that) const
 void PhysicsBehavior::addVelocityTo( const Coord3D *vel)
 {
 	if (vel != nullptr)
-		m_vel.add( vel );
+		m_vel.add( *vel );
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -988,13 +1005,13 @@ void PhysicsBehavior::doBounceSound(const Coord3D& prevPos)
 	const Real NORMAL_MASS	= 50.0f;
 
 	// get the per-unit sound for the collision which was stuffed in on Object creation.
-	AudioEventRTS collisionSound = m_bounceSound->m_event;
+	AudioEventRTS collisionSound = *m_bounceSound.Peek();
 
 //Real vel = fabs(getVelocity()->z);
 // can't use velocity, because it's already been updated this frame, and will be zero... (srj)
-	Real vel = fabs(prevPos.z - getObject()->getPosition()->z);
+	Real vel = WWMath::Fabs(prevPos.z - getObject()->getPosition()->z);
 
-	Real mass = fabs(getMass());
+	Real mass = WWMath::Fabs(getMass());
 	if (vel > NORMAL_VEL_Z) {
 		vel = NORMAL_VEL_Z;
 	}
@@ -1194,7 +1211,7 @@ void PhysicsBehavior::onCollide( Object *other, const Coord3D *loc, const Coord3
 
 	m_lastCollidee = other->getID();
 
-	Real dist = sqrtf(distSqr);
+	Real dist = WWMath::Sqrtf(distSqr);
 	Real overlap = usRadius + themRadius - dist;
 
 	// if objects are coincident, dist is zero, so force would be infinite -- clearly
@@ -1252,7 +1269,26 @@ void PhysicsBehavior::onCollide( Object *other, const Coord3D *loc, const Coord3
 					// fall into a building. if a vehicle, blow up. then destroy ourself (not die), regardless.
 					if (obj->isKindOf(KINDOF_VEHICLE))
 					{
+#if RETAIL_COMPATIBLE_CRC
 						TheWeaponStore->createAndFireTempWeapon(getPhysicsBehaviorModuleData()->m_vehicleCrashesIntoBuildingWeaponTemplate, obj, obj->getPosition());
+#else
+						// TheSuperHackers @bugfix Stubbjax 17/05/2026 Prevent building collisions from dealing collateral damage to other objects.
+						const WeaponTemplate* weaponTemplate = getPhysicsBehaviorModuleData()->m_vehicleCrashesIntoBuildingWeaponTemplate;
+						if (weaponTemplate != nullptr)
+						{
+							WeaponBonus nullBonus;
+
+							DamageInfo damageInfo;
+							damageInfo.in.m_damageType = weaponTemplate->getDamageType();
+							damageInfo.in.m_deathType = weaponTemplate->getDeathType();
+							damageInfo.in.m_sourceID = obj->getID();
+							damageInfo.in.m_sourcePlayerMask = obj->getControllingPlayer() ? obj->getControllingPlayer()->getPlayerMask() : 0;
+							damageInfo.in.m_amount = weaponTemplate->getPrimaryDamage(nullBonus);
+
+							other->attemptDamage(&damageInfo);
+							FXList::doFXObj(weaponTemplate->getFireFX(obj->getVeterancyLevel()), obj);
+						}
+#endif
 					}
 					TheGameLogic->destroyObject(obj);
 					return;
@@ -1262,7 +1298,26 @@ void PhysicsBehavior::onCollide( Object *other, const Coord3D *loc, const Coord3
 					// fall into a nonbuilding -- whatever. if we're a vehicle, quietly do a little damage.
 					if (obj->isKindOf(KINDOF_VEHICLE))
 					{
+#if RETAIL_COMPATIBLE_CRC
 						TheWeaponStore->createAndFireTempWeapon(getPhysicsBehaviorModuleData()->m_vehicleCrashesIntoNonBuildingWeaponTemplate, obj, obj->getPosition());
+#else
+						// TheSuperHackers @bugfix Stubbjax 19/04/2026 Prevent non-building collisions from repeatedly dealing collateral damage to other objects.
+						const WeaponTemplate* weaponTemplate = getPhysicsBehaviorModuleData()->m_vehicleCrashesIntoNonBuildingWeaponTemplate;
+						if (weaponTemplate != nullptr)
+						{
+							WeaponBonus nullBonus;
+
+							DamageInfo damageInfo;
+							damageInfo.in.m_damageType = weaponTemplate->getDamageType();
+							damageInfo.in.m_deathType = weaponTemplate->getDeathType();
+							damageInfo.in.m_sourceID = obj->getID();
+							damageInfo.in.m_sourcePlayerMask = obj->getControllingPlayer() ? obj->getControllingPlayer()->getPlayerMask() : 0;
+							damageInfo.in.m_amount = weaponTemplate->getPrimaryDamage(nullBonus);
+
+							other->attemptDamage(&damageInfo);
+							FXList::doFXObj(weaponTemplate->getFireFX(obj->getVeterancyLevel()), obj);
+						}
+#endif
 					}
 				}
 			}
@@ -1286,7 +1341,7 @@ void PhysicsBehavior::onCollide( Object *other, const Coord3D *loc, const Coord3
 		force.x = factor * delta.x / dist;
 		force.y = factor * delta.y / dist;
 		force.z = factor * delta.z / dist;	// will be zero for 2d case.
-		DEBUG_ASSERTCRASH(!(_isnan(force.x) || _isnan(force.y) || _isnan(force.z)), ("PhysicsBehavior::onCollide force NAN!"));
+		DEBUG_ASSERTCRASH(!(std::isnan(force.x) || std::isnan(force.y) || std::isnan(force.z)), ("PhysicsBehavior::onCollide force NAN!"));
 
 		applyForce( &force );
 	}
@@ -1297,7 +1352,7 @@ static Bool perpsLogicallyEqual( Real perpOne, Real perpTwo )
 {
 	// Equality with a wiggle fudge.
   const Real PERP_RANGE = 0.15f;
-	return fabs( perpOne - perpTwo ) <= PERP_RANGE;
+	return WWMath::Fabs( perpOne - perpTwo ) <= PERP_RANGE;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -1475,8 +1530,8 @@ Bool PhysicsBehavior::checkForOverlapCollision(Object *other)
 			// Now find the shortest.  Use the straightline distance to crush point as tie breaker
 			if( (frontPerpLength <= centerPerpLength)  && (frontPerpLength <= backPerpLength) )
 			{
-				if( perpsLogicallyEqual(frontPerpLength, centerPerpLength)
-					|| perpsLogicallyEqual(frontPerpLength, backPerpLength)
+				if( perpsLogicallyEqual(frontPerpLength, centerPerpLength) ||
+					perpsLogicallyEqual(frontPerpLength, backPerpLength)
 					)
 				{
 					Real frontVectorLength = frontVector.length();
@@ -1504,8 +1559,8 @@ Bool PhysicsBehavior::checkForOverlapCollision(Object *other)
 			}
 			else if( (backPerpLength <= centerPerpLength)  && (backPerpLength <= frontPerpLength) )
 			{
-				if( perpsLogicallyEqual(backPerpLength, centerPerpLength)
-					|| perpsLogicallyEqual(backPerpLength, frontPerpLength)
+				if( perpsLogicallyEqual(backPerpLength, centerPerpLength) ||
+					perpsLogicallyEqual(backPerpLength, frontPerpLength)
 					)
 				{
 					Real backVectorLength = backVector.length();
@@ -1533,8 +1588,8 @@ Bool PhysicsBehavior::checkForOverlapCollision(Object *other)
 			}
 			else // centerperp is shortest
 			{
-				if( perpsLogicallyEqual(centerPerpLength, backPerpLength)
-					|| perpsLogicallyEqual(centerPerpLength, frontPerpLength)
+				if( perpsLogicallyEqual(centerPerpLength, backPerpLength) ||
+					perpsLogicallyEqual(centerPerpLength, frontPerpLength)
 					)
 				{
 					Real centerVectorLength = centerVector.length();

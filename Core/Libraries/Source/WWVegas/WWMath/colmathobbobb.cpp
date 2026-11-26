@@ -30,33 +30,12 @@
  *                                                                                             *
  *                    $Revision:: 15                                                          $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
- *   obb_intersect_box0_basis -- intersection test for a basis vector from box0                *
- *   obb_intersect_box1_basis -- intersection test for a basis vector from box1                *
- *   obb_intersect_axis -- intersection test for a axis                                        *
- *   intersect_obb_obb -- test two OBBoxes for intersection                                    *
- *   CollisionMath::Intersection_Test -- test two obb's for intersection                       *
- *   CollisionMath::Intersection_Test -- test an OBB for intersection with an AAB              *
- *   CollisionMath::Intersection_Test -- Test an AAB for intersection with an OBB              *
- *   obb_separation_test -- test the projections of two obb's for separation                   *
- *   obb_check_box0_basis -- projects the boxes onto a basis vector from box0                  *
- *   obb_check_box1_basis -- projects the two obbs onto a basis vector from box1               *
- *   obb_check_axis -- projects the obbs onto an arbitrary axis                                *
- *   obb_compute_projections -- computes projections of two boxes onto an arbitrary axis       *
- *   compute_contact_normal -- computes the contact normal (after contact is detected)         *
- *   eval_side -- returns -1,0,1 depending on ab and side                                      *
- *   compute_contact_point -- computes the contact point (after contact is detected)           *
- *   collide_obb_obb -- test two obb's for collision                                           *
- *   CollisionMath::Collide -- collide two OBB's                                               *
- *   CollisionMath::Collide -- collide an OBB with an AAB                                      *
- *   CollisionMath::Collide -- collide an AAB with an OBB                                      *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #include "colmath.h"
 #include "obbox.h"
 #include "aabox.h"
-#include "wwdebug.h"
+#include "WWDebug/wwdebug.h"
 
 
 /*
@@ -153,21 +132,8 @@ private:
 
 
 
-/***********************************************************************************************
- * obb_intersect_box0_basis -- intersection test for a basis vector from box0                  *
- *                                                                                             *
- * The optimization here is that the projection of the first box is known since the axis is    *
- * one of its basis vectors.                                                                   *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   5/4/99     GTH : Created.                                                                 *
- *=============================================================================================*/
+// The optimization here is that the projection of the first box is known since the axis is one of
+// its basis vectors.
 static bool obb_intersect_box0_basis
 (
 	ObbIntersectionStruct &	context,
@@ -177,9 +143,9 @@ static bool obb_intersect_box0_basis
 	// ra = box0 projection onto the axis
 	// rb = box1 projection onto the axis
 	float ra =	context.Box0.Extent[axis_index];
-	float rb =	WWMath::Fabs(context.Box1.Extent[0]*context.AB[axis_index][0]) +
-					WWMath::Fabs(context.Box1.Extent[1]*context.AB[axis_index][1]) +
-					WWMath::Fabs(context.Box1.Extent[2]*context.AB[axis_index][2]);
+	float rb =	WWMath::Fabsf_Legacy(context.Box1.Extent[0]*context.AB[axis_index][0]) +
+					WWMath::Fabsf_Legacy(context.Box1.Extent[1]*context.AB[axis_index][1]) +
+					WWMath::Fabsf_Legacy(context.Box1.Extent[2]*context.AB[axis_index][2]);
 	float rsum = ra+rb;
 
 	// u = projected distance between the box centers
@@ -191,21 +157,8 @@ static bool obb_intersect_box0_basis
 }
 
 
-/***********************************************************************************************
- * obb_intersect_box1_basis -- intersection test for a basis vector from box1                  *
- *                                                                                             *
- * The "optimization" here is that the extent for the second box is known since the axis is    *
- * one of its basis vectors.                                                                   *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   5/4/99     GTH : Created.                                                                 *
- *=============================================================================================*/
+// The "optimization" here is that the extent for the second box is known since the axis is one of
+// its basis vectors.
 static bool obb_intersect_box1_basis
 (
 	ObbIntersectionStruct &	context,
@@ -214,9 +167,9 @@ static bool obb_intersect_box1_basis
 {
 	// ra = box0 projection onto the axis
 	// rb = box1 projection onto the axis
-	float ra =	WWMath::Fabs(context.Box0.Extent[0]*context.AB[0][axis_index]) +
-					WWMath::Fabs(context.Box0.Extent[1]*context.AB[1][axis_index]) +
-					WWMath::Fabs(context.Box0.Extent[2]*context.AB[2][axis_index]);
+	float ra =	WWMath::Fabsf_Legacy(context.Box0.Extent[0]*context.AB[0][axis_index]) +
+					WWMath::Fabsf_Legacy(context.Box0.Extent[1]*context.AB[1][axis_index]) +
+					WWMath::Fabsf_Legacy(context.Box0.Extent[2]*context.AB[2][axis_index]);
 	float rb =	context.Box1.Extent[axis_index];
 	float rsum = ra+rb;
 
@@ -229,22 +182,9 @@ static bool obb_intersect_box1_basis
 }
 
 
-/***********************************************************************************************
- * obb_intersect_axis -- intersection test for a axis                                          *
- *                                                                                             *
- * Checks intersection on an arbitrary axis where you've already computed the projectsions.    *
- * Many of the later tests in the OBB-OBB algorigthm fall into here since there are            *
- * optimizations in computing the projections but they are all specific to the axis being used *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   5/4/99     GTH : Created.                                                                 *
- *=============================================================================================*/
+// Checks intersection on an arbitrary axis where you've already computed the projections. Many of
+// the later tests in the OBB-OBB algorithm fall into here since there are optimizations in
+// computing the projections but they are all specific to the axis being used.
 static inline bool obb_intersect_axis
 (
 	ObbIntersectionStruct &	context,
@@ -262,24 +202,10 @@ static inline bool obb_intersect_axis
 }
 
 
-/***********************************************************************************************
- * intersect_obb_obb -- test two OBBoxes for intersection                                      *
- *                                                                                             *
- * This function works in a very similar (but simplified) way as the Collide function.  See    *
- * the comments in that function for more clues regarding the math involved...                 *
- *                                                                                             *
- * Due to the re-usage of intermediate calculations, this function is ~2x faster than the      *
- * equivalent Oriented_Boxes_Intersect.                                                        *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   5/4/99     GTH : Created.                                                                 *
- *=============================================================================================*/
+// This function works in a very similar (but simplified) way as the Collide function. See the
+// comments in that function for more clues regarding the math involved... Due to the re-usage of
+// intermediate calculations, this function is ~2x faster than the equivalent
+// Oriented_Boxes_Intersect.
 bool intersect_obb_obb
 (
 	ObbIntersectionStruct & context
@@ -340,8 +266,8 @@ bool intersect_obb_obb
 	/////////////////////////////////////////////////////////////////////////
 	Vector3::Cross_Product(context.A[0],context.B[0],&axis);
 	if (axis.Length2() > AXISLEN_EPSILON2) {
-		ra = WWMath::Fabs(context.Box0.Extent[1]*context.AB[2][0])+WWMath::Fabs(context.Box0.Extent[2]*context.AB[1][0]);
-		rb = WWMath::Fabs(context.Box1.Extent[1]*context.AB[0][2])+WWMath::Fabs(context.Box1.Extent[2]*context.AB[0][1]);
+		ra = WWMath::Fabsf_Legacy(context.Box0.Extent[1]*context.AB[2][0])+WWMath::Fabsf_Legacy(context.Box0.Extent[2]*context.AB[1][0]);
+		rb = WWMath::Fabsf_Legacy(context.Box1.Extent[1]*context.AB[0][2])+WWMath::Fabsf_Legacy(context.Box1.Extent[2]*context.AB[0][1]);
 		if (obb_intersect_axis(context,axis,ra,rb)) return false;
 	}
 
@@ -350,8 +276,8 @@ bool intersect_obb_obb
 	/////////////////////////////////////////////////////////////////////////
 	Vector3::Cross_Product(context.A[0],context.B[1],&axis);
 	if (axis.Length2() > AXISLEN_EPSILON2) {
-		ra = WWMath::Fabs(context.Box0.Extent[1]*context.AB[2][1])+WWMath::Fabs(context.Box0.Extent[2]*context.AB[1][1]);
-		rb = WWMath::Fabs(context.Box1.Extent[0]*context.AB[0][2])+WWMath::Fabs(context.Box1.Extent[2]*context.AB[0][0]);
+		ra = WWMath::Fabsf_Legacy(context.Box0.Extent[1]*context.AB[2][1])+WWMath::Fabsf_Legacy(context.Box0.Extent[2]*context.AB[1][1]);
+		rb = WWMath::Fabsf_Legacy(context.Box1.Extent[0]*context.AB[0][2])+WWMath::Fabsf_Legacy(context.Box1.Extent[2]*context.AB[0][0]);
 		if (obb_intersect_axis(context,axis,ra,rb)) return false;
 	}
 
@@ -360,8 +286,8 @@ bool intersect_obb_obb
 	/////////////////////////////////////////////////////////////////////////
 	Vector3::Cross_Product(context.A[0],context.B[2],&axis);
 	if (axis.Length2() > AXISLEN_EPSILON2) {
-		ra = WWMath::Fabs(context.Box0.Extent[1]*context.AB[2][2])+WWMath::Fabs(context.Box0.Extent[2]*context.AB[1][2]);
-		rb = WWMath::Fabs(context.Box1.Extent[0]*context.AB[0][1])+WWMath::Fabs(context.Box1.Extent[1]*context.AB[0][0]);
+		ra = WWMath::Fabsf_Legacy(context.Box0.Extent[1]*context.AB[2][2])+WWMath::Fabsf_Legacy(context.Box0.Extent[2]*context.AB[1][2]);
+		rb = WWMath::Fabsf_Legacy(context.Box1.Extent[0]*context.AB[0][1])+WWMath::Fabsf_Legacy(context.Box1.Extent[1]*context.AB[0][0]);
 		if (obb_intersect_axis(context,axis,ra,rb)) return false;
 	}
 
@@ -370,8 +296,8 @@ bool intersect_obb_obb
 	/////////////////////////////////////////////////////////////////////////
 	Vector3::Cross_Product(context.A[1],context.B[0],&axis);
 	if (axis.Length2() > AXISLEN_EPSILON2) {
-		ra = WWMath::Fabs(context.Box0.Extent[0]*context.AB[2][0])+WWMath::Fabs(context.Box0.Extent[2]*context.AB[0][0]);
-		rb = WWMath::Fabs(context.Box1.Extent[1]*context.AB[1][2])+WWMath::Fabs(context.Box1.Extent[2]*context.AB[1][1]);
+		ra = WWMath::Fabsf_Legacy(context.Box0.Extent[0]*context.AB[2][0])+WWMath::Fabsf_Legacy(context.Box0.Extent[2]*context.AB[0][0]);
+		rb = WWMath::Fabsf_Legacy(context.Box1.Extent[1]*context.AB[1][2])+WWMath::Fabsf_Legacy(context.Box1.Extent[2]*context.AB[1][1]);
 		if (obb_intersect_axis(context,axis,ra,rb)) return false;
 	}
 
@@ -380,8 +306,8 @@ bool intersect_obb_obb
 	/////////////////////////////////////////////////////////////////////////
 	Vector3::Cross_Product(context.A[1],context.B[1],&axis);
 	if (axis.Length2() > AXISLEN_EPSILON2) {
-		ra = WWMath::Fabs(context.Box0.Extent[0]*context.AB[2][1])+WWMath::Fabs(context.Box0.Extent[2]*context.AB[0][1]);
-		rb = WWMath::Fabs(context.Box1.Extent[0]*context.AB[1][2])+WWMath::Fabs(context.Box1.Extent[2]*context.AB[1][0]);
+		ra = WWMath::Fabsf_Legacy(context.Box0.Extent[0]*context.AB[2][1])+WWMath::Fabsf_Legacy(context.Box0.Extent[2]*context.AB[0][1]);
+		rb = WWMath::Fabsf_Legacy(context.Box1.Extent[0]*context.AB[1][2])+WWMath::Fabsf_Legacy(context.Box1.Extent[2]*context.AB[1][0]);
 		if (obb_intersect_axis(context,axis,ra,rb)) return false;
 	}
 
@@ -390,8 +316,8 @@ bool intersect_obb_obb
 	/////////////////////////////////////////////////////////////////////////
 	Vector3::Cross_Product(context.A[1],context.B[2],&axis);
 	if (axis.Length2() > AXISLEN_EPSILON2) {
-		ra = WWMath::Fabs(context.Box0.Extent[0]*context.AB[2][2])+WWMath::Fabs(context.Box0.Extent[2]*context.AB[0][2]);
-		rb = WWMath::Fabs(context.Box1.Extent[0]*context.AB[1][1])+WWMath::Fabs(context.Box1.Extent[1]*context.AB[1][0]);
+		ra = WWMath::Fabsf_Legacy(context.Box0.Extent[0]*context.AB[2][2])+WWMath::Fabsf_Legacy(context.Box0.Extent[2]*context.AB[0][2]);
+		rb = WWMath::Fabsf_Legacy(context.Box1.Extent[0]*context.AB[1][1])+WWMath::Fabsf_Legacy(context.Box1.Extent[1]*context.AB[1][0]);
 		if (obb_intersect_axis(context,axis,ra,rb)) return false;
 	}
 
@@ -400,8 +326,8 @@ bool intersect_obb_obb
 	/////////////////////////////////////////////////////////////////////////
 	Vector3::Cross_Product(context.A[2],context.B[0],&axis);
 	if (axis.Length2() > AXISLEN_EPSILON2) {
-		ra = WWMath::Fabs(context.Box0.Extent[0]*context.AB[1][0])+WWMath::Fabs(context.Box0.Extent[1]*context.AB[0][0]);
-		rb = WWMath::Fabs(context.Box1.Extent[1]*context.AB[2][2])+WWMath::Fabs(context.Box1.Extent[2]*context.AB[2][1]);
+		ra = WWMath::Fabsf_Legacy(context.Box0.Extent[0]*context.AB[1][0])+WWMath::Fabsf_Legacy(context.Box0.Extent[1]*context.AB[0][0]);
+		rb = WWMath::Fabsf_Legacy(context.Box1.Extent[1]*context.AB[2][2])+WWMath::Fabsf_Legacy(context.Box1.Extent[2]*context.AB[2][1]);
 		if (obb_intersect_axis(context,axis,ra,rb)) return false;
 	}
 
@@ -410,8 +336,8 @@ bool intersect_obb_obb
 	/////////////////////////////////////////////////////////////////////////
 	Vector3::Cross_Product(context.A[2],context.B[1],&axis);
 	if (axis.Length2() > AXISLEN_EPSILON2) {
-		ra = WWMath::Fabs(context.Box0.Extent[0]*context.AB[1][1])+WWMath::Fabs(context.Box0.Extent[1]*context.AB[0][1]);
-		rb = WWMath::Fabs(context.Box1.Extent[0]*context.AB[2][2])+WWMath::Fabs(context.Box1.Extent[2]*context.AB[2][0]);
+		ra = WWMath::Fabsf_Legacy(context.Box0.Extent[0]*context.AB[1][1])+WWMath::Fabsf_Legacy(context.Box0.Extent[1]*context.AB[0][1]);
+		rb = WWMath::Fabsf_Legacy(context.Box1.Extent[0]*context.AB[2][2])+WWMath::Fabsf_Legacy(context.Box1.Extent[2]*context.AB[2][0]);
 		if (obb_intersect_axis(context,axis,ra,rb)) return false;
 	}
 
@@ -420,8 +346,8 @@ bool intersect_obb_obb
 	/////////////////////////////////////////////////////////////////////////
 	Vector3::Cross_Product(context.A[2],context.B[2],&axis);
 	if (axis.Length2() > AXISLEN_EPSILON2) {
-		ra = WWMath::Fabs(context.Box0.Extent[0]*context.AB[1][2])+WWMath::Fabs(context.Box0.Extent[1]*context.AB[0][2]);
-		rb = WWMath::Fabs(context.Box1.Extent[0]*context.AB[2][1])+WWMath::Fabs(context.Box1.Extent[1]*context.AB[2][0]);
+		ra = WWMath::Fabsf_Legacy(context.Box0.Extent[0]*context.AB[1][2])+WWMath::Fabsf_Legacy(context.Box0.Extent[1]*context.AB[0][2]);
+		rb = WWMath::Fabsf_Legacy(context.Box1.Extent[0]*context.AB[2][1])+WWMath::Fabsf_Legacy(context.Box1.Extent[1]*context.AB[2][0]);
 		if (obb_intersect_axis(context,axis,ra,rb)) return false;
 	}
 
@@ -429,20 +355,7 @@ bool intersect_obb_obb
 }
 
 
-/***********************************************************************************************
- * CollisionMath::Intersection_Test -- test two obb's for intersection                         *
- *                                                                                             *
- * Simply sets up the context and calls intersect_obb_obb                                      *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   5/25/99    GTH : Created.                                                                 *
- *=============================================================================================*/
+// Simply sets up the context and calls intersect_obb_obb.
 bool CollisionMath::Intersection_Test(const OBBoxClass & box0,const OBBoxClass & box1)
 {
 	ObbIntersectionStruct context(box0,box1);
@@ -450,18 +363,6 @@ bool CollisionMath::Intersection_Test(const OBBoxClass & box0,const OBBoxClass &
 }
 
 
-/***********************************************************************************************
- * CollisionMath::Intersection_Test -- test an OBB for intersection with an AAB                *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   5/25/99    GTH : Created.                                                                 *
- *=============================================================================================*/
 bool CollisionMath::Intersection_Test(const OBBoxClass & box0,const AABoxClass & box1)
 {
 	OBBoxClass obbox1(box1.Center,box1.Extent);
@@ -470,18 +371,6 @@ bool CollisionMath::Intersection_Test(const OBBoxClass & box0,const AABoxClass &
 }
 
 
-/***********************************************************************************************
- * CollisionMath::Intersection_Test -- Test an AAB for intersection with an OBB                *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   5/25/99    GTH : Created.                                                                 *
- *=============================================================================================*/
 bool CollisionMath::Intersection_Test(const AABoxClass & box0,const OBBoxClass & box1)
 {
 	OBBoxClass obbox0(box0.Center,box0.Extent);
@@ -564,18 +453,6 @@ private:
 
 
 
-/***********************************************************************************************
- * obb_separation_test -- test the projections of two obb's for separation                     *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   4/8/99     GTH : Created.                                                                 *
- *=============================================================================================*/
 static inline bool obb_separation_test
 (
  	ObbCollisionStruct & context,
@@ -593,7 +470,7 @@ static inline bool obb_separation_test
 		if ( u1 > rsum ) {
 			context.MaxFrac = 1.0f;
 			return true;
-		} else if (WWMath::Fabs(u1-u0) > 0.0f) {
+		} else if (WWMath::Fabsf_Legacy(u1-u0) > 0.0f) {
 			tmp = (rsum-u0)/(u1-u0);
 			if ( tmp > context.MaxFrac ) {
 				context.MaxFrac = tmp;
@@ -606,7 +483,7 @@ static inline bool obb_separation_test
 		if ( u1 < -rsum ) {
 			context.MaxFrac = 1.0f;
 			return true;
-		} else if (WWMath::Fabs(u1-u0) > 0.0f) {
+		} else if (WWMath::Fabsf_Legacy(u1-u0) > 0.0f) {
 			tmp = (-rsum-u0)/(u1-u0);
 			if ( tmp > context.MaxFrac ) {
 				context.MaxFrac = tmp;
@@ -619,18 +496,6 @@ static inline bool obb_separation_test
 }
 
 
-/***********************************************************************************************
- * obb_check_box0_basis -- projects the boxes onto a basis vector from box0                    *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   4/8/99     GTH : Created.                                                                 *
- *=============================================================================================*/
 static bool obb_check_box0_basis
 (
 	ObbCollisionStruct &		context,
@@ -640,9 +505,9 @@ static bool obb_check_box0_basis
 	// ra = box0 projection onto the axis
 	// rb = box1 projection onto the axis
 	float ra =	context.Box0.Extent[axis_index];
-	float rb =	WWMath::Fabs(context.Box1.Extent[0]*context.AB[axis_index][0]) +
-					WWMath::Fabs(context.Box1.Extent[1]*context.AB[axis_index][1]) +
-					WWMath::Fabs(context.Box1.Extent[2]*context.AB[axis_index][2]);
+	float rb =	WWMath::Fabsf_Legacy(context.Box1.Extent[0]*context.AB[axis_index][0]) +
+					WWMath::Fabsf_Legacy(context.Box1.Extent[1]*context.AB[axis_index][1]) +
+					WWMath::Fabsf_Legacy(context.Box1.Extent[2]*context.AB[axis_index][2]);
 
 	// u0 = projected distance between the box centers at t0
 	// u1 = projected distance between the box centers at t1
@@ -653,18 +518,6 @@ static bool obb_check_box0_basis
 }
 
 
-/***********************************************************************************************
- * obb_check_box1_basis -- projects the two obbs onto a basis vector from box1                 *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   4/8/99     GTH : Created.                                                                 *
- *=============================================================================================*/
 static bool obb_check_box1_basis
 (
 	ObbCollisionStruct &		context,
@@ -673,9 +526,9 @@ static bool obb_check_box1_basis
 {
 	// ra = box0 projection onto the axis
 	// rb = box1 projection onto the axis
-	float ra =	WWMath::Fabs(context.Box0.Extent[0]*context.AB[0][axis_index]) +
-					WWMath::Fabs(context.Box0.Extent[1]*context.AB[1][axis_index]) +
-					WWMath::Fabs(context.Box0.Extent[2]*context.AB[2][axis_index]);
+	float ra =	WWMath::Fabsf_Legacy(context.Box0.Extent[0]*context.AB[0][axis_index]) +
+					WWMath::Fabsf_Legacy(context.Box0.Extent[1]*context.AB[1][axis_index]) +
+					WWMath::Fabsf_Legacy(context.Box0.Extent[2]*context.AB[2][axis_index]);
 	float rb =	context.Box1.Extent[axis_index];
 
 	// u0 = projected distance between the box centers at t0
@@ -686,18 +539,6 @@ static bool obb_check_box1_basis
 }
 
 
-/***********************************************************************************************
- * obb_check_axis -- projects the obbs onto an arbitrary axis                                  *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   4/8/99     GTH : Created.                                                                 *
- *=============================================================================================*/
 static inline bool obb_check_axis
 (
 	ObbCollisionStruct &		context,
@@ -711,18 +552,6 @@ static inline bool obb_check_axis
 }
 
 
-/***********************************************************************************************
- * obb_compute_projections -- computes projections of two boxes onto an arbitrary axis         *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   4/8/99     GTH : Created.                                                                 *
- *=============================================================================================*/
 static inline void obb_compute_projections
 (
 	const ObbCollisionStruct &		context,
@@ -730,28 +559,17 @@ static inline void obb_compute_projections
 	float *								rb
 )
 {
-	*ra =	context.Box0.Extent.X * WWMath::Fabs(Vector3::Dot_Product(context.A[0],context.TestAxis)) +
-			context.Box0.Extent.Y * WWMath::Fabs(Vector3::Dot_Product(context.A[1],context.TestAxis)) +
-			context.Box0.Extent.Z * WWMath::Fabs(Vector3::Dot_Product(context.A[2],context.TestAxis));
+	*ra =	context.Box0.Extent.X * WWMath::Fabsf_Legacy(Vector3::Dot_Product(context.A[0],context.TestAxis)) +
+			context.Box0.Extent.Y * WWMath::Fabsf_Legacy(Vector3::Dot_Product(context.A[1],context.TestAxis)) +
+			context.Box0.Extent.Z * WWMath::Fabsf_Legacy(Vector3::Dot_Product(context.A[2],context.TestAxis));
 
-	*rb =	context.Box1.Extent.X * WWMath::Fabs(Vector3::Dot_Product(context.B[0],context.TestAxis)) +
-			context.Box1.Extent.Y * WWMath::Fabs(Vector3::Dot_Product(context.B[1],context.TestAxis)) +
-			context.Box1.Extent.Z * WWMath::Fabs(Vector3::Dot_Product(context.B[2],context.TestAxis));
+	*rb =	context.Box1.Extent.X * WWMath::Fabsf_Legacy(Vector3::Dot_Product(context.B[0],context.TestAxis)) +
+			context.Box1.Extent.Y * WWMath::Fabsf_Legacy(Vector3::Dot_Product(context.B[1],context.TestAxis)) +
+			context.Box1.Extent.Z * WWMath::Fabsf_Legacy(Vector3::Dot_Product(context.B[2],context.TestAxis));
 }
 
 
-/***********************************************************************************************
- * compute_contact_normal -- computes the contact normal (after contact is detected)           *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   4/8/99     GTH : Created.                                                                 *
- *=============================================================================================*/
+// Called after contact is detected.
 static inline void compute_contact_normal(ObbCollisionStruct & context,CastResultStruct * result)
 {
 	switch(context.AxisId)
@@ -835,18 +653,7 @@ static inline void compute_contact_normal(ObbCollisionStruct & context,CastResul
 }
 
 
-/***********************************************************************************************
- * eval_side -- returns -1,0,1 depending on ab and side                                        *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   4/8/99     GTH : Created.                                                                 *
- *=============================================================================================*/
+// Returns -1,0,1 depending on ab and side.
 static inline float eval_side(float ab,float side)
 {
 	if (ab > 0.0f) {
@@ -859,18 +666,7 @@ static inline float eval_side(float ab,float side)
 }
 
 
-/***********************************************************************************************
- * compute_contact_point -- computes the contact point (after contact is detected)             *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   4/8/99     GTH : Created.                                                                 *
- *=============================================================================================*/
+// Called after contact is detected.
 static inline void compute_contact_point(ObbCollisionStruct & context,CastResultStruct * result)
 {
 	int i,j;
@@ -923,7 +719,7 @@ static inline void compute_contact_point(ObbCollisionStruct & context,CastResult
 		y[2] = eval_side(context.AB[0][1],context.Side) * context.Box1.Extent[2];
 
 		den = (1.0f - context.AB[0][0] * context.AB[0][0]);
-		if (WWMath::Fabs(den) > 0.0f) {
+		if (WWMath::Fabsf_Legacy(den) > 0.0f) {
 			x[0] = Vector3::Dot_Product(context.A[0],dcnew);
 			x[0] += context.AB[0][0] * (Vector3::Dot_Product(-context.B[0],dcnew) + context.AB[1][0]*x[1] + context.AB[2][0]*x[2]);
 			x[0] += context.AB[0][1] * y[1] + context.AB[0][2] * y[2];
@@ -940,7 +736,7 @@ static inline void compute_contact_point(ObbCollisionStruct & context,CastResult
 		y[2] = -eval_side(context.AB[0][0],context.Side) * context.Box1.Extent[2];
 
 		den = (1.0f - context.AB[0][1] * context.AB[0][1]);
-		if (WWMath::Fabs(den) > 0.0f) {
+		if (WWMath::Fabsf_Legacy(den) > 0.0f) {
 			x[0] = Vector3::Dot_Product(context.A[0],dcnew);
 			x[0] += context.AB[0][1] * (Vector3::Dot_Product(-context.B[1],dcnew) + context.AB[1][1]*x[1] + context.AB[2][1]*x[2]);
 			x[0] += context.AB[0][0] * y[0] + context.AB[0][2] * y[2];
@@ -957,7 +753,7 @@ static inline void compute_contact_point(ObbCollisionStruct & context,CastResult
 		y[1] = eval_side(context.AB[0][0],context.Side) * context.Box1.Extent[1];
 
 		den = (1.0f - context.AB[0][2] * context.AB[0][2]);
-		if (WWMath::Fabs(den) > 0.0f) {
+		if (WWMath::Fabsf_Legacy(den) > 0.0f) {
 			x[0] = Vector3::Dot_Product(context.A[0],dcnew);
 			x[0] += context.AB[0][2] * (Vector3::Dot_Product(-context.B[2],dcnew) + context.AB[1][2]*x[1] + context.AB[2][2]*x[2]);
 			x[0] += context.AB[0][0] * y[0] + context.AB[0][1] * y[1];
@@ -974,7 +770,7 @@ static inline void compute_contact_point(ObbCollisionStruct & context,CastResult
 		y[2] = eval_side(context.AB[1][1],context.Side) * context.Box1.Extent[2];
 
 		den = (1.0f - context.AB[1][0] * context.AB[1][0]);
-		if (WWMath::Fabs(den) > 0.0f) {
+		if (WWMath::Fabsf_Legacy(den) > 0.0f) {
 			x[1] = Vector3::Dot_Product(context.A[1],dcnew);
 			x[1] += context.AB[1][0] * (Vector3::Dot_Product(-context.B[0],dcnew) + context.AB[0][0]*x[0] + context.AB[2][0]*x[2]);
 			x[1] += context.AB[1][1] * y[1] + context.AB[1][2] * y[2];
@@ -991,7 +787,7 @@ static inline void compute_contact_point(ObbCollisionStruct & context,CastResult
 		y[2] = -eval_side(context.AB[1][0],context.Side) * context.Box1.Extent[2];
 
 		den = 1.0f / (1.0f - context.AB[1][1] * context.AB[1][1]);
-		if (WWMath::Fabs(den) > 0.0f) {
+		if (WWMath::Fabsf_Legacy(den) > 0.0f) {
 			x[1] = Vector3::Dot_Product(context.A[1],dcnew);
 			x[1] += context.AB[1][1] * (Vector3::Dot_Product(-context.B[1],dcnew) + context.AB[0][1]*x[0] + context.AB[2][1]*x[2]);
 			x[1] += context.AB[1][0] * y[0] + context.AB[1][2] * y[2];
@@ -1008,7 +804,7 @@ static inline void compute_contact_point(ObbCollisionStruct & context,CastResult
 		y[1] = eval_side(context.AB[1][0],context.Side) * context.Box1.Extent[1];
 
 		den = (1.0f - context.AB[1][2] * context.AB[1][2]);
-		if (WWMath::Fabs(den) > 0.0f) {
+		if (WWMath::Fabsf_Legacy(den) > 0.0f) {
 			x[1] = Vector3::Dot_Product(context.A[1],dcnew);
 			x[1] += context.AB[1][2] * (Vector3::Dot_Product(-context.B[2],dcnew) + context.AB[0][2]*x[0] + context.AB[2][2]*x[2]);
 			x[1] += context.AB[1][0] * y[0] + context.AB[1][1] * y[1];
@@ -1025,7 +821,7 @@ static inline void compute_contact_point(ObbCollisionStruct & context,CastResult
 		y[2] = eval_side(context.AB[2][1],context.Side) * context.Box1.Extent[2];
 
 		den = (1.0f - context.AB[2][0] * context.AB[2][0]);
-		if (WWMath::Fabs(den) > 0.0f) {
+		if (WWMath::Fabsf_Legacy(den) > 0.0f) {
 			x[2] = Vector3::Dot_Product(context.A[2],dcnew);
 			x[2] += context.AB[2][0] * (Vector3::Dot_Product(-context.B[0],dcnew) + context.AB[0][0]*x[0] + context.AB[1][0]*x[1]);
 			x[2] += context.AB[2][1] * y[1] + context.AB[2][2] * y[2];
@@ -1042,7 +838,7 @@ static inline void compute_contact_point(ObbCollisionStruct & context,CastResult
 		y[2] = -eval_side(context.AB[2][0],context.Side) * context.Box1.Extent[2];
 
 		den = (1.0f - context.AB[2][1] * context.AB[2][1]);
-		if (WWMath::Fabs(den) > 0.0f) {
+		if (WWMath::Fabsf_Legacy(den) > 0.0f) {
 			x[2] = Vector3::Dot_Product(context.A[2],dcnew);
 			x[2] += context.AB[2][1] * (Vector3::Dot_Product(-context.B[1],dcnew) + context.AB[0][1]*x[0] + context.AB[1][1]*x[1]);
 			x[2] += context.AB[2][0] * y[0] + context.AB[2][2] * y[2];
@@ -1059,7 +855,7 @@ static inline void compute_contact_point(ObbCollisionStruct & context,CastResult
 		y[1] = eval_side(context.AB[2][0],context.Side) * context.Box1.Extent[1];
 
 		den = (1.0f - context.AB[2][2] * context.AB[2][2]);
-		if (WWMath::Fabs(den) > 0.0f) {
+		if (WWMath::Fabsf_Legacy(den) > 0.0f) {
 			x[2] = Vector3::Dot_Product(context.A[2],dcnew);
 			x[2] += context.AB[2][2] * (Vector3::Dot_Product(-context.B[2],dcnew) + context.AB[0][2]*x[0] + context.AB[1][2]*x[1]);
 			x[2] += context.AB[2][0] * y[0] + context.AB[2][1] * y[1];
@@ -1091,18 +887,6 @@ static inline void compute_contact_point(ObbCollisionStruct & context,CastResult
 }
 
 
-/***********************************************************************************************
- * collide_obb_obb -- test two obb's for collision                                             *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   5/25/99    GTH : Created.                                                                 *
- *=============================================================================================*/
 bool collide_obb_obb
 (
 	ObbCollisionStruct &		context,
@@ -1177,8 +961,8 @@ bool collide_obb_obb
 	Vector3::Cross_Product(context.A[0],context.B[0],&context.TestAxis);
 	context.TestAxisId = AXIS_A0B0;
 	if (context.TestAxis.Length2() > AXISLEN_EPSILON2) {
-		ra = WWMath::Fabs(context.Box0.Extent[1]*context.AB[2][0])+WWMath::Fabs(context.Box0.Extent[2]*context.AB[1][0]);
-		rb = WWMath::Fabs(context.Box1.Extent[1]*context.AB[0][2])+WWMath::Fabs(context.Box1.Extent[2]*context.AB[0][1]);
+		ra = WWMath::Fabsf_Legacy(context.Box0.Extent[1]*context.AB[2][0])+WWMath::Fabsf_Legacy(context.Box0.Extent[2]*context.AB[1][0]);
+		rb = WWMath::Fabsf_Legacy(context.Box1.Extent[1]*context.AB[0][2])+WWMath::Fabsf_Legacy(context.Box1.Extent[2]*context.AB[0][1]);
 		if (obb_check_axis(context,ra,rb)) goto exit;
 	}
 
@@ -1188,8 +972,8 @@ bool collide_obb_obb
 	Vector3::Cross_Product(context.A[0],context.B[1],&context.TestAxis);
 	context.TestAxisId = AXIS_A0B1;
 	if (context.TestAxis.Length2() > AXISLEN_EPSILON2) {
-		ra = WWMath::Fabs(context.Box0.Extent[1]*context.AB[2][1])+WWMath::Fabs(context.Box0.Extent[2]*context.AB[1][1]);
-		rb = WWMath::Fabs(context.Box1.Extent[0]*context.AB[0][2])+WWMath::Fabs(context.Box1.Extent[2]*context.AB[0][0]);
+		ra = WWMath::Fabsf_Legacy(context.Box0.Extent[1]*context.AB[2][1])+WWMath::Fabsf_Legacy(context.Box0.Extent[2]*context.AB[1][1]);
+		rb = WWMath::Fabsf_Legacy(context.Box1.Extent[0]*context.AB[0][2])+WWMath::Fabsf_Legacy(context.Box1.Extent[2]*context.AB[0][0]);
 		if (obb_check_axis(context,ra,rb)) goto exit;
 	}
 
@@ -1199,8 +983,8 @@ bool collide_obb_obb
 	Vector3::Cross_Product(context.A[0],context.B[2],&context.TestAxis);
 	context.TestAxisId = AXIS_A0B2;
 	if (context.TestAxis.Length2() > AXISLEN_EPSILON2) {
-		ra = WWMath::Fabs(context.Box0.Extent[1]*context.AB[2][2])+WWMath::Fabs(context.Box0.Extent[2]*context.AB[1][2]);
-		rb = WWMath::Fabs(context.Box1.Extent[0]*context.AB[0][1])+WWMath::Fabs(context.Box1.Extent[1]*context.AB[0][0]);
+		ra = WWMath::Fabsf_Legacy(context.Box0.Extent[1]*context.AB[2][2])+WWMath::Fabsf_Legacy(context.Box0.Extent[2]*context.AB[1][2]);
+		rb = WWMath::Fabsf_Legacy(context.Box1.Extent[0]*context.AB[0][1])+WWMath::Fabsf_Legacy(context.Box1.Extent[1]*context.AB[0][0]);
 		if (obb_check_axis(context,ra,rb)) goto exit;
 	}
 
@@ -1210,8 +994,8 @@ bool collide_obb_obb
 	Vector3::Cross_Product(context.A[1],context.B[0],&context.TestAxis);
 	context.TestAxisId = AXIS_A1B0;
 	if (context.TestAxis.Length2() > AXISLEN_EPSILON2) {
-		ra = WWMath::Fabs(context.Box0.Extent[0]*context.AB[2][0])+WWMath::Fabs(context.Box0.Extent[2]*context.AB[0][0]);
-		rb = WWMath::Fabs(context.Box1.Extent[1]*context.AB[1][2])+WWMath::Fabs(context.Box1.Extent[2]*context.AB[1][1]);
+		ra = WWMath::Fabsf_Legacy(context.Box0.Extent[0]*context.AB[2][0])+WWMath::Fabsf_Legacy(context.Box0.Extent[2]*context.AB[0][0]);
+		rb = WWMath::Fabsf_Legacy(context.Box1.Extent[1]*context.AB[1][2])+WWMath::Fabsf_Legacy(context.Box1.Extent[2]*context.AB[1][1]);
 		if (obb_check_axis(context,ra,rb)) goto exit;
 	}
 
@@ -1221,8 +1005,8 @@ bool collide_obb_obb
 	Vector3::Cross_Product(context.A[1],context.B[1],&context.TestAxis);
 	context.TestAxisId = AXIS_A1B1;
 	if (context.TestAxis.Length2() > AXISLEN_EPSILON2) {
-		ra = WWMath::Fabs(context.Box0.Extent[0]*context.AB[2][1])+WWMath::Fabs(context.Box0.Extent[2]*context.AB[0][1]);
-		rb = WWMath::Fabs(context.Box1.Extent[0]*context.AB[1][2])+WWMath::Fabs(context.Box1.Extent[2]*context.AB[1][0]);
+		ra = WWMath::Fabsf_Legacy(context.Box0.Extent[0]*context.AB[2][1])+WWMath::Fabsf_Legacy(context.Box0.Extent[2]*context.AB[0][1]);
+		rb = WWMath::Fabsf_Legacy(context.Box1.Extent[0]*context.AB[1][2])+WWMath::Fabsf_Legacy(context.Box1.Extent[2]*context.AB[1][0]);
 		if (obb_check_axis(context,ra,rb)) goto exit;
 	}
 
@@ -1232,8 +1016,8 @@ bool collide_obb_obb
 	Vector3::Cross_Product(context.A[1],context.B[2],&context.TestAxis);
 	context.TestAxisId = AXIS_A1B2;
 	if (context.TestAxis.Length2() > AXISLEN_EPSILON2) {
-		ra = WWMath::Fabs(context.Box0.Extent[0]*context.AB[2][2])+WWMath::Fabs(context.Box0.Extent[2]*context.AB[0][2]);
-		rb = WWMath::Fabs(context.Box1.Extent[0]*context.AB[1][1])+WWMath::Fabs(context.Box1.Extent[1]*context.AB[1][0]);
+		ra = WWMath::Fabsf_Legacy(context.Box0.Extent[0]*context.AB[2][2])+WWMath::Fabsf_Legacy(context.Box0.Extent[2]*context.AB[0][2]);
+		rb = WWMath::Fabsf_Legacy(context.Box1.Extent[0]*context.AB[1][1])+WWMath::Fabsf_Legacy(context.Box1.Extent[1]*context.AB[1][0]);
 		if (obb_check_axis(context,ra,rb)) goto exit;
 	}
 
@@ -1243,8 +1027,8 @@ bool collide_obb_obb
 	Vector3::Cross_Product(context.A[2],context.B[0],&context.TestAxis);
 	context.TestAxisId = AXIS_A2B0;
 	if (context.TestAxis.Length2() > AXISLEN_EPSILON2) {
-		ra = WWMath::Fabs(context.Box0.Extent[0]*context.AB[1][0])+WWMath::Fabs(context.Box0.Extent[1]*context.AB[0][0]);
-		rb = WWMath::Fabs(context.Box1.Extent[1]*context.AB[2][2])+WWMath::Fabs(context.Box1.Extent[2]*context.AB[2][1]);
+		ra = WWMath::Fabsf_Legacy(context.Box0.Extent[0]*context.AB[1][0])+WWMath::Fabsf_Legacy(context.Box0.Extent[1]*context.AB[0][0]);
+		rb = WWMath::Fabsf_Legacy(context.Box1.Extent[1]*context.AB[2][2])+WWMath::Fabsf_Legacy(context.Box1.Extent[2]*context.AB[2][1]);
 		if (obb_check_axis(context,ra,rb)) goto exit;
 	}
 
@@ -1254,8 +1038,8 @@ bool collide_obb_obb
 	Vector3::Cross_Product(context.A[2],context.B[1],&context.TestAxis);
 	context.TestAxisId = AXIS_A2B1;
 	if (context.TestAxis.Length2() > AXISLEN_EPSILON2) {
-		ra = WWMath::Fabs(context.Box0.Extent[0]*context.AB[1][1])+WWMath::Fabs(context.Box0.Extent[1]*context.AB[0][1]);
-		rb = WWMath::Fabs(context.Box1.Extent[0]*context.AB[2][2])+WWMath::Fabs(context.Box1.Extent[2]*context.AB[2][0]);
+		ra = WWMath::Fabsf_Legacy(context.Box0.Extent[0]*context.AB[1][1])+WWMath::Fabsf_Legacy(context.Box0.Extent[1]*context.AB[0][1]);
+		rb = WWMath::Fabsf_Legacy(context.Box1.Extent[0]*context.AB[2][2])+WWMath::Fabsf_Legacy(context.Box1.Extent[2]*context.AB[2][0]);
 		if (obb_check_axis(context,ra,rb)) goto exit;
 	}
 
@@ -1265,8 +1049,8 @@ bool collide_obb_obb
 	Vector3::Cross_Product(context.A[2],context.B[2],&context.TestAxis);
 	context.TestAxisId = AXIS_A2B2;
 	if (context.TestAxis.Length2() > AXISLEN_EPSILON2) {
-		ra = WWMath::Fabs(context.Box0.Extent[0]*context.AB[1][2])+WWMath::Fabs(context.Box0.Extent[1]*context.AB[0][2]);
-		rb = WWMath::Fabs(context.Box1.Extent[0]*context.AB[2][1])+WWMath::Fabs(context.Box1.Extent[1]*context.AB[2][0]);
+		ra = WWMath::Fabsf_Legacy(context.Box0.Extent[0]*context.AB[1][2])+WWMath::Fabsf_Legacy(context.Box0.Extent[1]*context.AB[0][2]);
+		rb = WWMath::Fabsf_Legacy(context.Box1.Extent[0]*context.AB[2][1])+WWMath::Fabsf_Legacy(context.Box1.Extent[1]*context.AB[2][0]);
 		if (obb_check_axis(context,ra,rb)) goto exit;
 	}
 
@@ -1329,18 +1113,6 @@ exit:
 	return false;
 }
 
-/***********************************************************************************************
- * CollisionMath::Collide -- collide two obb's                                                 *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   4/8/99     GTH : Created.                                                                 *
- *=============================================================================================*/
 bool CollisionMath::Collide
 (
 	const OBBoxClass &		box0,
@@ -1355,18 +1127,6 @@ bool CollisionMath::Collide
 }
 
 
-/***********************************************************************************************
- * CollisionMath::Collide -- collide an OBB with an AAB                                        *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   5/25/99    GTH : Created.                                                                 *
- *=============================================================================================*/
 bool CollisionMath::Collide
 (
 	const OBBoxClass &		box0,
@@ -1382,18 +1142,6 @@ bool CollisionMath::Collide
 }
 
 
-/***********************************************************************************************
- * CollisionMath::Collide -- collide an AAB with an OBB                                        *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   5/25/99    GTH : Created.                                                                 *
- *=============================================================================================*/
 bool CollisionMath::Collide
 (
 	const AABoxClass &		box0,

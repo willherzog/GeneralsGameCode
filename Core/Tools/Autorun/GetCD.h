@@ -25,8 +25,6 @@
  *                     $Archive:: /Renegade Setup/Autorun/GetCD.h                                        $Author:: Denzil_l														*
  *                     $Modtime:: 1/08/02 3:38p                                                                                         $Revision:: 20															*
  *																								*
- *----------------------------------------------------------------------------------------------*
- * Functions:																					*
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 
 #pragma once
@@ -183,12 +181,7 @@ struct	StopType {
 #endif	//NOT_FOR_WIN95
 
 
-/****************************************************************************
- * GetCDClass -- object which will return logical CD drive					*
- *																			*
- * HISTORY:																	*
- *   06/04/1994 SW : Created.												*
- *==========================================================================*/
+// Object which will return logical CD drive.
 
 #define MAX_CD_DRIVES	26
 #define NO_CD_DRIVE		-1
@@ -196,14 +189,14 @@ struct	StopType {
 class	GetCDClass
 {
 	public:
-		GetCDClass	( void );							// This is the default constructor
-		~GetCDClass	( void );							// This is the destructor
+		GetCDClass	();							// This is the default constructor
+		~GetCDClass	();							// This is the destructor
 
-		inline	int		Get_First_CD_Drive		( void );
-		inline	int		Get_Next_CD_Drive		( void );
-		inline	int		Get_Number_Of_Drives	( void )	{ return( CDCount ); };
-		inline	int		Get_Index				( void )	{ return( CDIndex ); };
-		inline	void	Reset_Index				( void )	{ CDIndex = 0; };
+		inline	int		Get_First_CD_Drive		();
+		inline	int		Get_Next_CD_Drive		();
+		inline	int		Get_Number_Of_Drives	()	{ return( CDCount ); };
+		inline	int		Get_Index				()	{ return( CDIndex ); };
+		inline	void	Reset_Index				()	{ CDIndex = 0; };
 
 		int		Get_CD_Drive_For_This_Volume	( const char *volume_name );
 		const char *	Get_Volume_For_This_CD_Drive	( const char *path, char *volume_name );
@@ -216,40 +209,15 @@ class	GetCDClass
 		int	CDIndex;									//Index of current location
 };
 
-/****************************************************************************
- * GCDC::Get_First_CD_Drive -- return the number of the first CD drive		*
- *																			*
- * INPUT:		none														*
- *																			*
- * OUTPUT:		logical drive number 										*
- *																			*
- * WARNINGS:																*
- *																			*
- * HISTORY:																	*
- *   05/26/1994 SW : Created.												*
- *   12/4/95    ST : fixed for Win95										*
- *==========================================================================*/
-
-inline int GetCDClass::Get_First_CD_Drive(void)
+inline int GetCDClass::Get_First_CD_Drive()
 {
 	CDIndex = 0;
 	return (Get_Next_CD_Drive());
 }
 
-/************************************************************************************
- * GCDC::Get_Next_CD_Drive -- return the logical drive number of the next CD drive	*
- *																												*
- * INPUT:    Nothing																						*
- *																												*
- * OUTPUT:   Logical drive number of a cd drive or -1 if none								*
- *																												*
- * WARNINGS: None																							*
- *																												*
- * HISTORY:																									*
- *    5/21/96 3:50PM ST : Created																	*
- *==================================================================================*/
+// Returns -1 if no CD drives are available; otherwise wraps around after the last drive.
 
-inline int GetCDClass::Get_Next_CD_Drive(void)
+inline int GetCDClass::Get_Next_CD_Drive()
 {
 	if (CDCount){
 		if (CDIndex >= CDCount) {
@@ -262,23 +230,15 @@ inline int GetCDClass::Get_Next_CD_Drive(void)
 }
 
 
-/************************************************************************************
- * RedBookClass -- adds red book functionality													*
- *																												*
- *	this class inherits from GetCDClass and adds red book play functionality			*
- *																												*
- *																												*
- * HISTORY:																									*
- *   06/04/1994 SW : Created.																			*
- *==================================================================================*/
+// Adds red book play functionality to GetCDClass.
 
 #ifdef NOT_FOR_WIN95
 class RedBookClass : public GetCDClass
 {
 	public:
 
-		RedBookClass(void);					// This is the default constructor
-		~RedBookClass(void);					// This is the destructor
+		RedBookClass();					// This is the default constructor
+		~RedBookClass();					// This is the destructor
 		ULONG		RedToHS(ULONG i);
 		ULONG		MSFtoRed(UBYTE m, UBYTE s, UBYTE f);
 		void		FullCDVolume(UBYTE chan);
@@ -286,8 +246,8 @@ class RedBookClass : public GetCDClass
 		void		Play_CD_MSL(UWORD min_sec, UWORD len);
 		void		PlayMSF(UBYTE startM, UBYTE startS, UBYTE startF,
 						UBYTE endM, UBYTE endS, UBYTE endF, UBYTE chan);
-		UWORD		CheckCDMusic(void);
-		void		StopCDMusic(void);
+		UWORD		CheckCDMusic();
+		void		StopCDMusic();
 
 	private:
 

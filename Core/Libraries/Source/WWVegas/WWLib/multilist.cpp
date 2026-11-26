@@ -32,12 +32,10 @@
  *                                                                                             *
  *                    $Revision:: 9                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #include "multilist.h"
-#include "wwmemlog.h"
+#include "WWDebug/wwmemlog.h"
 
 /*
 ** Declare the pool for ListNodes

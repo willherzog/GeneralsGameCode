@@ -31,21 +31,6 @@
  *                                                                                             *
  *                  Last Update : February 28, 1997 [GH]                                       *
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
- *   Quaternion::Quaternion -- constructor                                                     *
- *   Quaternion::Set -- Set the quaternion                                                     *
- *   Quaternion::operator= -- Assignment operator                                              *
- *   Quaternion::Make_Closest -- Use nearest representation to the given quaternion.           *
- *   Trackball -- Computes a "trackball" quaternion given 2D mouse coordinates                 *
- *   Axis_To_Quat -- Creates a quaternion given an axis and angle of rotation                  *
- *   Slerp -- Spherical Linear interpolation!                                                  *
- *   Build_Quaternion -- Creates a quaternion from a Matrix                                    *
- *   Build_Matrix -- Creates a Matrix from a Quaternion                                        *
- *   Normalize -- normalizes a quaternion                                                      *
- *   Quaternion::Quaternion -- constructor                                                     *
- *   Slerp_Setup -- Get ready to call "Cached_Slerp"                                           *
- *   Cached_Slerp -- Quaternion slerping, optimized with cached values                         *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 
@@ -69,26 +54,11 @@ static int _nxt[3] = { 1 , 2 , 0 };
 static float project_to_sphere(float,float,float);
 
 
-/***********************************************************************************************
- * Quaternion::Quaternion -- constructor                                                       *
- *                                                                                             *
- * constructs a quaternion from the given axis and angle of rotation (in RADIANS of course)    *
- *                                                                                             *
- * INPUT:                                                                                      *
- * axis - axis of the rotation                                                                 *
- * angle - rotation angle                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   12/10/97   GTH : Created.                                                                 *
- *=============================================================================================*/
+// The angle is in radians.
 Quaternion::Quaternion(const Vector3 & axis,float angle)
 {
-	float s = WWMath::Sin(angle/2);
-	float c = WWMath::Cos(angle/2);
+	float s = WWMath::Sinf_Legacy(angle/2);
+	float c = WWMath::Cosf_Legacy(angle/2);
 	X = s * axis.X;
 	Y = s * axis.Y;
 	Z = s * axis.Z;
@@ -96,25 +66,13 @@ Quaternion::Quaternion(const Vector3 & axis,float angle)
 }
 
 
-/***********************************************************************************************
- * Quaternion::Normalize -- Normalize to a unit quaternion                                     *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   02/24/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
 void Quaternion::Normalize()
 {
 	float len2=X * X + Y * Y + Z * Z + W * W;
 	if (0.0f == len2) {
 		return;
 	} else {
-		float inv_mag = WWMath::Inv_Sqrt(len2);
+		float inv_mag = WWMath::Inv_Sqrt_Legacy(len2);
 
 		X *= inv_mag;
 		Y *= inv_mag;
@@ -123,18 +81,7 @@ void Quaternion::Normalize()
 	}
 }
 
-/***********************************************************************************************
- * Q::Make_Closest -- Use nearest representation to the given quaternion.                      *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   02/28/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
+// Use nearest representation to the given quaternion.
 Quaternion & Quaternion::Make_Closest(const Quaternion & qto)
 {
 	float cos_t = qto.X * X + qto.Y * Y + qto.Z * Z + qto.W * W;
@@ -150,21 +97,7 @@ Quaternion & Quaternion::Make_Closest(const Quaternion & qto)
 	return *this;
 }
 
-/***********************************************************************************************
- * Trackball -- Computes a "trackball" quaternion given 2D mouse coordinates                   *
- *                                                                                             *
- * INPUT:                                                                                      *
- * x0,y0 - x1,y1 - "normalized" mouse coordinates for the mouse movement                       *
- * sphsize - size of the trackball sphere                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- * a quaternion representing the rotation of a trackball                                       *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   02/28/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
+// Computes a "trackball" quaternion given 2D mouse coordinates.
 Quaternion Trackball(float x0, float y0, float x1, float y1, float sphsize)
 {
 	Vector3	a;
@@ -206,18 +139,6 @@ Quaternion Trackball(float x0, float y0, float x1, float y1, float sphsize)
 }
 
 
-/***********************************************************************************************
- * Axis_To_Quat -- Creates a quaternion given an axis and angle of rotation                    *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   02/28/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
 Quaternion Axis_To_Quat(const Vector3 &a, float phi)
 {
 	Quaternion q;
@@ -228,27 +149,12 @@ Quaternion Axis_To_Quat(const Vector3 &a, float phi)
 	q[1] = tmp[1];
 	q[2] = tmp[2];
 
-	q.Scale(WWMath::Sin(phi / 2.0f));
-	q[3] =  WWMath::Cos(phi / 2.0f);
+	q.Scale(WWMath::Sinf_Legacy(phi / 2.0f));
+	q[3] =  WWMath::Cosf_Legacy(phi / 2.0f);
 
 	return q;
 }
 
-/***********************************************************************************************
- * Slerp -- Spherical Linear interpolation!                                                    *
- *                                                                                             *
- * INPUT:                                                                                      *
- *  p - start quaternion                                                                       *
- *  q - end quaternion                                                                         *
- *  alpha - interpolating parameter                                                            *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   02/28/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
 
 #if 0
 #pragma warning (disable : 4725)
@@ -325,10 +231,10 @@ normal_slerp:
 // normal slerp!
 //	else {
 //		theta = WWMath::Acos(cos_t);
-//		sin_t = WWMath::Sin(theta);
+//		sin_t = WWMath::Sinf_Legacy(theta);
 //		oo_sin_t = 1.0 / sin_t;
-//		beta = WWMath::Sin(theta - alpha*theta) * oo_sin_t;
-//		alpha = WWMath::Sin(alpha*theta) * oo_sin_t;
+//		beta = WWMath::Sinf_Legacy(theta - alpha*theta) * oo_sin_t;
+//		alpha = WWMath::Sinf_Legacy(alpha*theta) * oo_sin_t;
 // }
 //	if (qflip) {
 //		alpha = -alpha;
@@ -513,10 +419,10 @@ void Slerp(Quaternion& res, const Quaternion & p,const Quaternion & q,float alph
 
 		// normal slerp!
 		theta = WWMath::Acos(cos_t);
-		float sin_t = WWMath::Sin(theta);
+		float sin_t = WWMath::Sinf_Legacy(theta);
 		oo_sin_t = 1.0f / sin_t;
-		beta = WWMath::Sin(theta - alpha*theta) * oo_sin_t;
-		alpha = WWMath::Sin(alpha*theta) * oo_sin_t;
+		beta = WWMath::Sinf_Legacy(theta - alpha*theta) * oo_sin_t;
+		alpha = WWMath::Sinf_Legacy(alpha*theta) * oo_sin_t;
 	}
 
 	if (qflip) {
@@ -529,18 +435,7 @@ void Slerp(Quaternion& res, const Quaternion & p,const Quaternion & q,float alph
 	res.W = beta*p.W + alpha*q.W;
 }
 
-/***********************************************************************************************
- * Slerp_Setup -- Get ready to call "Cached_Slerp"                                             *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   2/27/98    GTH : Created.                                                                 *
- *=============================================================================================*/
+// Get ready to call "Cached_Slerp".
 void Slerp_Setup(const Quaternion & p,const Quaternion & q,SlerpInfoStruct * slerpinfo)
 {
 	float cos_t;
@@ -568,23 +463,11 @@ void Slerp_Setup(const Quaternion & p,const Quaternion & q,SlerpInfoStruct * sle
 
 		slerpinfo->Linear = false;
 		slerpinfo->Theta = WWMath::Acos(cos_t);
-		slerpinfo->SinT = WWMath::Sin(slerpinfo->Theta);
+		slerpinfo->SinT = WWMath::Sinf_Legacy(slerpinfo->Theta);
 
 	}
 }
 
-/***********************************************************************************************
- * Cached_Slerp -- Quaternion slerping, optimized with cached values                           *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   2/27/98    GTH : Created.                                                                 *
- *=============================================================================================*/
 Quaternion Cached_Slerp(const Quaternion & p,const Quaternion & q,float alpha,SlerpInfoStruct * slerpinfo)
 {
 	float beta;				// complementary interploation parameter
@@ -600,8 +483,8 @@ Quaternion Cached_Slerp(const Quaternion & p,const Quaternion & q,float alpha,Sl
 
 		// normal slerp!
 		oo_sin_t = 1.0f / slerpinfo->Theta;
-		beta = WWMath::Sin(slerpinfo->Theta - alpha*slerpinfo->Theta) * oo_sin_t;
-		alpha = WWMath::Sin(alpha*slerpinfo->Theta) * oo_sin_t;
+		beta = WWMath::Sinf_Legacy(slerpinfo->Theta - alpha*slerpinfo->Theta) * oo_sin_t;
+		alpha = WWMath::Sinf_Legacy(alpha*slerpinfo->Theta) * oo_sin_t;
 	}
 
 	if (slerpinfo->Flip) {
@@ -632,8 +515,8 @@ void Cached_Slerp(const Quaternion & p,const Quaternion & q,float alpha,SlerpInf
 
 		// normal slerp!
 		oo_sin_t = 1.0f / slerpinfo->Theta;
-		beta = WWMath::Sin(slerpinfo->Theta - alpha*slerpinfo->Theta) * oo_sin_t;
-		alpha = WWMath::Sin(alpha*slerpinfo->Theta) * oo_sin_t;
+		beta = WWMath::Sinf_Legacy(slerpinfo->Theta - alpha*slerpinfo->Theta) * oo_sin_t;
+		alpha = WWMath::Sinf_Legacy(alpha*slerpinfo->Theta) * oo_sin_t;
 	}
 
 	if (slerpinfo->Flip) {
@@ -646,19 +529,7 @@ void Cached_Slerp(const Quaternion & p,const Quaternion & q,float alpha,SlerpInf
 	set_q->W = beta*p.W + alpha*q.W;
 }
 
-/***********************************************************************************************
- * Build_Quaternion -- Creates a quaternion from a Matrix                                      *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *   Matrix MUST NOT have scaling!                                                             *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   02/28/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
+// WARNING: Matrix MUST NOT have scaling!
 Quaternion Build_Quaternion(const Matrix3D & mat)
 {
 	float tr,s;
@@ -670,7 +541,7 @@ Quaternion Build_Quaternion(const Matrix3D & mat)
 
 	if (tr > 0.0f) {
 
-		s = sqrt(tr + 1.0);
+		s = WWMath::Sqrt(tr + 1.0);
 		q[3] = s * 0.5;
 		s = 0.5 / s;
 
@@ -686,7 +557,7 @@ Quaternion Build_Quaternion(const Matrix3D & mat)
 		j = _nxt[i];
 		k = _nxt[j];
 
-		s = sqrt((mat[i][i] - (mat[j][j] + mat[k][k])) + 1.0);
+		s = WWMath::Sqrt((mat[i][i] - (mat[j][j] + mat[k][k])) + 1.0);
 
 		q[i] = s * 0.5;
 		if (s != 0.0) {
@@ -713,7 +584,7 @@ Quaternion Build_Quaternion(const Matrix3x3 & mat)
 
 	if (tr > 0.0) {
 
-		s = sqrt(tr + 1.0);
+		s = WWMath::Sqrt(tr + 1.0);
 		q[3] = s * 0.5;
 		s = 0.5 / s;
 
@@ -730,7 +601,7 @@ Quaternion Build_Quaternion(const Matrix3x3 & mat)
 		j = _nxt[i];
 		k = _nxt[j];
 
-		s = sqrt( (mat[i][i] - (mat[j][j]+mat[k][k])) + 1.0);
+		s = WWMath::Sqrt( (mat[i][i] - (mat[j][j]+mat[k][k])) + 1.0);
 
 		q[i] =	s * 0.5;
 
@@ -757,7 +628,7 @@ Quaternion Build_Quaternion(const Matrix4x4 & mat)
 
 	if (tr > 0.0) {
 
-		s = sqrt(tr + 1.0);
+		s = WWMath::Sqrt(tr + 1.0);
 		q[3] = s * 0.5;
 		s = 0.5 / s;
 
@@ -774,7 +645,7 @@ Quaternion Build_Quaternion(const Matrix4x4 & mat)
 		j = _nxt[i];
 		k = _nxt[j];
 
-		s = sqrt( (mat[i][i] - (mat[j][j]+mat[k][k])) + 1.0);
+		s = WWMath::Sqrt( (mat[i][i] - (mat[j][j]+mat[k][k])) + 1.0);
 
 		q[i] =	s * 0.5;
 		if (s != 0.0) {
@@ -789,18 +660,6 @@ Quaternion Build_Quaternion(const Matrix4x4 & mat)
 }
 
 
-/***********************************************************************************************
- * Build_Matrix -- Creates a Matrix from a Quaternion                                          *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   02/28/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
 Matrix3x3 Build_Matrix3(const Quaternion & q)
 {
 	Matrix3x3 m;
@@ -872,7 +731,8 @@ float project_to_sphere(float r, float x, float y)
 
 	if (d < r * (SQRT2/(2.0f)))			// inside sphere
 		z = WWMath::Sqrt(r * r - d * d);
-	else {								// on hyperbola
+	else {
+		// on hyperbola
 		t = r / SQRT2;
 		z = t * t / d;
 	}

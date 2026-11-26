@@ -38,14 +38,11 @@
  *                                                                                             *
  *                    $Revision::                                                             $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
 
-#include "assetmgr.h"
-#include "Lib/BaseType.h"
+#include "WW3D2/assetmgr.h"
 
 class Vector3;
 class VertexMaterialClass;

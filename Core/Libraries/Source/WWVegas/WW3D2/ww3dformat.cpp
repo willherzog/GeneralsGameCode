@@ -33,14 +33,12 @@
  *                    $Revision:: 14                                                          $*
  *                                                                                             *
  * 06/27/02 KM Z Format support																						*
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #include "ww3dformat.h"
-#include "vector4.h"
-#include "wwdebug.h"
-#include "TARGA.h"
+#include "WWMath/vector4.h"
+#include "WWDebug/wwdebug.h"
+#include "WWLib/TARGA.h"
 #include "dx8wrapper.h"
 #include "dx8caps.h"
 #include <d3d8.h>

@@ -82,6 +82,7 @@ public:
 	UnicodeString getDisplayName() const { return m_displayName; }
 
 	AsciiString getSide() const { return m_side; }
+	AsciiString getBaseSide() const  { return m_baseSide; }
 
 	/// return the tech tree for the player.
 	const Handicap *getHandicap() const { return &m_handicap; }
@@ -111,7 +112,13 @@ public:
 	//const Image *getHiliteImage() const;
 	//const Image *getPushedImage() const;
 	const Image *getSideIconImage() const;
+	const Image *getGeneralImage() const;
 	const AsciiString getTooltip() const { return m_tooltip; }
+	const AsciiString getGeneralFeatures() const { return m_strGeneralFeatures; }
+
+	AsciiString getMedallionNormal() const { return m_strMedallionNormal; }
+	AsciiString getMedallionHilite() const { return m_strMedallionHilite; }
+	AsciiString getMedallionSelected() const { return m_strMedallionSelected; }
 
 	const ScienceVec& getIntrinsicSciences() const { return m_intrinsicSciences; }
 	Int getIntrinsicSciencePurchasePoints() const { return m_intrinsicSPP; }
@@ -124,6 +131,7 @@ public:
 	Int getSpecialPowerShortcutButtonCount() const {return m_specialPowerShortcutButtonCount;	}
 
 	AsciiString getLoadScreenMusic() const {return m_loadScreenMusic;	}
+	AsciiString getScoreScreenMusic() const { return m_scoreScreenMusic; }
 
   Bool isOldFaction() const { return m_oldFaction; }
 
@@ -142,7 +150,7 @@ private:
 
 	NameKeyType			m_nameKey;
 	UnicodeString		m_displayName;
-	AsciiString			m_side;
+	AsciiString			m_side, m_baseSide;
 	Handicap				m_handicap;						///< initial baseline for Player capabilities
 	Money						m_money;							///< starting credits, if any
 	RGBColor				m_preferredColor;			///< our preferred starting color
@@ -160,6 +168,7 @@ private:
 	AsciiString				m_specialPowerShortcutWinName;			///< The name of the window we'll be using for the shortcut bar
 	Int								m_specialPowerShortcutButtonCount;	///< The number of buttons located on the shortcut bar
 	AsciiString				m_loadScreenMusic;									///< the load screen music we want to play
+	AsciiString				m_scoreScreenMusic;									///< the score screen music we want to play
 	AsciiString				m_tooltip;								///< The tooltip describing this player template
 	Bool							m_observer;
 	Bool							m_playableSide;
@@ -177,8 +186,14 @@ private:
 	//AsciiString			m_hiliteImage;					///< hilite button image
 	//AsciiString			m_pushedImage;					///< pushed button image
 	AsciiString			m_sideIconImage;				///< The little icon we show on game info screens for the sides
+	AsciiString			m_generalImage;				///< The icon overlayed on the rank image in My Persona
 
 	AsciiString			m_beaconTemplate;				///< ThingTemplate name for beacons
+
+	AsciiString m_strGeneralFeatures;		///< used in loadscreens
+	AsciiString m_strMedallionNormal;
+	AsciiString m_strMedallionHilite;
+	AsciiString m_strMedallionSelected;
 };
 
 // ----------------------------------------------------------------------------------------------
@@ -201,7 +216,7 @@ public:
 	const PlayerTemplate* getNthPlayerTemplate(Int i) const;
 	const PlayerTemplate* findPlayerTemplate(NameKeyType namekey) const;
 	Int getPlayerTemplateCount() const { return m_playerTemplates.size(); }
-
+	Int getTemplateNumByName(AsciiString name) const;
 
 	// This function will fill outStringList with all the sides found in all the templates
 	void getAllSideStrings(AsciiStringList *outStringList);

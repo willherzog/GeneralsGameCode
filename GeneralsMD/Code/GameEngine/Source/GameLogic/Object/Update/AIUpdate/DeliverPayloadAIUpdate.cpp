@@ -202,8 +202,8 @@ UpdateSleepTime DeliverPayloadAIUpdate::update()
 				{
 					//Calc strafe ratio
 					Real startDiveDistance = getData()->m_diveStartDistance;
-					Real endDiveDistance = sqrt( endDiveDistanceSquared );
-					Real currentDistance = sqrt( currentDistanceSquared );
+					Real endDiveDistance = WWMath::Sqrt( endDiveDistanceSquared );
+					Real currentDistance = WWMath::Sqrt( currentDistanceSquared );
 
 					Real diveRatio = (startDiveDistance - currentDistance) / (startDiveDistance - endDiveDistance);
 
@@ -216,9 +216,9 @@ UpdateSleepTime DeliverPayloadAIUpdate::update()
 					backwards.scale( 0.33f );
 
 					Coord3D strafePoint = *getTargetPos();
-					strafePoint.sub( &backwards );
+					strafePoint.sub( backwards );
 
-					strafePoint.add( &velocity );
+					strafePoint.add( velocity );
 					strafePoint.z = TheTerrainLogic->getGroundHeight( strafePoint.x, strafePoint.y );
 
 					// lock it just till the weapon is empty or the attack is "done"
@@ -306,8 +306,8 @@ void DeliverPayloadAIUpdate::deliverPayloadViaModuleData( const Coord3D *moveToP
 	//****************************************************
 
 	DeliverPayloadData dpData;
-	dpData.m_dropOffset.set( &data->m_dropOffset );
-	dpData.m_dropVariance.set( &data->m_dropVariance );
+	dpData.m_dropOffset.set( data->m_dropOffset );
+	dpData.m_dropVariance.set( data->m_dropVariance );
 	dpData.m_distToTarget						= data->m_maxDistanceToTarget;
 	dpData.m_maxAttempts						= data->m_maxNumberAttempts;
 	dpData.m_dropDelay							= data->m_dropDelay;
@@ -344,10 +344,15 @@ Real DeliverPayloadAIUpdate::calcMinTurnRadius(Real* timeToTravelThatDist) const
 
 		so we just eliminate the middleman:
 	*/
+	// determine required turn radius based on our current speed and max turn rate
+#if RETAIL_COMPATIBLE_CRC
 	Real minTurnRadius = (maxTurnRate > 0.0f) ? (maxSpeed / maxTurnRate) : 999999.0f;
+#else
+	Real minTurnRadius = WWMath::Div_Safe(maxSpeed, maxTurnRate);
+#endif
 
 	if (timeToTravelThatDist)
-		*timeToTravelThatDist = minTurnRadius / maxSpeed;
+		*timeToTravelThatDist = WWMath::Div_Safe(minTurnRadius, maxSpeed);
 
 	return minTurnRadius;
 }
@@ -384,7 +389,7 @@ Bool DeliverPayloadAIUpdate::isOffMap() const
 	Region3D mapRegion;
 	TheTerrainLogic->getExtentIncludingBorder( &mapRegion );
 
-	if (!mapRegion.isInRegionNoZ( getObject()->getPosition() ))
+	if (!mapRegion.containsWithin( getObject()->getPosition()->asCoord2D() ))
 		return true;
 
 	return false;
@@ -836,7 +841,7 @@ StateReturnType DeliveringState::update() // Kick a dude out every so often
 
 							Coord3D backPosition = *owner->getPhysics()->getVelocity();
 							backPosition.scale( -1.0f );
-							backPosition.add( payload->getPosition() );
+							backPosition.add( *payload->getPosition() );
 							payload->setPosition( &backPosition );
 						}
 
@@ -1108,7 +1113,7 @@ StateReturnType RecoverFromOffMapState::update() // Success if we should try aga
 		enterCoord.z = owner->getPosition()->z;
 	owner->setPosition(&enterCoord);
 
-	Real enterAngle = atan2(ai->getMoveToPos()->y - enterCoord.y, ai->getMoveToPos()->x - enterCoord.x);
+	Real enterAngle = WWMath::Atan2(ai->getMoveToPos()->y - enterCoord.y, ai->getMoveToPos()->x - enterCoord.x);
 	owner->setOrientation(enterAngle);
 
 	PhysicsBehavior* physics = owner->getPhysics();
@@ -1148,7 +1153,7 @@ StateReturnType HeadOffMapState::onEnter() // Give move order out of town
 	Region3D terrainExtent;
 	TheTerrainLogic->getExtent( &terrainExtent );
 	const Real FUDGE = 1.2f;
-	Real HUGE_DIST = FUDGE * sqrt(sqr(terrainExtent.hi.x - terrainExtent.lo.x) + sqr(terrainExtent.hi.y - terrainExtent.lo.y));
+	Real HUGE_DIST = FUDGE * WWMath::Sqrt(sqr(terrainExtent.hi.x - terrainExtent.lo.x) + sqr(terrainExtent.hi.y - terrainExtent.lo.y));
 
 	exitCoord.x += dir->x * HUGE_DIST;
 	exitCoord.y += dir->y * HUGE_DIST;

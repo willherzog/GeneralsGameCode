@@ -31,7 +31,7 @@ class CAnimationPropPage : public CPropertyPage
 // Construction
 public:
 	CAnimationPropPage();
-	~CAnimationPropPage();
+	~CAnimationPropPage() override;
 
 // Dialog Data
 	//{{AFX_DATA(CAnimationPropPage)
@@ -45,14 +45,14 @@ public:
 	// ClassWizard generate virtual function overrides
 	//{{AFX_VIRTUAL(CAnimationPropPage)
 	protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+	virtual void DoDataExchange(CDataExchange* pDX) override;    // DDX/DDV support
 	//}}AFX_VIRTUAL
 
 // Implementation
 protected:
 	// Generated message map functions
 	//{{AFX_MSG(CAnimationPropPage)
-	virtual BOOL OnInitDialog();
+	virtual BOOL OnInitDialog() override;
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 

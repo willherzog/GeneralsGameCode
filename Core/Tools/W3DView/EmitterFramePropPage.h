@@ -22,7 +22,7 @@
 //
 
 #include "ColorBar.h"
-#include "part_emt.h"
+#include "WW3D2/part_emt.h"
 
 class EmitterInstanceListClass;
 
@@ -36,7 +36,7 @@ class EmitterFramePropPageClass : public CPropertyPage
 // Construction
 public:
 	EmitterFramePropPageClass();
-	~EmitterFramePropPageClass();
+	~EmitterFramePropPageClass() override;
 
 // Dialog Data
 	//{{AFX_DATA(EmitterFramePropPageClass)
@@ -50,18 +50,18 @@ public:
 	// ClassWizard generate virtual function overrides
 	//{{AFX_VIRTUAL(EmitterFramePropPageClass)
 	public:
-	virtual BOOL OnApply();
+	virtual BOOL OnApply() override;
 	protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-	virtual BOOL OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult);
-	virtual BOOL OnCommand(WPARAM wParam, LPARAM lParam);
+	virtual void DoDataExchange(CDataExchange* pDX) override;    // DDX/DDV support
+	virtual BOOL OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult) override;
+	virtual BOOL OnCommand(WPARAM wParam, LPARAM lParam) override;
 	//}}AFX_VIRTUAL
 
 // Implementation
 protected:
 	// Generated message map functions
 	//{{AFX_MSG(EmitterFramePropPageClass)
-	virtual BOOL OnInitDialog();
+	virtual BOOL OnInitDialog() override;
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 

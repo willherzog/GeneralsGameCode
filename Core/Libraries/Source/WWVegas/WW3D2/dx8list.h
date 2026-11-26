@@ -33,14 +33,12 @@
  *                    $Revision:: 5                                                           $*
  *                                                                                             *
  * 06/27/02 KM Texture class abstraction																			*
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
 
-#include "always.h"
-#include "multilist.h"
+#include "WWLib/always.h"
+#include "WWLib/multilist.h"
 
 
 /*

@@ -30,8 +30,6 @@
  *                                                                                             *
  *                    $Revision:: 4                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
@@ -55,11 +53,6 @@ public:
 
 	virtual void		Update_Tangents() override;
 
-	// save-load support
-	virtual const PersistFactoryClass &	Get_Factory() const override;
-	virtual bool								Save(ChunkSaveClass &csave) override;
-	virtual bool								Load(ChunkLoadClass &cload) override;
-
 protected:
 
 	DynamicVectorClass<float>	Tightness;
@@ -74,7 +67,7 @@ class CardinalSpline1DClass : public HermiteSpline1DClass
 {
 public:
 
-	virtual int			Add_Key(float point,float t);
+	virtual int			Add_Key(float point,float t,unsigned int extra=0) override;
 	virtual void		Remove_Key(int i) override;
 	virtual void		Clear_Keys() override;
 
@@ -82,11 +75,6 @@ public:
 	virtual float		Get_Tightness(int i);
 
 	virtual void		Update_Tangents() override;
-
-	// save-load support
-	virtual const PersistFactoryClass &	Get_Factory() const override;
-	virtual bool								Save(ChunkSaveClass &csave) override;
-	virtual bool								Load(ChunkLoadClass &cload) override;
 
 protected:
 

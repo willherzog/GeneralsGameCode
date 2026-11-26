@@ -47,14 +47,14 @@
 //-----------------------------------------------------------------------------
 //           Includes
 //-----------------------------------------------------------------------------
-#include "always.h"
-#include "rendobj.h"
-#include "w3d_file.h"
-#include "texture.h"
-#include "dx8vertexbuffer.h"
-#include "dx8indexbuffer.h"
-#include "shader.h"
-#include "vertmaterial.h"
+#include "WWLib/always.h"
+#include "WW3D2/rendobj.h"
+#include "WW3D2/w3d_file.h"
+#include "WW3D2/texture.h"
+#include "WW3D2/dx8vertexbuffer.h"
+#include "WW3D2/dx8indexbuffer.h"
+#include "WW3D2/shader.h"
+#include "WW3D2/vertmaterial.h"
 #include "Lib/BaseType.h"
 #include "Common/GameType.h"
 #include "Common/AsciiString.h"
@@ -153,7 +153,7 @@ class W3DTreeBuffer : public Snapshot
 	//-----------------------------------------------------------------------------
 	class W3DTreeTextureClass : public TextureClass
 	{
-		W3DMPO_GLUE(W3DTreeTextureClass)
+		W3DMPO_CODE(W3DTreeTextureClass)
 	protected:
 		virtual void Apply(unsigned int stage) override;
 

@@ -643,7 +643,7 @@ void GameTextManager::reverseWord ( Char *file, Char *lp )
 {
 	Int first = TRUE;
 	Char f, l;
-	Int ok = TRUE	;
+	Bool ok = TRUE;
 
 	while ( ok )
 	{
@@ -809,7 +809,7 @@ void GameTextManager::translateCopy( WideChar *outbuf, Char *inbuf )
 
 Bool GameTextManager::getStringCount( const char *filename, Int& textCount )
 {
-	Int ok = TRUE;
+	Bool ok = TRUE;
 
 	textCount = 0;
 
@@ -854,7 +854,7 @@ Bool GameTextManager::getStringCount( const char *filename, Int& textCount )
 Bool GameTextManager::getCSFInfo ( const Char *filename )
 {
 	CSFHeader header;
-	Int ok = FALSE;
+	Bool ok = FALSE;
 	File *file = TheFileSystem->openFile(filename, File::READ | File::BINARY);
 	DEBUG_LOG(("Looking in %s for compiled string file", filename));
 
@@ -1020,7 +1020,7 @@ quit:
 Bool GameTextManager::parseStringFile( const char *filename )
 {
 	Int listCount = 0;
-	Int ok = TRUE;
+	Bool ok = TRUE;
 
 	File *file = TheFileSystem->openFile(filename, File::READ | File::TEXT);
 
@@ -1150,7 +1150,7 @@ void GameTextManager::initMapStringFile( const AsciiString& filename )
 Bool GameTextManager::parseMapStringFile( const char *filename )
 {
 	Int listCount = 0;
-	Int ok = TRUE;
+	Bool ok = TRUE;
 
 	File *file;
 
@@ -1422,7 +1422,7 @@ AsciiStringVec& GameTextManager::getStringsWithLabelPrefix(AsciiString label)
 
 Bool	GameTextManager::readLine( char *buffer, Int max, File *file )
 {
-	Int ok = FALSE;
+	Bool ok = FALSE;
 
 	while ( max && file->read( buffer, 1 ) == 1 )
 	{

@@ -30,8 +30,6 @@
  *                                                                                             *
  *                    $Revision:: 3                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
@@ -48,8 +46,8 @@
 class CDControlClass {
 
 	public:
-		CDControlClass(void);
-		~CDControlClass(void);
+		CDControlClass();
+		~CDControlClass();
 
 		/*
 		** Force the CD tray to open on the specified drive.
@@ -85,7 +83,7 @@ class CDControlClass {
 		/*
 		** Win9x functions.
 		*/
-		HANDLE WINAPI Open_VWin32 (void);
+		HANDLE WINAPI Open_VWin32 ();
 		bool WINAPI Close_VWin32 (HANDLE vwin32);
 		bool WINAPI Unlock_Logical_Volume (HANDLE vwin32, char drive);
 		bool WINAPI Lock_Logical_Volume (HANDLE vwin32, char drive, char lock_level, short permissions);

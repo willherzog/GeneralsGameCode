@@ -84,20 +84,6 @@ typedef struct tConnInfoStruct {
 	unsigned short RemotePort;
 } ConnInfoStruct;
 
-/***********************************************************************************************
- * Get_Local_Chat_Connection_Address -- Which address are we using to talk to the chat server? *
- *                                                                                             *
- *                                                                                             *
- *                                                                                             *
- * INPUT:    Ptr to address to return local address                                            *                                                                                             *
- *                                                                                             *
- * OUTPUT:   True if success                                                                   *
- *                                                                                             *
- * WARNINGS: None                                                                              *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   10/27/00 3:24PM ST : Created                                                              *
- *=============================================================================================*/
 Bool GetLocalChatConnectionAddress(AsciiString serverName, UnsignedShort serverPort, UnsignedInt& localIP)
 {
 	//return false;
@@ -600,9 +586,7 @@ AsciiString GameSpyStagingRoom::generateGameSpyGameResultsPacket()
 	Int lastTeamAtGameEnd = -1;
 	for (i=0; i<MAX_SLOTS; ++i)
 	{
-		AsciiString playerName;
-		playerName.format("player%d", i);
-		Player *p = ThePlayerList->findPlayerWithNameKey(NAMEKEY(playerName));
+		Player *p = ThePlayerList->getPlayerFromSlotIndex(i);
 		if (p)
 		{
 			++numHumans;
@@ -646,9 +630,7 @@ AsciiString GameSpyStagingRoom::generateGameSpyGameResultsPacket()
 	Int playerID = 0;
 	for (i=0; i<MAX_SLOTS; ++i)
 	{
-		AsciiString playerName;
-		playerName.format("player%d", i);
-		Player *p = ThePlayerList->findPlayerWithNameKey(NAMEKEY(playerName));
+		Player *p = ThePlayerList->getPlayerFromSlotIndex(i);
 		if (p)
 		{
 			GameSpyGameSlot *slot = &(m_GameSpySlot[i]);
@@ -694,9 +676,7 @@ AsciiString GameSpyStagingRoom::generateLadderGameResultsPacket()
 	Player* p[MAX_SLOTS];
 	for (i=0; i<MAX_SLOTS; ++i)
 	{
-		AsciiString playerName;
-		playerName.format("player%d", i);
-		p[i] = ThePlayerList->findPlayerWithNameKey(NAMEKEY(playerName));
+		p[i] = ThePlayerList->getPlayerFromSlotIndex(i);
 		if (p[i])
 		{
 			++numPlayers;
@@ -730,8 +710,6 @@ AsciiString GameSpyStagingRoom::generateLadderGameResultsPacket()
 	Int playerID = 0;
 	for (i=0; i<MAX_SLOTS; ++i)
 	{
-		AsciiString playerName;
-		playerName.format("player%d", i);
 		if (p[i])
 		{
 			GameSpyGameSlot *slot = &(m_GameSpySlot[i]);

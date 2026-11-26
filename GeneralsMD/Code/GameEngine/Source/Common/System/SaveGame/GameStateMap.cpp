@@ -104,6 +104,8 @@ static void embedPristineMap( AsciiString map, Xfer *xfer )
 	if( file->read( buffer, fileSize ) != fileSize )
 	{
 
+		delete[] buffer;
+
 		DEBUG_CRASH(( "embedPristineMap - Error reading from file '%s'", map.str() ));
 		throw SC_INVALID_DATA;
 
@@ -161,6 +163,8 @@ static void embedInUseMap( AsciiString map, Xfer *xfer )
 	if( fread( buffer, 1, fileSize, fp ) != fileSize )
 	{
 
+		delete[] buffer;
+
 		DEBUG_CRASH(( "embedInUseMap - Error reading from file '%s'", map.str() ));
 		throw SC_INVALID_DATA;
 
@@ -216,6 +220,8 @@ static void extractAndSaveMap( AsciiString mapToSave, Xfer *xfer )
 	if( fwrite( buffer, 1, dataSize, fp ) != dataSize )
 	{
 
+		delete[] buffer;
+
 		DEBUG_CRASH(( "extractAndSaveMap - Error writing to file '%s'", mapToSave.str() ));
 		throw SC_INVALID_DATA;
 
@@ -233,6 +239,32 @@ static void extractAndSaveMap( AsciiString mapToSave, Xfer *xfer )
 }
 
 // ------------------------------------------------------------------------------------------------
+// TheSuperHackers @bugfix bobtista 20/10/2026 Clear the loading save flag on every exit from a load,
+// including a throw, so that a failed save load does not leave the quit menu disabled.
+class LoadingSaveScope
+{
+public:
+	LoadingSaveScope( Bool loading ) : m_loading( loading )
+	{
+		if( m_loading )
+		{
+			TheGameLogic->setLoadingSave( TRUE );
+		}
+	}
+
+	~LoadingSaveScope()
+	{
+		if( m_loading )
+		{
+			TheGameLogic->setLoadingSave( FALSE );
+		}
+	}
+
+private:
+	Bool m_loading;
+};
+
+// ------------------------------------------------------------------------------------------------
 /** Xfer method
 	* Version Info:
 	* 1: Initial version
@@ -242,10 +274,7 @@ static void extractAndSaveMap( AsciiString mapToSave, Xfer *xfer )
 // ------------------------------------------------------------------------------------------------
 void GameStateMap::xfer( Xfer *xfer )
 {
-	if( xfer->getXferMode() == XFER_LOAD )
-	{
-		TheGameLogic->setLoadingSave( TRUE );
-	}
+	LoadingSaveScope loadingSaveScope( xfer->getXferMode() == XFER_LOAD );
 
 	// version
 	const XferVersion currentVersion = 2;
@@ -309,7 +338,7 @@ void GameStateMap::xfer( Xfer *xfer )
 			xfer->xferAsciiString( &tmp );
 		}
 
-		if (currentVersion >= 2)
+		if (version >= 2)
 		{
 			// save the game mode.
 			Int gameMode = (Int)TheGameLogic->getGameMode();
@@ -340,7 +369,7 @@ void GameStateMap::xfer( Xfer *xfer )
 		xfer->xferAsciiString( &saveGameInfo->pristineMapName );
 		saveGameInfo->pristineMapName = TheGameState->portableMapPathToRealMapPath(saveGameInfo->pristineMapName);
 
-		if (currentVersion >= 2)
+		if (version >= 2)
 		{
 			// get the game mode.
 			Int gameMode;
@@ -438,7 +467,6 @@ void GameStateMap::xfer( Xfer *xfer )
 	if( xfer->getXferMode() == XFER_LOAD )
 	{
 		TheGameLogic->startNewGame( TRUE );
-		TheGameLogic->setLoadingSave( FALSE );
 	}
 
 }

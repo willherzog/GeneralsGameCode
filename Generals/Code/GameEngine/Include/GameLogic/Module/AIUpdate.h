@@ -117,6 +117,8 @@ enum AutoAcquireStates CPP_11(: Int)
 	AAS_Idle_No										= 0x04,
 	AAS_Idle_Not_While_Attacking	= 0x08,
 	AAS_Idle_Attack_Buildings			= 0x10,
+
+	AUTO_ACQUIRE_STATES_END // keep after the last named flag
 };
 
 #ifdef DEFINE_AUTOACQUIRE_NAMES
@@ -130,6 +132,7 @@ static const char *const TheAutoAcquireEnemiesNames[] =
 
 	nullptr
 };
+static_assert(equalsEnumBitFlagsCount(ARRAY_SIZE(TheAutoAcquireEnemiesNames) - 1, AUTO_ACQUIRE_STATES_END), "Incorrect array size");
 #endif
 
 
@@ -184,7 +187,7 @@ enum MoodActionAdjustment CPP_11(: Int)
 
 //-------------------------------------------------------------------------------------------------
 typedef std::vector< const LocomotorTemplate* > LocomotorTemplateVector;
-typedef std::map< LocomotorSetType, LocomotorTemplateVector, std::less<LocomotorSetType> > LocomotorTemplateMap;
+typedef std::map< LocomotorSetType, LocomotorTemplateVector, std::less<LocomotorSetType>/**/> LocomotorTemplateMap;
 
 //-------------------------------------------------------------------------------------------------
 class AIUpdateModuleData : public UpdateModuleData

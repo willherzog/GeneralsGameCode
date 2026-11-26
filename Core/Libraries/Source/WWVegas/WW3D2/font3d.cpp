@@ -33,18 +33,16 @@
  *                    $Revision:: 17                                                          $*
  *                                                                                             *
  * 08/05/02 KM Texture class redesign
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #include "font3d.h"
 #include "assetmgr.h"
 #include "texture.h"
 #include <assert.h>
-#include <wwdebug.h>
+#include <WWDebug/wwdebug.h>
 #include "surfaceclass.h"
 #include "texture.h"
-#include "vector2i.h"
+#include "WWMath/vector2i.h"
 
 static	SurfaceClass	*_surface;
 

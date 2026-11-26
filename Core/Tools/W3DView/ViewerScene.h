@@ -30,15 +30,13 @@
  *                                                                                             *
  *                    $Revision:: 6                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
 
-#include "scene.h"
-#include "aabox.h"
-#include "sphere.h"
+#include "WW3D2/scene.h"
+#include "WWMath/aabox.h"
+#include "WWMath/sphere.h"
 
 
 class RenderObjIterator;
@@ -58,7 +56,7 @@ class ViewerSceneClass : public SimpleSceneClass
 		ViewerSceneClass ()
 			: m_AllowLODSwitching (false)		{ }
 
-		virtual ~ViewerSceneClass ()		{ }
+		virtual ~ViewerSceneClass () override		{ }
 
 
 		///////////////////////////////////////////////////////////////////
@@ -69,9 +67,9 @@ class ViewerSceneClass : public SimpleSceneClass
 		//
 		//	Overrides from SimpleSceneClass
 		//
-		virtual void				Visibility_Check (CameraClass *pcamera);
-		virtual void				Add_Render_Object(RenderObjClass * obj);
-		virtual void				Customized_Render(RenderInfoClass & rinfo);
+		virtual void				Visibility_Check (CameraClass *pcamera) override;
+		virtual void				Add_Render_Object(RenderObjClass * obj) override;
+		virtual void				Customized_Render(RenderInfoClass & rinfo) override;
 
 		//
 		//	Inline accessors

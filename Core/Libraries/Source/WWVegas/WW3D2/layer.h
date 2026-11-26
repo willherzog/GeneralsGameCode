@@ -30,15 +30,13 @@
  *                                                                                             *
  *                    $Revision:: 2                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
 
-#include "always.h"
-#include "LISTNODE.h"
-#include "vector3.h"
+#include "WWLib/always.h"
+#include "WWLib/LISTNODE.h"
+#include "WWMath/vector3.h"
 
 class SceneClass;
 class CameraClass;

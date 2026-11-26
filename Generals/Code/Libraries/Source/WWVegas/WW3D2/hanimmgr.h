@@ -31,16 +31,14 @@
  *                                                                                             *
  *                    $Revision:: 1                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
 
-#include "always.h"
-#include "hash.h"
-#include "wwstring.h"
-#include "Vector.h"
+#include "WWLib/always.h"
+#include "WWLib/hash.h"
+#include "WWLib/wwstring.h"
+#include "WWLib/Vector.h"
 
 class HAnimClass;
 class ChunkLoadClass;

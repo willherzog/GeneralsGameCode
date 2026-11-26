@@ -30,14 +30,12 @@
  *                                                                                             *
  *                    $Revision:: 1                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
 
-#include "rendobj.h"
-#include "proto.h"
+#include "WW3D2/rendobj.h"
+#include "WW3D2/proto.h"
 
 class Null3DObjClass : public RenderObjClass
 {
@@ -60,9 +58,9 @@ protected:
 };
 
 
-class NullPrototypeClass : public W3DMPO, public PrototypeClass
+class NullPrototypeClass : public PrototypeClass
 {
-	W3DMPO_GLUE(NullPrototypeClass)
+	W3DMPO_CODE(NullPrototypeClass)
 public:
 	NullPrototypeClass();
 	NullPrototypeClass(const W3dNullObjectStruct &null);

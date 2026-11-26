@@ -30,12 +30,10 @@
  *                                                                                             *
  *                    $Revision:: 1                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #include "snapPts.h"
-#include "chunkio.h"
+#include "WWLib/chunkio.h"
 #include "w3d_file.h"
 #include "w3derr.h"
 

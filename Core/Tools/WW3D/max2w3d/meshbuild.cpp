@@ -30,36 +30,10 @@
  *                                                                                             *
  *                    $Revision:: 15                                                          $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
- *   MeshBuilderClass::VertClass::Reset -- reset this vertex                                   *
- *   MeshBuilderClass::FaceClass::Reset -- rest this face                                      *
- *   MeshBuilderClass::FaceClass::Compute_Plane -- compute the plane for this face             *
- *   MeshBuilderClass::FaceClass::Is_Degenerate -- check if a face is degenerate               *
- *   MeshBuilderClass::MeshStatsStruct::Reset -- reset the stats to all false                  *
- *   MeshBuilderClass::MeshBuilderClass -- constructor                                         *
- *   MeshBuilderClass::~MeshBuilderClass -- destructor                                         *
- *   MeshBuilderClass::Free -- release all memory in use                                       *
- *   MeshBuilderClass::Reset -- Get the builder ready to process a mesh                        *
- *   MeshBuilderClass::Add_Face -- Add a face to the mesh                                      *
- *   MeshBuilderClass::Build_Mesh -- process the mesh                                          *
- *   MeshBuilderClass::Compute_Face_Normals -- computes all of the face normals from the index *
- *   MeshBuilderClass::Verify_Face_Normals -- checks if any faces have flipped                 *
- *   MeshBuilderClass::Compute_Vertex_Normals -- Computes the vertex normals for the mesh      *
- *   MeshBuilderClass::Remove_Degenerate_Faces -- discard invalid or duplicated faces          *
- *   MeshBuilderClass::Compute_Mesh_Stats -- compute some stats about the mesh                 *
- *   MeshBuilderClass::Compute_Bounding_Box -- computes an axis-aligned bounding box for the m *
- *   MeshBuilderClass::Compute_Bounding_Sphere -- computes a bounding sphere for the mesh      *
- *   MeshBuilderClass::Optimize_Mesh -- "optimize" the mesh                                    *
- *   MeshBuilderClass::Strip_Optimize_Mesh -- optimize the mesh for triangle strips            *
- *   MeshBuilderClass::Grow_Face_Array -- increases the size of the face array                 *
- *   MeshBuilderClass::Sort_Vertices -- Sorts vertices according to the given key array        *
- *   MeshBuilderClass::Sort_Vertices_By_Bone_Index -- sorts verts by bone index                *
- *   MeshBuilderClass::Sort_Vertices_By_Vertex_Material -- sorts verts by vertex mtl in pass0  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #include "meshbuild.h"
-#include "uarray.h"
+#include "WWLib/uarray.h"
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -121,12 +95,12 @@ public:
 		HashVal = (int)(item.VertIdx[0]*12345.6f + item.VertIdx[1]*1714.38484f + item.VertIdx[2]*27561.3f)&1023;
 	}
 
-	virtual int		Num_Hash_Bits(void)
+	virtual int		Num_Hash_Bits()
 	{
 		return 10;
 	}
 
-	virtual int		Num_Hash_Values(void)
+	virtual int		Num_Hash_Values()
 	{
 		return 1;
 	}
@@ -178,7 +152,7 @@ public:
 		Extent.Set(1.0f,1.0f,1.0f);
 	}
 
-	~VertexArrayClass(void)
+	~VertexArrayClass()
 	{
 		delete[] Verts;
 		delete[] HashTable;
@@ -341,7 +315,7 @@ public:
 		return 0;
 	}
 
-	void Propogate_Shared_Smooth_Groups(void)
+	void Propogate_Shared_Smooth_Groups()
 	{
 		for (int i=0; i<VertCount; i++) {
 			if (Verts[i].ShadeIndex != i) {
@@ -375,19 +349,7 @@ private:
 };
 
 
-/***********************************************************************************************
- * MeshBuilderClass::VertClass::Reset -- reset this vertex                                     *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   10/19/98   GTH : Created.                                                                 *
- *=============================================================================================*/
-void MeshBuilderClass::VertClass::Reset(void)
+void MeshBuilderClass::VertClass::Reset()
 {
 	Position.Set(0,0,0);
 	Normal.Set(0,0,0);
@@ -418,19 +380,7 @@ void MeshBuilderClass::VertClass::Reset(void)
 }
 
 
-/***********************************************************************************************
- * MeshBuilderClass::FaceClass::Reset -- rest this face                                        *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   10/19/98   GTH : Created.                                                                 *
- *=============================================================================================*/
-void MeshBuilderClass::FaceClass::Reset(void)
+void MeshBuilderClass::FaceClass::Reset()
 {
 	for (int i=0; i<3; i++) {
 		Verts[i].Reset();
@@ -455,40 +405,16 @@ void MeshBuilderClass::FaceClass::Reset(void)
 }
 
 
-/***********************************************************************************************
- * MeshBuilderClass::FaceClass::Compute_Plane -- compute the plane for this face               *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   5/15/98    GTH : Created.                                                                 *
- *=============================================================================================*/
-void MeshBuilderClass::FaceClass::Compute_Plane(void)
+void MeshBuilderClass::FaceClass::Compute_Plane()
 {
-	Normal = Vector3::Cross_Product((Verts[1].Position - Verts[0].Position),(Verts[2].Position - Verts[0].Position));
+	Vector3::Cross_Product((Verts[1].Position - Verts[0].Position),(Verts[2].Position - Verts[0].Position),&Normal);
 	Normal.Normalize();
 	Dist = Vector3::Dot_Product(Normal,Verts[0].Position);
 }
 
 
-/***********************************************************************************************
- * MeshBuilderClass::FaceClass::Is_Degenerate -- check if a face is degenerate                 *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- * assumes we have already built the unique vertex table and installed their indices           *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   7/7/98     GTH : Created.                                                                 *
- *=============================================================================================*/
-bool MeshBuilderClass::FaceClass::Is_Degenerate(void)
+// WARNING: Assumes we have already built the unique vertex table and installed their indices.
+bool MeshBuilderClass::FaceClass::Is_Degenerate()
 {
 	for (int v0 = 0; v0 < 3; v0++) {
 		for (int v1 = v0+1; v1 < 3; v1++) {
@@ -509,19 +435,7 @@ bool MeshBuilderClass::FaceClass::Is_Degenerate(void)
 }
 
 
-/***********************************************************************************************
- * MeshBuilderClass::MeshStatsStruct::Reset -- reset the stats to all false                    *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   10/20/98   GTH : Created.                                                                 *
- *=============================================================================================*/
-void MeshBuilderClass::MeshStatsStruct::Reset(void)
+void MeshBuilderClass::MeshStatsStruct::Reset()
 {
 	for (int pass = 0; pass < MeshBuilderClass::MAX_PASSES; pass++) {
 		HasPerPolyShader[pass] = false;
@@ -545,17 +459,6 @@ void MeshBuilderClass::MeshStatsStruct::Reset(void)
 	AvgStripLength = 0.0f;
 }
 
-/***********************************************************************************************
- * MeshBuilderClass::MeshBuilderClass -- constructor                                           *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *=============================================================================================*/
 MeshBuilderClass::MeshBuilderClass(int pass_count,int face_count_guess,int face_count_growth_rate) :
 	State(STATE_ACCEPTING_INPUT),
 	PassCount(pass_count),
@@ -574,38 +477,14 @@ MeshBuilderClass::MeshBuilderClass(int pass_count,int face_count_guess,int face_
 	Reset(pass_count,face_count_guess,face_count_growth_rate);
 }
 
-/***********************************************************************************************
- * MeshBuilderClass::~MeshBuilderClass -- destructor                                           *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   5/15/98    GTH : Created.                                                                 *
- *=============================================================================================*/
-MeshBuilderClass::~MeshBuilderClass(void)
+MeshBuilderClass::~MeshBuilderClass()
 {
 	Free();
 	Set_World_Info(nullptr);
 }
 
 
-/***********************************************************************************************
- * MeshBuilderClass::Free -- release all memory in use                                         *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   5/15/98    GTH : Created.                                                                 *
- *=============================================================================================*/
-void MeshBuilderClass::Free(void)
+void MeshBuilderClass::Free()
 {
 	if (Faces != nullptr) {
 		delete[] Faces;
@@ -624,18 +503,6 @@ void MeshBuilderClass::Free(void)
 }
 
 
-/***********************************************************************************************
- * MeshBuilderClass::Reset -- Get the builder ready to process a mesh                          *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   5/15/98    GTH : Created.                                                                 *
- *=============================================================================================*/
 void MeshBuilderClass::Reset(int passcount,int face_count_guess,int face_count_growth_rate)
 {
 	Free();
@@ -651,18 +518,6 @@ void MeshBuilderClass::Reset(int passcount,int face_count_guess,int face_count_g
 }
 
 
-/***********************************************************************************************
- * MeshBuilderClass::Add_Face -- Add a face to the mesh                                        *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   5/15/98    GTH : Created.                                                                 *
- *=============================================================================================*/
 int MeshBuilderClass::Add_Face(const FaceClass & face)
 {
 	assert(State == STATE_ACCEPTING_INPUT);
@@ -692,21 +547,8 @@ int MeshBuilderClass::Add_Face(const FaceClass & face)
 }
 
 
-/***********************************************************************************************
- * MeshBuilderClass::Build_Mesh -- process the mesh                                            *
- *                                                                                             *
- *    This function finds all sharable vertices, calculates vertex normals, sorts the          *
- *    faces by material, sorts the faces into stripping order...                               *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   5/15/98    GTH : Created.                                                                 *
- *=============================================================================================*/
+// This function finds all sharable vertices, calculates vertex normals, sorts the faces by
+// material, sorts the faces into stripping order...
 void MeshBuilderClass::Build_Mesh(bool compute_normals)
 {
 	/*
@@ -728,39 +570,15 @@ void MeshBuilderClass::Build_Mesh(bool compute_normals)
 }
 
 
-/***********************************************************************************************
- * MeshBuilderClass::Compute_Face_Normals -- computes all of the face normals from the indexed *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   7/10/98    GTH : Created.                                                                 *
- *   10/19/98   GTH : Modified to use the FaceClass::Compute_Plane function                    *
- *=============================================================================================*/
-void MeshBuilderClass::Compute_Face_Normals(void)
+void MeshBuilderClass::Compute_Face_Normals()
 {
 	for (int faceidx = 0; faceidx < FaceCount; faceidx++) {
 		Faces[faceidx].Compute_Plane();
 	}
 }
 
-/***********************************************************************************************
- * MeshBuilderClass::Verify_Face_Normals -- checks if any faces have flipped                   *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   7/10/98    GTH : Created.                                                                 *
- *=============================================================================================*/
-bool MeshBuilderClass::Verify_Face_Normals(void)
+// Checks if any faces have flipped.
+bool MeshBuilderClass::Verify_Face_Normals()
 {
 	int faceidx;
 	bool ok = true;
@@ -772,7 +590,8 @@ bool MeshBuilderClass::Verify_Face_Normals(void)
 		VertClass & v0 = Verts[Faces[faceidx].VertIdx[0]];
 		VertClass & v1 = Verts[Faces[faceidx].VertIdx[1]];
 		VertClass & v2 = Verts[Faces[faceidx].VertIdx[2]];
-		Vector3 normal = Vector3::Cross_Product((v1.Position - v0.Position),(v2.Position - v0.Position));
+		Vector3 normal;
+		Vector3::Cross_Product((v1.Position - v0.Position),(v2.Position - v0.Position),&normal);
 		normal.Normalize();
 
 		float dn = (Faces[faceidx].Normal - normal).Length();
@@ -783,21 +602,9 @@ bool MeshBuilderClass::Verify_Face_Normals(void)
 	return ok;
 }
 
-/***********************************************************************************************
- * MeshBuilderClass::Compute_Vertex_Normals -- Computes the vertex normals for the mesh        *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *    This function should only be called after the mesh has been "optimized".  The algorithm  *
- *    relies on non-smooth vertices having been split...                                       *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   5/15/98    GTH : Created.                                                                 *
- *=============================================================================================*/
-void MeshBuilderClass::Compute_Vertex_Normals(void)
+// WARNING: This function should only be called after the mesh has been "optimized". The algorithm
+// relies on non-smooth vertices having been split...
+void MeshBuilderClass::Compute_Vertex_Normals()
 {
 	int vertidx;
 	int faceidx;
@@ -843,19 +650,8 @@ void MeshBuilderClass::Compute_Vertex_Normals(void)
 	}
 }
 
-/***********************************************************************************************
- * MeshBuilderClass::Remove_Degenerate_Faces -- discard invalid or duplicated faces            *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   7/10/98    GTH : Created.                                                                 *
- *=============================================================================================*/
-void MeshBuilderClass::Remove_Degenerate_Faces(void)
+// Discard invalid or duplicated faces.
+void MeshBuilderClass::Remove_Degenerate_Faces()
 {
 	int faceidx;
 	FaceHasherClass facehasher;
@@ -881,19 +677,7 @@ void MeshBuilderClass::Remove_Degenerate_Faces(void)
 
 
 
-/***********************************************************************************************
- * MeshBuilderClass::Compute_Mesh_Stats -- compute some stats about the mesh                   *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   10/19/98   GTH : Created.                                                                 *
- *=============================================================================================*/
-void MeshBuilderClass::Compute_Mesh_Stats(void)
+void MeshBuilderClass::Compute_Mesh_Stats()
 {
 	int	pass;
 	int	stage;
@@ -996,18 +780,6 @@ void MeshBuilderClass::Compute_Mesh_Stats(void)
 }
 
 
-/***********************************************************************************************
- * MeshBuilderClass::Compute_Bounding_Box -- computes an axis-aligned bounding box for the mes *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   10/29/98   GTH : Created.                                                                 *
- *=============================================================================================*/
 void MeshBuilderClass::Compute_Bounding_Box(Vector3 * set_min,Vector3 * set_max)
 {
 	int i;
@@ -1036,18 +808,6 @@ void MeshBuilderClass::Compute_Bounding_Box(Vector3 * set_min,Vector3 * set_max)
 }
 
 
-/***********************************************************************************************
- * MeshBuilderClass::Compute_Bounding_Sphere -- computes a bounding sphere for the mesh        *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   10/29/98   GTH : Created.                                                                 *
- *=============================================================================================*/
 void MeshBuilderClass::Compute_Bounding_Sphere(Vector3 * set_center,float * set_radius)
 {
 	int i;
@@ -1169,21 +929,8 @@ void MeshBuilderClass::Compute_Bounding_Sphere(Vector3 * set_center,float * set_
 	*set_radius = radius;
 }
 
-/***********************************************************************************************
- * MeshBuilderClass::Optimize_Mesh -- "optimize" the mesh                                      *
- *                                                                                             *
- *    Generates the array of unique vertices and sets the vertex indices in each face.  Then   *
- *    all of the faces are sorted by material and then into stripping order.                   *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   5/15/98    GTH : Created.                                                                 *
- *=============================================================================================*/
+// Generates the array of unique vertices and sets the vertex indices in each face. Then all of the
+// faces are sorted by material and then into stripping order.
 void MeshBuilderClass::Optimize_Mesh(bool compute_normals)
 {
 	int faceidx;
@@ -1306,24 +1053,10 @@ void MeshBuilderClass::Optimize_Mesh(bool compute_normals)
 }
 
 
-/***********************************************************************************************
- * MeshSaveClass::Strip_Optimize_Mesh -- optimize the mesh for triangle strips                 *
- *                                                                                             *
- * This algorithm was copied/modified from the surrender srModeller code so that we don't have *
- * to pass our models through the modeller at run-time.                                        *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   4/6/98     GTH : Created.                                                                 *
- *   10/20/98   GTH : Modified to strip based on the desired texture channel                   *
- *   2/11/99    GTH : Added strip stats tracking                                               *
- *=============================================================================================*/
-void MeshBuilderClass::Strip_Optimize_Mesh(void)
+// Strips are based on the desired texture channel. This algorithm was copied/modified from the
+// surrender srModeller code so that we don't have to pass our models through the modeller at
+// run-time.
+void MeshBuilderClass::Strip_Optimize_Mesh()
 {
 	WingedEdgeStruct *		edgehash[512];
 	WingedEdgeStruct *		edgetab			= new WingedEdgeStruct[FaceCount*3];
@@ -1667,19 +1400,7 @@ void MeshBuilderClass::Strip_Optimize_Mesh(void)
 
 
 
-/***********************************************************************************************
- * MeshBuilderClass::Grow_Face_Array -- increases the size of the face array                   *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   5/15/98    GTH : Created.                                                                 *
- *=============================================================================================*/
-void MeshBuilderClass::Grow_Face_Array(void)
+void MeshBuilderClass::Grow_Face_Array()
 {
 	int oldcount = AllocFaceCount;
 	FaceClass * oldfaces = Faces;
@@ -1694,21 +1415,8 @@ void MeshBuilderClass::Grow_Face_Array(void)
 	delete[] oldfaces;
 }
 
-/***********************************************************************************************
- * MeshBuilderClass::Sort_Vertices -- sorts vertices                                           *
- *                                                                                             *
- * the vertices are sorted first by bone index, second by vertex material.                     *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   5/1/2000   gth : Created.                                                                 *
- *=============================================================================================*/
-void MeshBuilderClass::Sort_Vertices(void)
+// The vertices are sorted first by bone index, second by vertex material.
+void MeshBuilderClass::Sort_Vertices()
 {
 	/*
 	** Sort the vertices

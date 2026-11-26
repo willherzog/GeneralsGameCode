@@ -32,16 +32,14 @@
  *                                                                                             *
  *                    $Revision:: 1                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
 
-#include "always.h"
-#include "vector3.h"
-#include "multilist.h"
-#include "mempool.h"
+#include "WWLib/always.h"
+#include "WWMath/vector3.h"
+#include "WWLib/multilist.h"
+#include "WWLib/mempool.h"
 
 class CameraClass;
 

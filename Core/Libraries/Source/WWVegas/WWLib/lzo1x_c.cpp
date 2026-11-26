@@ -30,8 +30,6 @@
  *                                                                                             *
  *                    $Revision:: 2                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 /* $Header: /Commando/Code/wwlib/lzo1x_c.cpp 2     7/05/00 6:26p Jani_p $ */
@@ -63,7 +61,7 @@
 #include	"always.h"
 #include	"lzo1x.h"
 #include	"lzo_conf.h"
-#include "wwdebug.h"
+#include "WWDebug/wwdebug.h"
 #include	<assert.h>
 
 #if !defined(LZO1X) && !defined(LZO1Y)

@@ -30,17 +30,15 @@
  *                                                                         *
  *                    $Revision:: 2                                       $*
  *                                                                         *
- *-------------------------------------------------------------------------*
- * Functions:                                                              *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
 
-#include "always.h"
+#include "WWLib/always.h"
 #include "rendobj.h"
-#include "vector3.h"
-#include "vector4.h"
-#include "shader.h"
+#include "WWMath/vector3.h"
+#include "WWMath/vector4.h"
+#include "WW3D2/shader.h"
 
 class	VertexMaterialClass;
 class RenderInfoClass;
@@ -52,9 +50,9 @@ class RenderInfoClass;
 ** Line3DCLass objects are unlit, therefore only the sihouette needs to be
 ** approximated).
 */
-class Line3DClass : public W3DMPO, public RenderObjClass
+class Line3DClass : public RenderObjClass
 {
-	W3DMPO_GLUE(Line3DClass)
+	W3DMPO_CODE(Line3DClass)
 
 	public:
 

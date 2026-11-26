@@ -206,7 +206,7 @@ AudioEventRTS::AudioEventRTS( const AsciiString& eventName, const Coord3D *posit
 										m_delay(0.0f),
 										m_uninterruptible(FALSE)
 {
-	m_positionOfAudio.set( positionOfAudio );
+	m_positionOfAudio.set( *positionOfAudio );
 	m_attackName.clear();
 	m_decayName.clear();
 }
@@ -239,7 +239,7 @@ AudioEventRTS::AudioEventRTS( const AudioEventRTS& right )
 
 	if( m_ownerType == OT_Positional || m_ownerType == OT_Dead )
 	{
-		m_positionOfAudio.set( &right.m_positionOfAudio );
+		m_positionOfAudio.set( right.m_positionOfAudio );
 	}
 	else if( m_ownerType == OT_Drawable )
 	{
@@ -280,7 +280,7 @@ AudioEventRTS& AudioEventRTS::operator=( const AudioEventRTS& right )
 
 	if( m_ownerType == OT_Positional || m_ownerType == OT_Dead )
 	{
-		m_positionOfAudio.set( &right.m_positionOfAudio );
+		m_positionOfAudio.set( right.m_positionOfAudio );
 	}
 	else if( m_ownerType == OT_Drawable )
 	{
@@ -732,7 +732,7 @@ const Coord3D *AudioEventRTS::getCurrentPosition()
 	case OT_Object:
 		if (Object *obj = TheGameLogic->findObjectByID(m_objectID))
 		{
-			m_positionOfAudio.set( obj->getPosition() );
+			m_positionOfAudio.set( *obj->getPosition() );
 		}
 		else
 		{
@@ -743,7 +743,7 @@ const Coord3D *AudioEventRTS::getCurrentPosition()
 	case OT_Drawable:
 		if (Drawable *draw = TheGameClient->findDrawableByID(m_drawableID))
 		{
-			m_positionOfAudio.set( draw->getPosition() );
+			m_positionOfAudio.set( *draw->getPosition() );
 		}
 		else
 		{
@@ -796,12 +796,7 @@ AsciiString AudioEventRTS::generateFilenameExtension( AudioType audioTypeToPlay 
 //-------------------------------------------------------------------------------------------------
 void AudioEventRTS::adjustForLocalization(AsciiString &strToAdjust)
 {
-	const char *filename = strToAdjust.reverseFind('\\');
-	if (filename) {
-		filename += 1;
-	} else {
-		filename = strToAdjust.str();
-	}
+	const char *filename = getFileName(strToAdjust.str());
 
 	// try the localized version first so that we're guaranteed to get it
 	// even if the generic data directory holds a version of the file

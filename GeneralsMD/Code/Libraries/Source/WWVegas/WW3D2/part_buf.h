@@ -30,15 +30,13 @@
  *                                                                         *
  *                    $Revision:: 9                                       $*
  *                                                                         *
- *-------------------------------------------------------------------------*
- * Functions:                                                              *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
 
-#include "rendobj.h"
-#include "pointgr.h"
-#include "seglinerenderer.h"
+#include "WW3D2/rendobj.h"
+#include "WW3D2/pointgr.h"
+#include "WW3D2/seglinerenderer.h"
 #include "linegrp.h"
 
 class ParticleEmitterClass;

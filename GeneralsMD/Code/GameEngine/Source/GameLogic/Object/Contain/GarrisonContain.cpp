@@ -93,6 +93,9 @@ Int GarrisonContain::findClosestFreeGarrisonPointIndex( Int conditionIndex,
 // TheSuperHackers @info helmutbuhler 05/05/2025 This debug mutates the code to become CRC incompatible
 #if defined(RTS_DEBUG) || !RETAIL_COMPATIBLE_CRC
 	DEBUG_ASSERTCRASH(m_garrisonPointsInitialized, ("garrisonPoints are not inited"));
+
+	DEBUG_ASSERTCRASH(conditionIndex >= 0 && conditionIndex < MAX_GARRISON_POINT_CONDITIONS,
+		("GarrisonContain::findClosestFreeGarrisonPointIndex - Invalid condition index '%d'", conditionIndex));
 #endif
 
 	// sanity
@@ -300,7 +303,7 @@ Bool GarrisonContain::calcBestGarrisonPosition( Coord3D *sourcePos, const Coord3
 		return FALSE;
 	}
 
-	sourcePos->set( &(m_garrisonPoint[ conditionIndex ][ placeIndex ]) );
+	sourcePos->set( m_garrisonPoint[ conditionIndex ][ placeIndex ] );
 	return TRUE;
 }
 

@@ -342,6 +342,7 @@ public:  // ********************************************************************
 		ACTIONTYPE_MAKE_DEFECTOR,
 		ACTIONTYPE_SET_RALLY_POINT,
 		ACTIONTYPE_COMBATDROP_INTO,
+		ACTIONTYPE_SABOTAGE_BUILDING,
 
 		NUM_ACTIONTYPES
 	};
@@ -354,6 +355,7 @@ public:  // ********************************************************************
 	virtual void update() override;														///< Update the UI by calling preDraw(), draw(), and postDraw()
 	virtual void reset() override;															///< Reset
 	//-----------------------------------------------------------------------------------------------
+	void validate();
 
 	// interface for the popup messages
 	virtual void popupMessage( const AsciiString& message, Int x, Int y, Int width, Bool pause, Bool pauseMusic);
@@ -433,7 +435,7 @@ public:  // ********************************************************************
 	// Drawable selection mechanisms
 	virtual void selectDrawable( Drawable *draw );					///< Mark given Drawable as "selected"
 	virtual void deselectDrawable( Drawable *draw );				///< Clear "selected" status from Drawable
-	virtual void deselectAllDrawables( Bool postMsg = true );							///< Clear the "select" flag from all drawables
+	virtual void deselectAllDrawables();							///< Clear the "select" flag from all drawables
 	virtual Int getSelectCount() { return m_selectCount; }		///< Get count of currently selected drawables
 	virtual Int getMaxSelectCount() { return m_maxSelectCount; }	///< Get the max number of selected drawables
 	virtual UnsignedInt getFrameSelectionChanged() { return m_frameSelectionChanged; }	///< Get the max number of selected drawables
@@ -455,7 +457,7 @@ public:  // ********************************************************************
 	virtual void disregardDrawable( Drawable *draw );				///< Drawable is being destroyed, clean up any UI elements associated with it
 
 	virtual void preDraw();														///< Logic which needs to occur before the UI renders
-	virtual void draw() = 0;													///< Render the in-game user interface
+	virtual void draw() override = 0;													///< Render the in-game user interface
 	virtual void postDraw();													///< Logic which needs to occur after the UI renders
 	virtual void postWindowDraw();											///< Logic which needs to occur after the WindowManager has repainted the menus
 
@@ -538,10 +540,12 @@ public:  // ********************************************************************
 	void setCameraRotateRight( Bool set )		{ m_cameraRotatingRight = set; }
 	void setCameraZoomIn( Bool set )				{ m_cameraZoomingIn = set; }
 	void setCameraZoomOut( Bool set )				{ m_cameraZoomingOut = set; }
+  void setCameraTrackingDrawable( Bool set ) { m_cameraTrackingDrawable = set; }
 	Bool isCameraRotatingLeft() const { return m_cameraRotatingLeft; }
 	Bool isCameraRotatingRight() const { return m_cameraRotatingRight; }
 	Bool isCameraZoomingIn() const { return m_cameraZoomingIn; }
 	Bool isCameraZoomingOut() const { return m_cameraZoomingOut; }
+  Bool isCameraTrackingDrawable() const { return m_cameraTrackingDrawable; }
 	void resetCamera();
 
 	virtual void addIdleWorker( Object *obj );
@@ -567,6 +571,10 @@ public:  // ********************************************************************
 	void setDrawRMBScrollAnchor(Bool b) { m_drawRMBScrollAnchor = b; }
 	void setMoveRMBScrollAnchor(Bool b) { m_moveRMBScrollAnchor = b; }
 
+	void showReplayControls();
+	void hideReplayControls();
+	void toggleReplayControls();
+
 private:
 	virtual Int getIdleWorkerCount();
 	virtual Object *findIdleWorker( Object *obj);
@@ -585,6 +593,9 @@ private:
 public:
 	void registerWindowLayout(WindowLayout *layout); // register a layout for updates
 	void unregisterWindowLayout(WindowLayout *layout); // stop updates for this layout
+
+  void triggerDoubleClickAttackMoveGuardHint();
+
 
 public:
 	// World 2D animation methods
@@ -647,7 +658,7 @@ protected:
 	struct MilitarySubtitleData
 	{
 		UnicodeString subtitle;										///< The complete subtitle to be drawn, each line is separated by L"\n"
-		UnsignedInt index;												///< the current index that we are at through the sibtitle
+		UnsignedInt index;												///< the current index that we are at through the subtitle
 		ICoord2D position;												///< Where on the screen the subtitle should be drawn
 		DisplayString *displayStrings[MAX_SUBTITLE_LINES];	///< We'll only allow MAX_SUBTITLE_LINES worth of display strings
 		UnsignedInt currentDisplayString;					///< contains the current display string we're on. (also lets us know the last display string allocated
@@ -676,7 +687,9 @@ protected:
 	void expireHint( HintType type, UnsignedInt hintIndex );
 
 	void createControlBar();			///< create the control bar user interface
+	void destroyControlBar();
 	void createReplayControl();		///< create the replay control window
+	void destroyReplayControl();
 
 	void setMouseCursor(Mouse::MouseCursor c);
 
@@ -726,6 +739,8 @@ protected:
 	Int													m_maxSelectCount;												///< Max number of objects to select
 	UnsignedInt									m_frameSelectionChanged;								///< Frame when the selection last changed.
 
+  Int                         m_duringDoubleClickAttackMoveGuardHintTimer; ///< Frames left to draw the doubleClickFeedbackTimer
+  Coord3D                     m_duringDoubleClickAttackMoveGuardHintStashedPosition;
 
 	// Video playback data
 	VideoBuffer*								m_videoBuffer;			///< video playback buffer
@@ -747,16 +762,19 @@ protected:
 
 	// Render FPS Counter
 	DisplayString *							m_renderFpsString;
+	DisplayString *							m_renderFpsLowString;
 	DisplayString *							m_renderFpsLimitString;
 	AsciiString									m_renderFpsFont;
 	Int													m_renderFpsPointSize;
 	Bool												m_renderFpsBold;
 	Coord2D											m_renderFpsPosition;
 	Color												m_renderFpsColor;
+	Color												m_renderFpsLowColor;
 	Color												m_renderFpsLimitColor;
 	Color												m_renderFpsDropColor;
 	UnsignedInt									m_renderFpsRefreshMs;
 	UnsignedInt									m_lastRenderFps;
+	UnsignedInt									m_lastRenderFpsLow;
 	UnsignedInt									m_lastRenderFpsLimit;
 	UnsignedInt									m_lastRenderFpsUpdateMs;
 
@@ -789,6 +807,7 @@ protected:
 		{
 			LabelType_Team,
 			LabelType_Money,
+			LabelType_MoneyPerMinute,
 			LabelType_Rank,
 			LabelType_Xp,
 
@@ -799,6 +818,7 @@ protected:
 		{
 			ValueType_Team,
 			ValueType_Money,
+			ValueType_MoneyPerMinute,
 			ValueType_Rank,
 			ValueType_Xp,
 			ValueType_Name,
@@ -930,12 +950,16 @@ protected:
 	Bool												m_cameraRotatingLeft;
 	Bool 												m_cameraRotatingRight;
 	Bool 												m_cameraZoomingIn;
+	Bool 												m_cameraTrackingDrawable;
 	Bool 												m_cameraZoomingOut;
 
 	Bool												m_drawRMBScrollAnchor;
 	Bool												m_moveRMBScrollAnchor;
 	Bool												m_clientQuiet;         ///< When the user clicks exit,restart, etc. this is set true
 																												///< to skip some client sounds/fx during shutdown
+
+	GameWindow *m_controlBarWindow;
+	GameWindow *m_replayWindow;
 
 	// World Animation Data
 	WorldAnimationList					m_worldAnimationList;		///< the list of world animations

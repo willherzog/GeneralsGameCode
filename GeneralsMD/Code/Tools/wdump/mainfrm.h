@@ -31,6 +31,7 @@ protected: // create from serialization only
 // Attributes
 protected:
 	CSplitterWnd m_SplitWnd;
+	CSplitterWnd m_DataSplitWnd;
 public:
 
 // Operations
@@ -40,16 +41,16 @@ public:
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(CMainFrame)
 	public:
-	virtual BOOL OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext);
-	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
+	virtual BOOL OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext) override;
+	virtual BOOL PreCreateWindow(CREATESTRUCT& cs) override;
 	//}}AFX_VIRTUAL
 
 // Implementation
 public:
-	virtual ~CMainFrame();
+	virtual ~CMainFrame() override;
 #ifdef RTS_DEBUG
-	virtual void AssertValid() const;
-	virtual void Dump(CDumpContext& dc) const;
+	virtual void AssertValid() const override;
+	virtual void Dump(CDumpContext& dc) const override;
 #endif
 
 protected:  // control bar embedded members

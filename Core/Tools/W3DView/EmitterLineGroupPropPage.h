@@ -21,7 +21,7 @@
 // EmitterLineGroupPropPage.h : header file
 //
 
-#include "part_emt.h"
+#include "WW3D2/part_emt.h"
 
 // Forward declarations
 
@@ -39,7 +39,7 @@ class EmitterLineGroupPropPageClass : public CPropertyPage
 // Construction
 public:
 	EmitterLineGroupPropPageClass();
-	~EmitterLineGroupPropPageClass();
+	~EmitterLineGroupPropPageClass() override;
 
 // Dialog Data
 	//{{AFX_DATA(EmitterLineGroupPropPageClass)
@@ -52,16 +52,16 @@ public:
 	// ClassWizard generate virtual function overrides
 	//{{AFX_VIRTUAL(EmitterLineGroupPropPageClass)
 	protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-	virtual BOOL OnCommand(WPARAM wParam, LPARAM lParam);
-	virtual BOOL OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult);
+	virtual void DoDataExchange(CDataExchange* pDX) override;    // DDX/DDV support
+	virtual BOOL OnCommand(WPARAM wParam, LPARAM lParam) override;
+	virtual BOOL OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult) override;
 	//}}AFX_VIRTUAL
 
 // Implementation
 protected:
 	// Generated message map functions
 	//{{AFX_MSG(EmitterLineGroupPropPageClass)
-	virtual BOOL OnInitDialog();
+	virtual BOOL OnInitDialog() override;
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 

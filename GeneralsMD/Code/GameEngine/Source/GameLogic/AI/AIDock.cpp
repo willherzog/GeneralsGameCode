@@ -648,7 +648,7 @@ void findDrone( Object *obj, void *droneInfo )
 {
 	DroneInfo *dInfo = (DroneInfo*)droneInfo;
 
-	if( !dInfo->found && obj )
+	if( !dInfo->found )
 	{
 		if( obj->isKindOf( KINDOF_DRONE ) && obj->getProducerID() == dInfo->owner->getID() )
 		{
@@ -783,9 +783,9 @@ StateReturnType AIDockMoveToRallyState::onEnter()
 		return STATE_FAILURE;
 
 	// if they don't have anywhere to send us, then we are good
-	if( ! dock->isRallyPointAfterDockType()															//Chooses not to
-		|| goalObject->getObjectExitInterface() == nullptr										//or can't
-		|| goalObject->getObjectExitInterface()->getRallyPoint() == nullptr	//or can't right now.
+	if( ! dock->isRallyPointAfterDockType() ||															//Chooses not to
+		goalObject->getObjectExitInterface() == nullptr ||										//or can't
+		goalObject->getObjectExitInterface()->getRallyPoint() == nullptr	//or can't right now.
 		)
 	{
 		return STATE_SUCCESS; // Success in an Enter is like success in an update.  We're all fine here

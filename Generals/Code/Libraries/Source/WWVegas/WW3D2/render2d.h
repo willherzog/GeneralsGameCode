@@ -30,20 +30,18 @@
  *                                                                                             *
  *                    $Revision:: 21                                                          $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
 
-#include "always.h"
-#include "simplevec.h"
-#include "vector2.h"
+#include "WWLib/always.h"
+#include "WWLib/simplevec.h"
+#include "WWMath/vector2.h"
 
-#include "shader.h"
-#include "widestring.h"
-#include "rect.h"
-#include "bittype.h"
+#include "WW3D2/shader.h"
+#include "WWLib/widestring.h"
+#include "WWMath/rect.h"
+#include "WWLib/bittype.h"
 
 class	Font3DInstanceClass;
 class TextureClass;
@@ -90,12 +88,12 @@ class	Vector4;
 /*
 ** Render2DClass
 */
-class Render2DClass : public W3DMPO
+class Render2DClass
 {
-	W3DMPO_GLUE(Render2DClass)
+	W3DMPO_CODE(Render2DClass)
 public:
 	Render2DClass( TextureClass* tex = nullptr );
-	virtual ~Render2DClass() override;
+	virtual ~Render2DClass();
 
 	virtual	void	Reset();
 	void	Render();

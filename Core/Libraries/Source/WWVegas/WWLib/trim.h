@@ -30,8 +30,6 @@
  *                                                                                             *
  *                    $Revision:: 3                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
@@ -39,4 +37,4 @@
 #include <wchar.h>
 
 char * strtrim(char * buffer);
-wchar_t * wcstrim(wchar_t * buffer);
+unichar * wcstrim(unichar * buffer);

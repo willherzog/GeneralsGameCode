@@ -30,8 +30,6 @@
  *                                                                                             *
  *                    $Revision:: 2                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 //
 // MBL Update for CNC3 INCURSION - 10.23.2002 - Expanded param handling, Added STOP command
@@ -39,9 +37,9 @@
 
 #pragma once
 
-#include "simplevec.h"
-#include "Vector.h"
-#include "hashtemplate.h"
+#include "WWLib/simplevec.h"
+#include "WWLib/Vector.h"
+#include "WWLib/hashtemplate.h"
 
 
 //////////////////////////////////////////////////////////////////////

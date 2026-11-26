@@ -34,63 +34,25 @@
  *                    $Revision:: 17                                                          $*
  *                                                                                             *
  * 07/01/02 KM Coltype enum change to avoid MAX conflicts									   *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
- *   RenderObjClass::RenderObjClass -- constructor                                             *
- *   RenderObjClass::RenderObjClass -- copy constructor                                        *
- *   RenderObjClass::operator == -- assignment operator                                        *
- *   RenderObjClass::Calculate_Texture_Reduction_Factor -- calculate texture reduction factor  *
- *   RenderObjClass::Set_Texture_Reduction_Factor -- set texture reduction factor.             *
- *   RenderObjClass::Get_Screen_Size -- get normalized area of object.                         *
- *   RenderObjClass::Get_Scene -- returns the (add_ref'd) scene pointer                        *
- *   RenderObjClass::Set_Container -- sets the container pointer                               *
- *   RenderObjClass::Get_Container -- returns the container pointer                            *
- *   RenderObjClass::Set_Transform -- set the transform for this object                        *
- *   RenderObjClass::Set_Position -- Sets the position of this object                          *
- *   RenderObjClass::Get_Transform -- returns the transform for the object                     *
- *   RenderObjClass::Get_Position -- returns the position of this render object                *
- *   RenderObjClass::Validate_Transform -- If the transform is dirty, this causes it to be re- *
- *   RenderObjClass::Get_Sub_Object -- returns pointer to first sub-obj with given name        *
- *   RenderObjClass::Add_Sub_Object_To_Bone -- add an object to a named bone                   *
- *   RenderObjClass::Prepare_LOD -- prepare object for predictive and texture LOD processing.  *
- *   RenderObjClass::Get_Cost -- get object rendering cost for predictive LOD processing.      *
- *   RenderObjClass::Update_Sub_Object_Bits -- updates our bits according to our sub-objects   *
- *   RenderObjClass::Update_Sub_Object_Transforms -- re-evaluate the transforms my sub-objects *
- *   RenderObjClass::Add -- Generic add for render objects                                     *
- *   RenderObjClass::Remove -- Generic Remove for Render Objects                               *
- *   RenderObjClass::Notify_Added -- notifies the object that it is in a scene                 *
- *   RenderObjClass::Notify_Removed -- notifies an object that it has been removed             *
- *   RenderObjClass::Update_Cached_Bounding_Volumes -- default collision sphere.               *
- *   RenderObjClass::Get_Obj_Space_Bounding_Sphere -- default collision sphere.                *
- *   RenderObjClass::Get_Obj_Space_Bounding_Box -- default collision box.                      *
- *   RenderObjClass::Intersect - Returns true if specified intersection object                 *
- *   RenderObjClass::Intersect_Sphere -- tests for intersection with the bounding sphere       *
- *   RenderObjClass::Intersect_Sphere_Quick -- tests for intersection with the bounding sphere *
- *   RenderObjClass::Build_Dependency_List -- Generates a list of files this obj depends on.   *
- *   RenderObjClass::Build_Texture_List -- Builds a list of texture files this obj depends on. *
- *   RenderObjClass::Add_Dependencies_To_List -- Add dependent files to the list.              *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 
 #include "rendobj.h"
 #include "assetmgr.h"
-#include "win.h"
-#include "pot.h"
+#include "WWLib/win.h"
 #include "scene.h"
-#include "colmath.h"
+#include "WWMath/colmath.h"
 #include "coltest.h"
 #include "inttest.h"
-#include "wwdebug.h"
+#include "WWDebug/wwdebug.h"
 #include "matinfo.h"
 #include "htree.h"
 #include "predlod.h"
 #include "camera.h"
 #include "ww3d.h"
-#include "chunkio.h"
-#include "persistfactory.h"
-#include "saveload.h"
-#include "ww3dids.h"
+#include "WWLib/chunkio.h"
 #include "intersec.h"
+#include <Utility/bit_adapter.h>
 
 
 
@@ -133,34 +95,22 @@ static inline bool Check_Is_Transform_Identity(const Matrix3D& m)
 	const float one=1.0f;
 
 	unsigned d=
-		((unsigned&)m[0][0]^(unsigned&)one) |
-		((unsigned&)m[0][1]^(unsigned&)zero) |
-		((unsigned&)m[0][2]^(unsigned&)zero) |
-		((unsigned&)m[0][3]^(unsigned&)zero) |
-		((unsigned&)m[1][0]^(unsigned&)zero) |
-		((unsigned&)m[1][1]^(unsigned&)one) |
-		((unsigned&)m[1][2]^(unsigned&)zero) |
-		((unsigned&)m[1][3]^(unsigned&)zero) |
-		((unsigned&)m[2][0]^(unsigned&)zero) |
-		((unsigned&)m[2][1]^(unsigned&)zero) |
-		((unsigned&)m[2][2]^(unsigned&)one) |
-		((unsigned&)m[2][3]^(unsigned&)zero);
+		(std::bit_cast<unsigned>(m[0][0])^std::bit_cast<unsigned>(one)) |
+		(std::bit_cast<unsigned>(m[0][1])^std::bit_cast<unsigned>(zero)) |
+		(std::bit_cast<unsigned>(m[0][2])^std::bit_cast<unsigned>(zero)) |
+		(std::bit_cast<unsigned>(m[0][3])^std::bit_cast<unsigned>(zero)) |
+		(std::bit_cast<unsigned>(m[1][0])^std::bit_cast<unsigned>(zero)) |
+		(std::bit_cast<unsigned>(m[1][1])^std::bit_cast<unsigned>(one)) |
+		(std::bit_cast<unsigned>(m[1][2])^std::bit_cast<unsigned>(zero)) |
+		(std::bit_cast<unsigned>(m[1][3])^std::bit_cast<unsigned>(zero)) |
+		(std::bit_cast<unsigned>(m[2][0])^std::bit_cast<unsigned>(zero)) |
+		(std::bit_cast<unsigned>(m[2][1])^std::bit_cast<unsigned>(zero)) |
+		(std::bit_cast<unsigned>(m[2][2])^std::bit_cast<unsigned>(one)) |
+		(std::bit_cast<unsigned>(m[2][3])^std::bit_cast<unsigned>(zero));
 	return !d;
 }
 
 
-/***********************************************************************************************
- * RenderObjClass::RenderObjClass -- constructor                                               *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   11/04/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
 RenderObjClass::RenderObjClass() :
 	Bits(DEFAULT_BITS),
 	Transform(1),
@@ -177,19 +127,6 @@ RenderObjClass::RenderObjClass() :
 {
 }
 
-/***********************************************************************************************
- * RenderObjClass::RenderObjClass -- copy constructor                                          *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   11/5/97    GTH : Created.                                                                 *
- *   1/28/98    EHC : Created.                                                                 *
- *=============================================================================================*/
 RenderObjClass::RenderObjClass(const RenderObjClass & src) :
 	Bits(src.Bits),
 	Transform(src.Transform),
@@ -210,19 +147,6 @@ RenderObjClass::RenderObjClass(const RenderObjClass & src) :
 }
 
 
-/***********************************************************************************************
- * RenderObjClass -- assignment operator                                                       *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   11/5/97    GTH : Created.                                                                 *
- *   2/25/99    GTH : Created.                                                                 *
- *=============================================================================================*/
 RenderObjClass & RenderObjClass::operator = (const RenderObjClass & that)
 {
 	// don't do anything if we're assigning this to this
@@ -238,18 +162,6 @@ RenderObjClass & RenderObjClass::operator = (const RenderObjClass & that)
 }
 
 
-/***********************************************************************************************
- * RenderObjClass::Calculate_Texture_Reduction_Factor -- calculate texture reduction factor.   *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *  04/08/99    NH : Created.                                                                  *
- *=============================================================================================*/
 /*
 float RenderObjClass::Calculate_Texture_Reduction_Factor(float norm_screensize)
 {
@@ -268,18 +180,6 @@ float RenderObjClass::Calculate_Texture_Reduction_Factor(float norm_screensize)
 }
 */
 
-/***********************************************************************************************
- * RenderObjClass::Set_Texture_Reduction_Factor -- set texture reduction factor.               *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *  04/08/99    NH : Created.                                                                  *
- *=============================================================================================*/
 /*
 void RenderObjClass::Set_Texture_Reduction_Factor(float trf)
 {
@@ -303,18 +203,7 @@ void RenderObjClass::Set_Texture_Reduction_Factor(float trf)
 }
 */
 
-/***********************************************************************************************
- * RenderObjClass::Get_Screen_Size -- get normalized area of object.                           *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   3/12/99    NH : Created.                                                                  *
- *=============================================================================================*/
+// Get normalized area of object.
 float RenderObjClass::Get_Screen_Size(CameraClass &camera)
 {
 	// Currently this works by projecting the bounding sphere to the screen
@@ -322,7 +211,7 @@ float RenderObjClass::Get_Screen_Size(CameraClass &camera)
 	// accurate (perhaps by using the object-space bounding-box)
 	Vector3 cam = camera.Get_Position();
 
-	ViewportClass viewport = camera.Get_Viewport();
+	const ViewportClass &viewport = camera.Get_Viewport();
 	Vector2 vpr_min, vpr_max;
 	camera.Get_View_Plane(vpr_min, vpr_max);
 	float width_factor = viewport.Width() / (vpr_max.X - vpr_min.X);
@@ -340,18 +229,7 @@ float RenderObjClass::Get_Screen_Size(CameraClass &camera)
 }
 
 
-/***********************************************************************************************
- * RenderObjClass::Get_Scene -- returns the (add_ref'd) scene pointer                          *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   3/4/99     GTH : Created.                                                                 *
- *=============================================================================================*/
+// Returns the (add_ref'd) scene pointer.
 SceneClass * RenderObjClass::Get_Scene()
 {
 	if (Scene != nullptr) {
@@ -361,18 +239,6 @@ SceneClass * RenderObjClass::Get_Scene()
 }
 
 
-/***********************************************************************************************
- * RenderObjClass::Set_Container -- sets the container pointer                                 *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   3/4/99     GTH : Created.                                                                 *
- *=============================================================================================*/
 void RenderObjClass::Set_Container(RenderObjClass * con)
 {
 	// Either we arent currently in a container or we are clearing our container, otherwise
@@ -384,36 +250,12 @@ void RenderObjClass::Set_Container(RenderObjClass * con)
 #ifdef GET_CONTAINER_INLINE
 // nothing
 #else
-/***********************************************************************************************
- * RenderObjClass::Get_Container -- returns the container pointer                              *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   3/4/99     GTH : Created.                                                                 *
- *=============================================================================================*/
 RenderObjClass * RenderObjClass::Get_Container() const
 {
 	return Container;
 }
 #endif
 
-/***********************************************************************************************
- * RenderObjClass::Set_Transform -- set the transform for this object                          *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   2/25/99    GTH : Created.                                                                 *
- *=============================================================================================*/
 void RenderObjClass::Set_Transform(const Matrix3D &m)
 {
 	Transform = m;
@@ -422,19 +264,6 @@ void RenderObjClass::Set_Transform(const Matrix3D &m)
 }
 
 
-/***********************************************************************************************
- * RenderObjClass::Set_Position -- Sets the position of this object                            *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   2/25/99    GTH : Created.                                                                 *
- *   07/14/2001 SKB : Add Check_Is_Transform_Identity                                          *
- *=============================================================================================*/
 void RenderObjClass::Set_Position(const Vector3 &v)
 {
 	Transform.Set_Translation(v);
@@ -443,18 +272,6 @@ void RenderObjClass::Set_Position(const Vector3 &v)
 }
 
 
-/***********************************************************************************************
- * RenderObjClass::Validate_Transform -- If the transform is dirty, this causes it to be re-ca *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   6/15/99    GTH : Created.                                                                 *
- *=============================================================================================*/
 void RenderObjClass::Validate_Transform() const
 {
 	/*
@@ -485,20 +302,6 @@ void RenderObjClass::Validate_Transform() const
 		IsTransformIdentity = Check_Is_Transform_Identity(Transform);
 }
 
-/***********************************************************************************************
- * RenderObjClass::Get_Position -- returns the position of this render object                  *
- *                                                                                             *
- * Similar to Get_Transform but returns only the position.                                     *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   2/25/99    GTH : Created.                                                                 *
- *=============================================================================================*/
 Vector3 RenderObjClass::Get_Position() const
 {
 	Validate_Transform();
@@ -506,18 +309,7 @@ Vector3 RenderObjClass::Get_Position() const
 }
 
 
-/***********************************************************************************************
- * RenderObjClass::Get_Sub_Object -- returns pointer to first sub-obj with given name          *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   3/4/99     GTH : Created.                                                                 *
- *=============================================================================================*/
+// Returns the first sub-object with the given name.
 RenderObjClass * RenderObjClass::Get_Sub_Object_By_Name(const char * name, int *index) const
 {
 	int i;
@@ -560,20 +352,9 @@ RenderObjClass * RenderObjClass::Get_Sub_Object_By_Name(const char * name, int *
 }
 
 
-/***********************************************************************************************
- * RenderObjClass::Add_Sub_Object_To_Bone -- add an object to a named bone                     *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:	If the bone name is unknown then this function will add the the object to the   *
- *					root transform rather than failing.  This is due to the fact that GetBoneIndex  *
- *					returns the root tranform for unknown bones.												  *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   3/4/99     GTH : Created.                                                                 *
- *=============================================================================================*/
+// WARNING: If the bone name is unknown then this function will add the object to the root
+// transform rather than failing. This is due to the fact that GetBoneIndex returns the root
+// transform for unknown bones.
 int RenderObjClass::Add_Sub_Object_To_Bone(RenderObjClass * subobj,const char * bname)
 {
 	int bindex = Get_Bone_Index(bname);
@@ -581,18 +362,6 @@ int RenderObjClass::Add_Sub_Object_To_Bone(RenderObjClass * subobj,const char * 
 }
 
 
-/***********************************************************************************************
- * RenderObjClass::Remove_Sub_Objects_From_Bone -- remove all objects from a named bone        *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   3/1/02     NH : Created.                                                                  *
- *=============================================================================================*/
 int RenderObjClass::Remove_Sub_Objects_From_Bone(int boneindex)
 {
 	int count = Get_Num_Sub_Objects_On_Bone(boneindex);
@@ -608,34 +377,13 @@ int RenderObjClass::Remove_Sub_Objects_From_Bone(int boneindex)
 }
 
 
-/***********************************************************************************************
- * RenderObjClass::Remove_Sub_Objects_From_Bone -- remove all objects from a named bone        *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   3/4/99     NH : Created.                                                                  *
- *=============================================================================================*/
 int RenderObjClass::Remove_Sub_Objects_From_Bone(const char * bname)
 {
 	return Remove_Sub_Objects_From_Bone(Get_Bone_Index(bname));
 }
 
 
-/***********************************************************************************************
- * RenderObjClass::Prepare_LOD -- prepare object for predictive and texture LOD processing.    *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   3/11/99    NH : Created.                                                                  *
- *=============================================================================================*/
+// Prepare object for predictive and texture LOD processing.
 void RenderObjClass::Prepare_LOD(CameraClass &camera)
 {
 	// Since most RenderObjClass derivatives are not LOD-capable, the default
@@ -656,16 +404,7 @@ void RenderObjClass::Prepare_LOD(CameraClass &camera)
 }
 
 
-/***********************************************************************************************
- * RenderObjClass::Get_Cost -- get object rendering cost for predictive LOD processing.        *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   3/11/99    NH : Created.                                                                  *
- *=============================================================================================*/
+// Get object rendering cost for predictive LOD processing.
 float RenderObjClass::Get_Cost() const
 {
 	int polycount = Get_Num_Polys();
@@ -675,25 +414,11 @@ float RenderObjClass::Get_Cost() const
 }
 
 
-/***********************************************************************************************
- * RenderObjClass::Calculate_Cost_Value_Arrays -- calc arrays for predictive LOD processing.   *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNING:	This member function assumes that the arrays passed are large enough (# LODs for   *
- *				the cost array and # LODs + 1 for the value array) to contain the desired data.    *
- *                                                                                             *
- * NOTE:	This member function is usually only called internally inside LOD objects for         *
- *			initialization purposes, or externally by specialized LOD objects like the G          *
- *			predictive LOD PIP proxy.                                                             *
- *                                                                                             *
- * NOTE:	The screen area used is in normalized units.                                          *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   3/11/99    NH : Created.                                                                  *
- *=============================================================================================*/
+// This member function is usually only called internally inside LOD objects for initialization
+// purposes, or externally by specialized LOD objects like the G predictive LOD PIP proxy. The
+// screen area used is in normalized units.
+// WARNING: This member function assumes that the arrays passed are large enough (# LODs for the
+// cost array and # LODs + 1 for the value array) to contain the desired data.
 int RenderObjClass::Calculate_Cost_Value_Arrays(float screen_area, float *values, float *costs) const
 {
 	values[0] = AT_MIN_LOD;
@@ -704,23 +429,10 @@ int RenderObjClass::Calculate_Cost_Value_Arrays(float screen_area, float *values
 }
 
 
-/***********************************************************************************************
- * RenderObjClass::Update_Sub_Object_Bits -- updates our bits according to our sub-objects     *
- *                                                                                             *
- * This should be called by any object that contains other objects whenever a sub object is    *
- * added or removed.  It updates the status of the attribute bits which are supposed to be     *
- * the union of all of the sub-objects attributes.  (I.e. if one of our sub-objects is         *
- * translucent, then we should be marked as translucent).                                      *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   2/25/99    GTH : Created.                                                                 *
- *=============================================================================================*/
+// This should be called by any object that contains other objects whenever a sub object is added or
+// removed. It updates the status of the attribute bits which are supposed to be the union of all of
+// the sub-objects attributes. (I.e. if one of our sub-objects is translucent, then we should be
+// marked as translucent).
 void RenderObjClass::Update_Sub_Object_Bits()
 {
 	// this doesn't do anything for non-composite objects
@@ -753,39 +465,13 @@ void RenderObjClass::Update_Sub_Object_Bits()
 }
 
 
-/***********************************************************************************************
- * RenderObjClass::Update_Sub_Object_Transforms -- re-evaluate the transforms my sub-objects   *
- *                                                                                             *
- * The default implementation is empty, derived classes which have sub-objects should          *
- * implement it to update the transforms of their sub-objects                                  *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   2/25/99    GTH : Created.                                                                 *
- *=============================================================================================*/
+// The default implementation is empty, derived classes which have sub-objects should implement it
+// to update the transforms of their sub-objects.
 void RenderObjClass::Update_Sub_Object_Transforms()
 {
 }
 
 
-/***********************************************************************************************
- * RenderObjClass::Add -- Generic add for render objects                                       *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   11/04/1997 GH  : Created.                                                                 *
- *   2/25/99    GTH : Moved to the base RenderObjClass                                         *
- *=============================================================================================*/
 void RenderObjClass::Add(SceneClass * scene)
 {
 	WWASSERT(scene);
@@ -794,19 +480,6 @@ void RenderObjClass::Add(SceneClass * scene)
 	Scene->Add_Render_Object(this);
 }
 
-/***********************************************************************************************
- * RenderObjClass::Remove -- Generic Remove for Render Objects                                 *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   11/04/1997 GH  : Created.                                                                 *
- *   2/25/99    GTH : moved to the base RenderObjClass                                         *
- *=============================================================================================*/
 bool RenderObjClass::Remove()
 {
 	// All render objects have their scene pointers set.  To check if this is a "top level"
@@ -832,70 +505,30 @@ bool RenderObjClass::Remove()
 }
 
 
-/***********************************************************************************************
- * RenderObjClass::Notify_Added -- notifies the object that it is in a scene                   *
- *                                                                                             *
- * This function will be called whenever an object is directly or indirectly added to a scene  *
- * An example of "indirect" addition would be if you were added as a sub-object to an HModel   *
- * that was already in a scene.                                                                *
- *                                                                                             *
- * Override this function if you want to register your object for per-frame-updating or        *
- * as a VertexProcessor.  (See the Register method of SceneClass, ParticleBufferClass, etc)    *
- *                                                                                             *
- * Container objects must forward this notification to their sub objects.                      *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- * Due to implementation details of some derived scenes, the SceneClass calls this function.   *
- * Please dont move the call to this to RenderObjClass::Add                                    *
- * Derived classes should also call the base class to ensure that the scene pointer is set     *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   2/25/99    GTH : Created.                                                                 *
- *=============================================================================================*/
+// This function will be called whenever an object is directly or indirectly added to a scene. An
+// example of "indirect" addition would be if you were added as a sub-object to an HModel that was
+// already in a scene. Override this function if you want to register your object for
+// per-frame-updating or as a VertexProcessor. (See the Register method of SceneClass,
+// ParticleBufferClass, etc). Container objects must forward this notification to their sub objects.
+// WARNING: Due to implementation details of some derived scenes, the SceneClass calls this
+// function. Please don't move the call to this to RenderObjClass::Add. Derived classes should also
+// call the base class to ensure that the scene pointer is set.
 void RenderObjClass::Notify_Added(SceneClass * scene)
 {
 	Scene = scene;
 }
 
 
-/***********************************************************************************************
- * RenderObjClass::Notify_Removed -- notifies an object that it has been removed               *
- *                                                                                             *
- * Works similar to the Notify_Added function.  You can override and Unregister yourself from  *
- * any scene based special processing.  Container objects must recurse to their sub objects.   *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- * Derived classes should also call the base class to ensure that the scene pointer is cleared *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   2/25/99    GTH : Created.                                                                 *
- *=============================================================================================*/
+// Works similar to the Notify_Added function. You can override and Unregister yourself from any
+// scene based special processing. Container objects must recurse to their sub objects.
+// WARNING: Derived classes should also call the base class to ensure that the scene pointer is
+// cleared.
 void RenderObjClass::Notify_Removed(SceneClass * scene)
 {
 	Scene = nullptr;
 }
 
 
-/***********************************************************************************************
- * RenderObjClass::Update_Cached_Bounding_Volumes -- default collision sphere.                 *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   11/7/97    GTH : Created.                                                                 *
- *=============================================================================================*/
 void RenderObjClass::Update_Cached_Bounding_Volumes() const
 {
 	Get_Obj_Space_Bounding_Box(CachedBoundingBox);
@@ -913,19 +546,7 @@ void RenderObjClass::Update_Cached_Bounding_Volumes() const
 }
 
 
-/***********************************************************************************************
- * RenderObjClass::Get_Obj_Space_Bounding_Sphere -- default collision sphere.                  *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   28/8/97    NH : Created.                                                                  *
- *   2/25/99    GTH : Moved into RenderObjClass                                                *
- *=============================================================================================*/
+// Default collision sphere.
 void RenderObjClass::Get_Obj_Space_Bounding_Sphere(SphereClass & sphere) const
 {
 	sphere.Center.Set(0,0,0);
@@ -933,39 +554,12 @@ void RenderObjClass::Get_Obj_Space_Bounding_Sphere(SphereClass & sphere) const
 }
 
 
-/***********************************************************************************************
- * RenderObjClass::Get_Obj_Space_Bounding_Box -- default collision box.                        *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   28/8/97    NH : Created.                                                                  *
- *   2/25/99    GTH : Moved into RenderObjClass                                                *
- *=============================================================================================*/
 void RenderObjClass::Get_Obj_Space_Bounding_Box(AABoxClass & box) const
 {
 	box.Center.Set(0,0,0);
 	box.Extent.Set(0,0,0);
 }
 
-/***********************************************************************************************
- *  RenderObjClass::Intersect - Returns true if specified intersection object                  *
- *                                intersects this renderobject                                 *
- *                                                                                             *
- *                                                                                             *
- *                                                                                             *
- *                                                                                             *
- * INPUT: A properly configured Intersection object specifying ray direction & vector          *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   2/25/99    GTH : Moved into RenderObjClass                                                *
- *=============================================================================================*/
 bool RenderObjClass::Intersect(IntersectionClass *Intersection, IntersectionResultClass *Final_Result)
 {
 
@@ -997,18 +591,6 @@ bool RenderObjClass::Intersect(IntersectionClass *Intersection, IntersectionResu
 }
 
 
-/***********************************************************************************************
- * RenderObjClass::Intersect_Sphere -- tests for intersection with the bounding sphere         *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   2/25/99    GTH : Created.                                                                 *
- *=============================================================================================*/
 bool RenderObjClass::Intersect_Sphere(IntersectionClass *Intersection, IntersectionResultClass *Final_Result)
 {
 	SphereClass sphere = Get_Bounding_Sphere();
@@ -1016,36 +598,12 @@ bool RenderObjClass::Intersect_Sphere(IntersectionClass *Intersection, Intersect
 }
 
 
-/***********************************************************************************************
- * RenderObjClass::Intersect_Sphere_Quick -- tests for intersection with the bounding sphere   *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   2/25/99    GTH : Created.                                                                 *
- *=============================================================================================*/
 bool RenderObjClass::Intersect_Sphere_Quick(IntersectionClass *Intersection, IntersectionResultClass *Final_Result)
 {
 	SphereClass sphere = Get_Bounding_Sphere();
 	return Intersection->Intersect_Sphere_Quick(sphere, Final_Result);
 }
 
-/***********************************************************************************************
- * RenderObjClass::Build_Dependency_List -- Generates a list of files this obj depends on.     *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   3/18/99    PDS : Created.                                                                 *
- *=============================================================================================*/
 bool RenderObjClass::Build_Dependency_List (DynamicVectorClass<StringClass> &file_list, bool recursive)
 {
 	if (recursive)
@@ -1071,18 +629,6 @@ bool RenderObjClass::Build_Dependency_List (DynamicVectorClass<StringClass> &fil
 }
 
 
-/***********************************************************************************************
- * RenderObjClass::Build_Texture_List -- Builds a list of texture files this obj depends on.   *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   3/18/99    PDS : Created.                                                                 *
- *=============================================================================================*/
 bool RenderObjClass::Build_Texture_List
 (
 	DynamicVectorClass<StringClass> &	texture_file_list,
@@ -1117,18 +663,6 @@ bool RenderObjClass::Build_Texture_List
 	return (texture_file_list.Count () > 0);
 }
 
-/***********************************************************************************************
- * RenderObjClass::Add_Dependencies_To_List -- Add dependent files to the list.                *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   3/18/99    PDS : Created.                                                                 *
- *=============================================================================================*/
 void RenderObjClass::Add_Dependencies_To_List
 (
 	DynamicVectorClass<StringClass> &file_list,
@@ -1173,143 +707,6 @@ void RenderObjClass::Add_Dependencies_To_List
 			file_list.Add (::Filename_From_Asset_Name (base_model_name));
 		}
 	}
-}
-
-
-
-/****************************************************************************************
-
-
-	RenderObjClass - Persistent object support.
-
-	NOTE: For now, the render obj PersistFactory is going to cheat by simply storing
-	the name of the render object that was saved.  At load time, it will ask the
-	asset manager for that object again.  If the asset manager fails to re-create the
-	object,
-
-
-****************************************************************************************/
-
-class RenderObjPersistFactoryClass : public PersistFactoryClass
-{
-	virtual uint32				Chunk_ID() const override;
-	virtual PersistClass *	Load(ChunkLoadClass & cload) const override;
-	virtual void				Save(ChunkSaveClass & csave,PersistClass * obj)	const override;
-
-	enum
-	{
-		RENDOBJFACTORY_CHUNKID_VARIABLES		= 0x00555040,
-		RENDOBJFACTORY_VARIABLE_OBJPOINTER	= 0x00,
-		RENDOBJFACTORY_VARIABLE_NAME,
-		RENDOBJFACTORY_VARIABLE_TRANSFORM
-	};
-};
-
-static RenderObjPersistFactoryClass _RenderObjPersistFactory;
-
-uint32 RenderObjPersistFactoryClass::Chunk_ID() const
-{
-	return WW3D_PERSIST_CHUNKID_RENDEROBJ;
-}
-
-PersistClass *	RenderObjPersistFactoryClass::Load(ChunkLoadClass & cload) const
-{
-	RenderObjClass * old_obj = nullptr;
-	Matrix3D tm(1);
-	char name[64];
-	name[0] = '\0';
-
-	while (cload.Open_Chunk()) {
-		switch (cload.Cur_Chunk_ID()) {
-
-			case RENDOBJFACTORY_CHUNKID_VARIABLES:
-
-				while (cload.Open_Micro_Chunk()) {
-					switch(cload.Cur_Micro_Chunk_ID()) {
-						READ_MICRO_CHUNK(cload,RENDOBJFACTORY_VARIABLE_OBJPOINTER,old_obj);
-						READ_MICRO_CHUNK(cload,RENDOBJFACTORY_VARIABLE_TRANSFORM,tm);
-						READ_MICRO_CHUNK_STRING(cload,RENDOBJFACTORY_VARIABLE_NAME,name,sizeof(name));
-					}
-					cload.Close_Micro_Chunk();
-				}
-				break;
-
-			default:
-				WWDEBUG_SAY(("Unhandled Chunk: 0x%X File: %s Line: %d",__FILE__,__LINE__));
-				break;
-		};
-		cload.Close_Chunk();
-	}
-
-	// if the object we saved didn't have a name, replace it with null
-	if (strlen(name) == 0) {
-		static int count = 0;
-		if ( count++ < 10 ) {
-			WWDEBUG_SAY(("RenderObjPersistFactory attempted to load an un-named render object!"));
-			WWDEBUG_SAY(("Replacing it with a null render object!"));
-		}
-		strcpy(name,"NULL");
-	}
-
-	RenderObjClass * new_obj = WW3DAssetManager::Get_Instance()->Create_Render_Obj(name);
-
-	if (new_obj == nullptr) {
-		static int count = 0;
-		if ( count++ < 10 ) {
-			WWDEBUG_SAY(("RenderObjPersistFactory failed to create object: %s!!",name));
-			WWDEBUG_SAY(("Either the asset for this object is gone or you tried to save a procedural object."));
-			WWDEBUG_SAY(("Replacing it with a null render object!"));
-		}
-		strcpy(name,"NULL");
-		new_obj = WW3DAssetManager::Get_Instance()->Create_Render_Obj(name);
-	}
-
-	WWASSERT(new_obj != nullptr);
-	if (new_obj) {
-		new_obj->Set_Transform(tm);
-	}
-
-	SaveLoadSystemClass::Register_Pointer(old_obj,new_obj);
-	return new_obj;
-}
-
-void RenderObjPersistFactoryClass::Save(ChunkSaveClass & csave,PersistClass * obj)	const
-{
-	RenderObjClass * robj = (RenderObjClass *)obj;
-	const char * name = robj->Get_Name();
-	Matrix3D tm = robj->Get_Transform();
-
-	csave.Begin_Chunk(RENDOBJFACTORY_CHUNKID_VARIABLES);
-	WRITE_MICRO_CHUNK(csave,RENDOBJFACTORY_VARIABLE_OBJPOINTER,robj);
-	WRITE_MICRO_CHUNK_STRING(csave,RENDOBJFACTORY_VARIABLE_NAME,name);
-	WRITE_MICRO_CHUNK(csave,RENDOBJFACTORY_VARIABLE_TRANSFORM,tm);
-	csave.End_Chunk();
-}
-
-
-/*
-** RenderObj save-load.
-*/
-const PersistFactoryClass & RenderObjClass::Get_Factory () const
-{
-	return _RenderObjPersistFactory;
-}
-
-bool RenderObjClass::Save (ChunkSaveClass &csave)
-{
-	// This should never hit with the persist factory we're using...
-	// Yes this looks like a design flaw but the way we're saving render objects is
-	// a "shortcut".  We specifically designed this capability into the persistent
-	// object system so that we could avoid making all render object's save and
-	// load themselves if possible.
-	WWASSERT(0);
-	return true;
-}
-
-bool RenderObjClass::Load (ChunkLoadClass &cload)
-{
-	WWASSERT(0); // this should never hit with the persist factory we're using.
-	return true;
 }
 
 

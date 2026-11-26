@@ -30,8 +30,6 @@
  *                                                                                             *
  *                    $Revision:: 2                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
@@ -46,9 +44,9 @@ public:
 	GameMtlFormClass(IMtlParams * imtl_params,GameMtl * mtl,int pass);
 
 	void					SetThing(ReferenceTarget *m);
-	ReferenceTarget*	GetThing(void);
-	void					DeleteThis(void);
-	Class_ID				ClassID(void);
+	ReferenceTarget*	GetThing();
+	void					DeleteThis();
+	Class_ID				ClassID();
 	void					SetTime(TimeValue t);
 
 protected:

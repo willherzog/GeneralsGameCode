@@ -44,6 +44,7 @@
 
 #pragma once
 
+#include "Common/AcademyStats.h"
 #include "Common/Debug.h"
 #include "Common/Energy.h"
 #include "Common/GameType.h"
@@ -147,7 +148,7 @@ struct SpecialPowerReadyTimerType
 
 
 // ------------------------------------------------------------------------------------------------
-typedef std::hash_map< PlayerIndex, Relationship, std::hash<PlayerIndex>, std::equal_to<PlayerIndex> > PlayerRelationMapType;
+typedef std::hash_map< PlayerIndex, Relationship, std::hash<PlayerIndex>, std::equal_to<PlayerIndex>/**/> PlayerRelationMapType;
 class PlayerRelationMap : public MemoryPoolObject,
 													public Snapshot
 {
@@ -267,6 +268,9 @@ public:
 	// Can we afford to build?
 	Bool canAffordBuild( const ThingTemplate *whatToBuild ) const;
 
+  // Check MaxSimultaneousOfType
+  Bool canBuildMoreOfType( const ThingTemplate *whatToBuild ) const;
+
 	/// Difficulty level for this player.
 	GameDifficulty getPlayerDifficulty() const;
 
@@ -275,6 +279,22 @@ public:
 			if he has none, return null.
 			if he has multiple, return one arbitrarily. */
 	Object* findNaturalCommandCenter();
+
+	Object* findAnyExistingObjectWithThingTemplate( const ThingTemplate *thing );
+
+	// Finds a short-cut firing special power of specified type returning the first ready power or
+	// the most ready if none ready.
+	Object* findMostReadyShortcutSpecialPowerOfType( SpecialPowerType spType );
+
+	//Find specified thing template's most ready weapon.
+	Object* findMostReadyShortcutWeaponForThing( const ThingTemplate *thing, UnsignedInt &mostReadyPercentage );
+	Object* findMostReadyShortcutSpecialPowerForThing( const ThingTemplate *thing, UnsignedInt &mostReadyPercentage );
+
+	// Finds a short-cut firing special power of any type arbitrarily.
+	Bool hasAnyShortcutSpecialPower();
+
+	// Counts available shortcut special power of specified type that can fire now.
+	Int countReadyShortcutSpecialPowersOfType( SpecialPowerType spType );
 
 	/// return t if the player has the given science, either intrinsically, via specialization, or via capture.
 	Bool hasScience(ScienceType t) const;
@@ -316,6 +336,9 @@ public:
 	void enableFreeBuild(Bool enable) { m_DEMO_freeBuild = enable; }
 	Bool buildsForFree() const { return m_DEMO_freeBuild; }
 
+#endif
+
+#if defined(RTS_DEBUG) || defined(_ALLOW_DEBUG_CHEATS_IN_RELEASE)
 	/// No time building cheat key
 	void toggleInstantBuild(){ m_DEMO_instantBuild = !m_DEMO_instantBuild; }
 	void enableInstantBuild(Bool enable) { m_DEMO_instantBuild = enable; }
@@ -503,7 +526,7 @@ public:
 	/**
 		* Iterate all objects that this player has
 		*/
-	void iterateObjects( ObjectIterateFunc func, void *userData );
+	void iterateObjects( ObjectIterateFunc func, void *userData ) const;
 
 	/**
 		return this player's "default" team.
@@ -604,10 +627,10 @@ public:
 	void processCreateTeamGameMessage(Int hotkeyNum, const GameMessage *msg);
 
 	/// time to select a hotkey team based on this GameMessage
-	void processSelectTeamGameMessage(Int hotkeyNum, GameMessage *msg);
+	void processSelectTeamGameMessage(Int hotkeyNum);
 
 	// add to the player's current selection this hotkey team.
-	void processAddTeamGameMessage(Int hotkeyNum, GameMessage *msg);
+	void processAddTeamGameMessage(Int hotkeyNum);
 
 	// fills an AIGroup object that is the currently selected group.
 	void getCurrentSelectionAsAIGroup(AIGroup *group);
@@ -634,6 +657,14 @@ public:
 	Real getCashBounty() const { return m_cashBountyPercent; }
 	void setCashBounty(Real percentage) { m_cashBountyPercent = percentage; }
 	void doBountyForKill(const Object* killer, const Object* victim);
+
+	AcademyStats* getAcademyStats() { return &m_academyStats; }
+	const AcademyStats* getAcademyStats() const { return &m_academyStats; }
+
+	//Set via logical message. Options menu sets the client value in global data. Player::update()
+	//detects a change, and posts a message. When the message gets processed, this value gets set.
+	Bool isLogicalRetaliationModeEnabled() const { return m_logicalRetaliationModeEnabled; }
+	void setLogicalRetaliationModeEnabled( Bool set ) { m_logicalRetaliationModeEnabled = set; }
 
 private:
 
@@ -751,6 +782,8 @@ private:
 	PlayerRelationMap			*m_playerRelations;						///< allies & enemies
 	TeamRelationMap				*m_teamRelations;							///< allies & enemies
 
+	AcademyStats					m_academyStats;				///< Keeps track of various statistics in order to provide advice to the player about how to improve playing.
+
 	Bool									m_canBuildUnits;		///< whether the current player is allowed to build units
 	Bool									m_canBuildBase;			///< whether the current player is allowed to build Base buildings
 	Bool									m_observer;
@@ -771,6 +804,9 @@ private:
 #if defined(RTS_DEBUG)
 	Bool									m_DEMO_ignorePrereqs;		///< Can I ignore prereq checks?
 	Bool									m_DEMO_freeBuild;				///< Can I build everything for no money?
+#endif
+
+#if defined(RTS_DEBUG) || defined(_ALLOW_DEBUG_CHEATS_IN_RELEASE)
 	Bool									m_DEMO_instantBuild;		///< Can I build anything in one frame?
 #endif
 
@@ -789,4 +825,5 @@ private:
 	Squad									*m_currentSelection;		///< This player's currently selected group
 
 	Bool									m_isPlayerDead;
+	Bool									m_logicalRetaliationModeEnabled;
 };

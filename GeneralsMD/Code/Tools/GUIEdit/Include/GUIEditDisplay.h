@@ -101,7 +101,7 @@ public:
 	virtual void drawScaledVideoBuffer( VideoBuffer *buffer, VideoStreamInterface *stream ) override { }
 	virtual void drawVideoBuffer( VideoBuffer *buffer, Int startX, Int startY,
 																Int endX, Int endY ) override { }
-	virtual void takeScreenShot() override { }
+	virtual void takeScreenShot(ScreenshotFormat format, Int jpegQuality) override { }
 	virtual void toggleMovieCapture() override {}
 
 	// methods that we need to stub
@@ -116,14 +116,15 @@ public:
 	virtual void toggleLetterBox() override {}
 	virtual void enableLetterBox(Bool enable) override {}
 #if defined(RTS_DEBUG)
-	virtual void dumpModelAssets(const char *path) {}
+	virtual void dumpModelAssets(const char *path) override {}
 #endif
 	virtual void doSmartAssetPurgeAndPreload(const char* usageFileName) override {}
 #if defined(RTS_DEBUG)
-	virtual void dumpAssetUsage(const char* mapname) {}
+	virtual void dumpAssetUsage(const char* mapname) override {}
 #endif
 
 	virtual Real getAverageFPS() override { return 0; }
+	virtual Real getLow1PercentFPS() override { return 0; }
 	virtual Real getCurrentFPS() override { return 0; }
 	virtual Int getLastFrameDrawCalls() override { return 0; }
 

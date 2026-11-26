@@ -30,16 +30,14 @@
  *                                                                                             *
  *                    $Revision:: 10                                                          $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 
 #include "StdAfx.h"
 
 #include "ViewerAssetMgr.h"
-#include "texture.h"
-#include "ww3d.h"
+#include "WW3D2/texture.h"
+#include "WW3D2/ww3d.h"
 #include "Utils.h"
 
 

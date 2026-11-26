@@ -31,13 +31,11 @@
  *                                                                         *
  *                  Last Update : February 24, 1997 [GH]                   *
  *                                                                         *
- *-------------------------------------------------------------------------*
- * Functions:                                                              *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
 
-#include "always.h"
+#include "WWLib/always.h"
 #include "wwmath.h"
 #include "matrix3.h"
 #include "vector3.h"
@@ -277,24 +275,12 @@ WWINLINE bool Quaternion::Is_Valid() const
 
 WWINLINE bool Equal_Within_Epsilon(const Quaternion &a, const Quaternion &b, float epsilon)
 {
-   return(	(WWMath::Fabs(a.X - b.X) < epsilon) &&
-				(WWMath::Fabs(a.Y - b.Y) < epsilon) &&
-				(WWMath::Fabs(a.Z - b.Z) < epsilon)	&&
-				(WWMath::Fabs(a.W - b.W) < epsilon) );
+   return(	(WWMath::Fabsf_Legacy(a.X - b.X) < epsilon) &&
+				(WWMath::Fabsf_Legacy(a.Y - b.Y) < epsilon) &&
+				(WWMath::Fabsf_Legacy(a.Z - b.Z) < epsilon)	&&
+				(WWMath::Fabsf_Legacy(a.W - b.W) < epsilon) );
 }
 
-/***********************************************************************************************
- * Quaternion::operator= -- Assignment operator                                                *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   02/24/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
 WWINLINE Quaternion & Quaternion::operator = (const Quaternion & source)
 {
   X = source[0];

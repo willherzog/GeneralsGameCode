@@ -30,14 +30,12 @@
  *                                                                                             *
  *                    $Revision:: 6                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
 
-#include "Vector.h"
-#include "wwstring.h"
+#include "WWLib/Vector.h"
+#include "WWLib/wwstring.h"
 #include <d3d8types.h>
 #include <d3d8caps.h>
 

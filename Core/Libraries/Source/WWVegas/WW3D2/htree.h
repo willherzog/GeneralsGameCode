@@ -31,19 +31,17 @@
  *                                                                                             *
  *                    $Revision:: 6                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
 
-#include "always.h"
+#include "WWLib/always.h"
 #include "pivot.h"
-#include "quat.h"
-#include "matrix3d.h"
-#include "vector3.h"
-#include "w3d_file.h"
-#include "wwdebug.h"
+#include "WWMath/quat.h"
+#include "WWMath/matrix3d.h"
+#include "WWMath/vector3.h"
+#include "WW3D2/w3d_file.h"
+#include "WWDebug/wwdebug.h"
 
 class HAnimClass;
 class HAnimComboClass;
@@ -66,9 +64,9 @@ class HRawAnimClass;
 	by the HierarchyModelClass.
 
 */
-class HTreeClass : public W3DMPO
+class HTreeClass
 {
-	W3DMPO_GLUE(HTreeClass)
+	W3DMPO_CODE(HTreeClass)
 public:
 
 	enum
@@ -79,7 +77,7 @@ public:
 
 	HTreeClass();
 	HTreeClass(const HTreeClass & src);
-	virtual ~HTreeClass() override;
+	~HTreeClass();
 
 	int					Load_W3D(ChunkLoadClass & cload);
 	void					Init_Default();
@@ -182,18 +180,6 @@ WWINLINE bool HTreeClass::Get_Visibility(int pivot) const
 	return Pivot[pivot].IsVisible;
 }
 
-/***********************************************************************************************
- * HTreeClass::Get_Transform -- returns the transformation for the desired pivot               *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   08/11/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
 WWINLINE const Matrix3D & HTreeClass::Get_Transform(int pivot) const
 {
 	assert(pivot >= 0);

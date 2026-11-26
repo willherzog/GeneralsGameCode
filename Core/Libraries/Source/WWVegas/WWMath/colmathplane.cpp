@@ -33,8 +33,6 @@
  *                    $Revision:: 10                                                           $*
  *                                                                                             *
  * 06/26/02 KM Matrix name change to avoid MAX conflicts                                       *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 
@@ -47,7 +45,7 @@
 #include "sphere.h"
 #include "aabox.h"
 #include "obbox.h"
-#include "wwdebug.h"
+#include "WWDebug/wwdebug.h"
 
 
 

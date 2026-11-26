@@ -33,8 +33,6 @@
  *                    $Revision:: 17                                                          $*
  *                                                                                             *
  * 06/26/02 KM Matrix name change to avoid MAX conflicts                                       *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 
@@ -119,18 +117,6 @@ const Matrix3x3 Matrix3x3::RotateZ270
 
 
 
-/***********************************************************************************************
- * Matrix3x3::Matrix3x3 -- Convert a Matrix3D (fake 4x4) to a Matrix3x3                              *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   06/02/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
 Matrix3x3::Matrix3x3(const Matrix3D & m)
 {
 	Row[0].Set(m[0][0],m[0][1],m[0][2]);
@@ -338,9 +324,9 @@ int Matrix3x3::Is_Orthogonal() const
 	if (Vector3::Dot_Product(y,z) > WWMATH_EPSILON) return 0;
 	if (Vector3::Dot_Product(z,x) > WWMATH_EPSILON) return 0;
 
-	if (WWMath::Fabs(x.Length() - 1.0f) > WWMATH_EPSILON) return 0;
-	if (WWMath::Fabs(y.Length() - 1.0f) > WWMATH_EPSILON) return 0;
-	if (WWMath::Fabs(z.Length() - 1.0f) > WWMATH_EPSILON) return 0;
+	if (WWMath::Fabsf_Legacy(x.Length() - 1.0f) > WWMATH_EPSILON) return 0;
+	if (WWMath::Fabsf_Legacy(y.Length() - 1.0f) > WWMATH_EPSILON) return 0;
+	if (WWMath::Fabsf_Legacy(z.Length() - 1.0f) > WWMATH_EPSILON) return 0;
 
 	return 1;
 }

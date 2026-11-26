@@ -28,7 +28,6 @@
 
 #include "PreRTS.h"	// This must go first in EVERY cpp file in the GameEngine
 
-#include "Lib/BaseType.h"
 #include "Common/RandomValue.h"
 #include "Common/crc.h"
 #include "Common/Debug.h"
@@ -464,4 +463,25 @@ Real GameLogicRandomVariable::getValue() const
 			DEBUG_CRASH(("unsupported DistributionType in GameLogicRandomVariable::getValue"));
 			return 0.0f;
 	}
+}
+
+
+Int LogicRandomValueClass::GetRandomValueInt( Int lo, Int hi, const char *file, Int line ) const
+{
+	return GetGameLogicRandomValue(lo, hi, file, line);
+}
+
+Real LogicRandomValueClass::GetRandomValueReal( Real lo, Real hi, const char *file, Int line ) const
+{
+	return GetGameLogicRandomValueReal(lo, hi, file, line);
+}
+
+Int ClientRandomValueClass::GetRandomValueInt( Int lo, Int hi, const char *file, Int line ) const
+{
+	return GetGameClientRandomValue(lo, hi, file, line);
+}
+
+Real ClientRandomValueClass::GetRandomValueReal( Real lo, Real hi, const char *file, Int line ) const
+{
+	return GetGameClientRandomValueReal(lo, hi, file, line);
 }

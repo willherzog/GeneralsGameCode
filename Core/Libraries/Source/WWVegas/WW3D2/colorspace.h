@@ -32,14 +32,12 @@
  *                                                                                             *
  *                    $Revision::                                                             $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
 
 #include "dx8wrapper.h"
-#include <wwmath.h>
+#include <WWMath/wwmath.h>
 
 void RGB_To_HSV(Vector3 &hsv,const Vector3 &rgb);
 void HSV_To_RGB(Vector3 &rgb, const Vector3 &hsv);
@@ -95,7 +93,7 @@ inline void HSV_To_RGB(Vector3 &rgb, const Vector3 &hsv)
 		if (h==360.0f) h=0.0f;
 
 		h/=60.0f;
-		i=WWMath::Floor(h);
+		i=WWMath::Floorf(h);
 		f=h-i;
 		p=v*(1.0f-s);
 		q=v*(1.0f-(s*f));
@@ -147,6 +145,7 @@ inline void Recolor(Vector3 &rgb, const Vector3 &hsv_shift)
 inline void Recolor(unsigned& rgba, const Vector3 &hsv_shift)
 {
 	Vector4 rgba_v = DX8Wrapper::Convert_Color(rgba);
-	Recolor((Vector3&)rgba_v, hsv_shift);
-	rgba = DX8Wrapper::Convert_Color(rgba_v);
+	Vector3 rgb(rgba_v.X, rgba_v.Y, rgba_v.Z);
+	Recolor(rgb, hsv_shift);
+	rgba = DX8Wrapper::Convert_Color(rgb, rgba_v.W);
 }

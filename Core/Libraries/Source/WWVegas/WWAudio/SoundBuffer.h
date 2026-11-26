@@ -30,8 +30,6 @@
  *                                                                                             *
  *                    $Revision:: 7                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
@@ -40,7 +38,7 @@
 #include "mss.h"
 #pragma warning (pop)
 
-#include "always.h"
+#include "WWLib/always.h"
 
 
 // Forward declarations

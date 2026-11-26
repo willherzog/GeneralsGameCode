@@ -18,15 +18,15 @@
 
 #pragma once
 
-#include "always.h"
-#include "vector3.h"
-#include "matrix3d.h"
-#include "rendobj.h"
-#include "wwstring.h"
-#include "proto.h"
-#include "w3derr.h"
-#include "shader.h"
-#include "matrix4.h"
+#include "WWLib/always.h"
+#include "WWMath/vector3.h"
+#include "WWMath/matrix3d.h"
+#include "WW3D2/rendobj.h"
+#include "WWLib/wwstring.h"
+#include "WW3D2/proto.h"
+#include "WW3D2/w3derr.h"
+#include "WW3D2/shader.h"
+#include "WWMath/matrix4.h"
 
 class CameraClass;
 class DazzleVisibilityClass;
@@ -298,10 +298,6 @@ public:
 	// internally by the Render() function.
 	void Set_Layer(DazzleLayerClass *layer);
 
-	// Persistent object save-load interface
-	// Dazzles save their "dazzle-type" and transform
-	virtual const PersistFactoryClass &	Get_Factory () const override;
-
 	// Set the static "current layer" variable. This variable is used in the
 	// Render() call so that the dazzle knows which list to add itself to if
 	// it is visible. This function must be called before rendering the
@@ -353,9 +349,9 @@ public:
 ** information needed to construct a particular instance of a dazzle.  Prototypes are
 ** stored in the asset manager and used to construct render objects when needed.
 */
-class DazzlePrototypeClass : public W3DMPO, public PrototypeClass
+class DazzlePrototypeClass : public PrototypeClass
 {
-	W3DMPO_GLUE(DazzlePrototypeClass)
+	W3DMPO_CODE(DazzlePrototypeClass)
 public:
 	DazzlePrototypeClass() : DazzleType(0)				{ }
 

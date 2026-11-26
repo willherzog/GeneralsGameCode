@@ -80,7 +80,7 @@ public:
 			{ "DoorClosingFX",				INI::parseFXList,								nullptr, offsetof( MissileLauncherBuildingUpdateModuleData, m_closingFX ) },
 			{ "DoorClosedFX",					INI::parseFXList,								nullptr, offsetof( MissileLauncherBuildingUpdateModuleData, m_closedFX ) },
 			{ "DoorOpenIdleAudio",		INI::parseAudioEventRTS,				nullptr,	offsetof( MissileLauncherBuildingUpdateModuleData, m_openIdleAudio ) },
-			{ 0, 0, 0, 0 }
+			{ nullptr, nullptr, nullptr, 0 }
 		};
     p.add(dataFieldParse);
 	}
@@ -113,6 +113,9 @@ public:
 
 	virtual UpdateSleepTime update() override;	///< Deciding whether or not to make new guys
 	virtual Bool isPowerCurrentlyInUse( const CommandButton *command = nullptr ) const override;
+#if !RETAIL_COMPATIBLE_CRC
+	virtual void onObjectCreated() override;
+#endif
 
 private:
 	enum DoorStateType

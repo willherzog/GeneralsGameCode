@@ -32,8 +32,6 @@
  *                                                                                             *
  *                    $Revision:: 2                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 
@@ -62,7 +60,7 @@ AnimationCompressionSettingsDialogClass::AnimationCompressionSettingsDialogClass
 //	~AnimationCompressionSettingsDialogClass
 //
 ////////////////////////////////////////////////////////////////////////////////////////
-AnimationCompressionSettingsDialogClass::~AnimationCompressionSettingsDialogClass (void)
+AnimationCompressionSettingsDialogClass::~AnimationCompressionSettingsDialogClass ()
 {
 }
 
@@ -73,7 +71,7 @@ AnimationCompressionSettingsDialogClass::~AnimationCompressionSettingsDialogClas
 //
 ////////////////////////////////////////////////////////////////////////////////////////
 int
-AnimationCompressionSettingsDialogClass::Do_Modal (void)
+AnimationCompressionSettingsDialogClass::Do_Modal ()
 {
 	int retval = ::DialogBoxParam (AppInstance, MAKEINTRESOURCE (IDD_ANIMATION_COMPRESSION),
 													ParentWnd, Real_Message_Proc, (LPARAM)this);
@@ -195,7 +193,7 @@ AnimationCompressionSettingsDialogClass::Message_Proc
 //
 ////////////////////////////////////////////////////////////////////////////////////////
 void
-AnimationCompressionSettingsDialogClass::Initialize_Controls (void)
+AnimationCompressionSettingsDialogClass::Initialize_Controls ()
 {
 	SetCheckBox (Wnd, IDC_REDUCE_ANIMATION_CHECK, Options->ReduceAnimation);
 	char string[128] = { 0 };
@@ -251,7 +249,7 @@ AnimationCompressionSettingsDialogClass::Initialize_Controls (void)
 //
 ////////////////////////////////////////////////////////////////////////////////////////
 void
-AnimationCompressionSettingsDialogClass::Save_Settings (void)
+AnimationCompressionSettingsDialogClass::Save_Settings ()
 {
 	//
 	//	Read the compression type setting

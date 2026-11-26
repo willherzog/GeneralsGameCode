@@ -17,16 +17,16 @@
 */
 
 #include "texturethumbnail.h"
-#include "hashtemplate.h"
+#include "WWLib/hashtemplate.h"
 #include "missingtexture.h"
-#include "TARGA.h"
+#include "WWLib/TARGA.h"
 #include "ww3dformat.h"
 #include "ddsfile.h"
 #include "textureloader.h"
 #include "bitmaphandler.h"
-#include "ffactory.h"
-#include "RAWFILE.h"
-#include "wwprofile.h"
+#include "WWLib/ffactory.h"
+#include "WWLib/RAWFILE.h"
+#include "WWDebug/wwprofile.h"
 #include <windows.h>
 
 static DLListClass<ThumbnailManagerClass> ThumbnailManagerList;
@@ -206,7 +206,7 @@ ThumbnailClass::ThumbnailClass(ThumbnailManagerClass* manager, const StringClass
 
 		// NOTE: We load the palette but we do not yet support paletted textures!
 		char palette[256*4];
-		targa.SetPalette(palette);
+		targa.SetPalette(palette, sizeof(palette));
 		if (TARGA_ERROR_HANDLER(targa.Load(filename, TGAF_IMAGE, false),filename)) return;
 
 		// Get time stamp from the tga file

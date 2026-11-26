@@ -30,16 +30,6 @@
  *                                                                                             *
  *                    $Revision:: 6                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
- *   CollisionMath::Intersection_Test -- Sphere - AAbox intersection                           *
- *   CollisionMath::Intersection_Test -- Sphere - OBBox intersection                           *
- *   CollisionMath::Overlap_Test -- Sphere - Point overlap test                                *
- *   CollisionMath::Overlap_Test -- sphere line overlap test                                   *
- *   CollisionMath::Overlap_Test -- sphere triangle overlap test                               *
- *   CollisionMath::Overlap_Test -- Sphere - Sphere overlap test                               *
- *   CollisionMath::Overlap_Test -- Sphere - AABox overlap test                                *
- *   CollisionMath::Overlap_Test -- Sphere - OBBox overlap test                                *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 
@@ -51,22 +41,10 @@
 #include "sphere.h"
 #include "aabox.h"
 #include "obbox.h"
-#include "wwdebug.h"
+#include "WWDebug/wwdebug.h"
 
 
 // Sphere Intersection functions.  Does the sphere intersect the passed in object
-/***********************************************************************************************
- * CollisionMath::Intersection_Test -- Sphere - AAbox intersection                             *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   4/25/2001  gth : Created.                                                                 *
- *=============================================================================================*/
 bool CollisionMath::Intersection_Test(const SphereClass & sphere,const AABoxClass & box)
 {
 	/*
@@ -75,25 +53,13 @@ bool CollisionMath::Intersection_Test(const SphereClass & sphere,const AABoxClas
 	** against a cube which encloses the sphere...
 	*/
 	Vector3 dc = box.Center - sphere.Center;
-	if (WWMath::Fabs(dc.X) < box.Extent.X + sphere.Radius) return false;
-	if (WWMath::Fabs(dc.Y) < box.Extent.Y + sphere.Radius) return false;
-	if (WWMath::Fabs(dc.Z) < box.Extent.Z + sphere.Radius) return false;
+	if (WWMath::Fabsf_Legacy(dc.X) < box.Extent.X + sphere.Radius) return false;
+	if (WWMath::Fabsf_Legacy(dc.Y) < box.Extent.Y + sphere.Radius) return false;
+	if (WWMath::Fabsf_Legacy(dc.Z) < box.Extent.Z + sphere.Radius) return false;
 	return true;
 }
 
 
-/***********************************************************************************************
- * CollisionMath::Intersection_Test -- Sphere - OBBox intersection                             *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   4/25/2001  gth : Created.                                                                 *
- *=============================================================================================*/
 bool CollisionMath::Intersection_Test(const SphereClass & sphere,const OBBoxClass & box)
 {
 	/*
@@ -103,26 +69,14 @@ bool CollisionMath::Intersection_Test(const SphereClass & sphere,const OBBoxClas
 	Vector3 box_rel_center;
 	Matrix3D::Inverse_Transform_Vector(tm,sphere.Center,&box_rel_center);
 
-	if (box.Extent.X < WWMath::Fabs(box_rel_center.X)) return false;
-	if (box.Extent.Y < WWMath::Fabs(box_rel_center.Y)) return false;
-	if (box.Extent.Z < WWMath::Fabs(box_rel_center.Z)) return false;
+	if (box.Extent.X < WWMath::Fabsf_Legacy(box_rel_center.X)) return false;
+	if (box.Extent.Y < WWMath::Fabsf_Legacy(box_rel_center.Y)) return false;
+	if (box.Extent.Z < WWMath::Fabsf_Legacy(box_rel_center.Z)) return false;
 
 	return true;
 }
 
 // Sphere Overlap functions.  Where is operand B with respect to the sphere
-/***********************************************************************************************
- * CollisionMath::Overlap_Test -- Sphere - Point overlap test                                  *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   4/25/2001  gth : Created.                                                                 *
- *=============================================================================================*/
 CollisionMath::OverlapType
 CollisionMath::Overlap_Test(const SphereClass & sphere,const Vector3 & point)
 {
@@ -137,18 +91,6 @@ CollisionMath::Overlap_Test(const SphereClass & sphere,const Vector3 & point)
 }
 
 
-/***********************************************************************************************
- * CollisionMath::Overlap_Test -- sphere line overlap test                                     *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   4/25/2001  gth : Created.                                                                 *
- *=============================================================================================*/
 CollisionMath::OverlapType
 CollisionMath::Overlap_Test(const SphereClass & /*sphere*/,const LineSegClass & /*line*/)
 {
@@ -157,18 +99,6 @@ CollisionMath::Overlap_Test(const SphereClass & /*sphere*/,const LineSegClass & 
 }
 
 
-/***********************************************************************************************
- * CollisionMath::Overlap_Test -- sphere triangle overlap test                                 *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   4/25/2001  gth : Created.                                                                 *
- *=============================================================================================*/
 CollisionMath::OverlapType
 CollisionMath::Overlap_Test(const SphereClass & /*sphere*/,const TriClass & /*tri*/)
 {
@@ -177,18 +107,6 @@ CollisionMath::Overlap_Test(const SphereClass & /*sphere*/,const TriClass & /*tr
 }
 
 
-/***********************************************************************************************
- * CollisionMath::Overlap_Test -- Sphere - Sphere overlap test                                 *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   4/25/2001  gth : Created.                                                                 *
- *=============================================================================================*/
 CollisionMath::OverlapType
 CollisionMath::Overlap_Test(const SphereClass & sphere,const SphereClass & sphere2)
 {
@@ -207,18 +125,6 @@ CollisionMath::Overlap_Test(const SphereClass & sphere,const SphereClass & spher
 }
 
 
-/***********************************************************************************************
- * CollisionMath::Overlap_Test -- Sphere - AABox overlap test                                  *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   4/25/2001  gth : Created.                                                                 *
- *=============================================================================================*/
 CollisionMath::OverlapType
 CollisionMath::Overlap_Test(const SphereClass & sphere,const AABoxClass & aabox)
 {
@@ -227,18 +133,6 @@ CollisionMath::Overlap_Test(const SphereClass & sphere,const AABoxClass & aabox)
 }
 
 
-/***********************************************************************************************
- * CollisionMath::Overlap_Test -- Sphere - OBBox overlap test                                  *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   4/25/2001  gth : Created.                                                                 *
- *=============================================================================================*/
 CollisionMath::OverlapType
 CollisionMath::Overlap_Test(const SphereClass & sphere,const OBBoxClass & obbox)
 {

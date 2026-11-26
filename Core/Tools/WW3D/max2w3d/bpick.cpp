@@ -31,11 +31,6 @@
  *                                                                                             *
  *                    $Revision:: 7                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
- *   BonePickerClass::Filter -- determine whether the passed node is suitable                  *
- *   BonePickerClass::HitTest -- MAX HitTest method                                            *
- *   BonePickerClass::Pick -- MAX Pick method                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 
@@ -50,18 +45,6 @@
 BonePickerClass TheBonePicker;
 
 
-/***********************************************************************************************
- * BonePickerClass::Filter -- determine whether the passed node is suitable                    *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   10/26/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
 BOOL BonePickerClass::Filter(INode *node)
 {
 	if (BoneList == nullptr) {
@@ -79,18 +62,6 @@ BOOL BonePickerClass::Filter(INode *node)
 	return FALSE;
 }
 
-/***********************************************************************************************
- * BonePickerClass::HitTest -- MAX HitTest method                                              *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   10/26/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
 BOOL BonePickerClass::HitTest(IObjParam *ip,HWND hwnd,ViewExp *vpt,IPoint2 m,int flags)
 {
 	if (ip->PickNode(hwnd,m,GetFilter())) {
@@ -100,18 +71,6 @@ BOOL BonePickerClass::HitTest(IObjParam *ip,HWND hwnd,ViewExp *vpt,IPoint2 m,int
 	}
 }
 
-/***********************************************************************************************
- * BonePickerClass::Pick -- MAX Pick method                                                    *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   10/26/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
 BOOL BonePickerClass::Pick(IObjParam *ip,ViewExp *vpt)
 {
 	INode *node = vpt->GetClosestHit();
@@ -144,12 +103,12 @@ void BonePickerClass::proc(INodeTab & nodetab)
 	BoneList = nullptr;
 }
 
-TCHAR * BonePickerClass::dialogTitle(void)
+TCHAR * BonePickerClass::dialogTitle()
 {
 	return Get_String(IDS_PICK_BONE_DIALOG_TITLE);
 }
 
-TCHAR * BonePickerClass::buttonText(void)
+TCHAR * BonePickerClass::buttonText()
 {
 	return Get_String(IDS_PICK_BONE_BUTTON_TEXT);
 }

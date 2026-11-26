@@ -72,7 +72,7 @@ private:
 public:
 	PartitionFilterTensileFormationMember( Object* obj ) : m_obj( obj ) { }
 #if defined(RTS_DEBUG)
-	virtual const char* debugGetName() { return "PartitionFilterTensileFormationMember"; }
+	virtual const char* debugGetName() override { return "PartitionFilterTensileFormationMember"; }
 #endif
 	virtual Bool allow( Object *objOther ) override
 	{
@@ -281,7 +281,7 @@ UpdateSleepTime TensileFormationUpdate::update()
 	Real steepness = 1.0f - normal.z;
 	slope.scale( 0.3f + steepness);
 
-	m_inertia.add( &slope );
+	m_inertia.add( slope );
 
 	Real friction = 0.95f;
 	m_inertia.scale( friction );
@@ -313,7 +313,7 @@ UpdateSleepTime TensileFormationUpdate::update()
 
 			Coord3D tensor = m_links[ t ].tensor;
 
-			desiredPos.sub( &tensor );
+			desiredPos.sub( tensor );
 
 			//Coord3D desiredPos = { theirPos->x - m_links[ t ].tensor.x, theirPos->y - m_links[ t ].tensor.y, theirPos->z - m_links[ t ].tensor.z };
 
@@ -322,7 +322,7 @@ UpdateSleepTime TensileFormationUpdate::update()
 			newPos.z = MIN( m_lowestSlideElevation, TheTerrainLogic->getGroundHeight(newPos.x, newPos.y) );//rest on surface here
 
 			tensor.normalize();
-			tensorSum.add( &tensor );
+			tensorSum.add( tensor );
 
 		}
 
@@ -348,7 +348,7 @@ UpdateSleepTime TensileFormationUpdate::update()
 	else
 		draw->clearModelConditionFlags(MAKE_MODELCONDITION_MASK(MODELCONDITION_MOVING));
 
-	if ( fabs( pos->z - newPos.z ) > 0.2f && m_life < 100)
+	if ( WWMath::Fabs( pos->z - newPos.z ) > 0.2f && m_life < 100)
 		draw->setModelConditionFlags(MAKE_MODELCONDITION_MASK(MODELCONDITION_FREEFALL));
 	else
 		draw->clearModelConditionFlags(MAKE_MODELCONDITION_MASK(MODELCONDITION_FREEFALL));

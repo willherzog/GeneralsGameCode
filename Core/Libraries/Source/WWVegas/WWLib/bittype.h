@@ -31,8 +31,6 @@
  *                                                                         *
  *                  Last Update : February 24, 1997 [GH]                   *
  *                                                                         *
- *-------------------------------------------------------------------------*
- * Functions:                                                              *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
@@ -58,10 +56,3 @@ typedef unsigned short	USHORT;
 typedef const char *		LPCSTR;
 typedef unsigned int    UINT;
 typedef unsigned long   ULONG;
-
-#if defined(_MSC_VER) && _MSC_VER < 1300
-#ifndef _WCHAR_T_DEFINED
-typedef unsigned short wchar_t;
-#define _WCHAR_T_DEFINED
-#endif
-#endif

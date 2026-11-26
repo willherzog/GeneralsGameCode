@@ -30,13 +30,11 @@
  *                                                                                             *
  *                    $Revision:: 10                                                          $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 
 #include "matinfo.h"
-#include "wwdebug.h"
+#include "WWDebug/wwdebug.h"
 #include "meshmdl.h"
 #include "texture.h"
 

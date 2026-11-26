@@ -33,13 +33,11 @@
  *                    $Revision:: 2                                                           $*
  *                                                                                             *
  * 06/27/02 KM Texture class abstraction																			*
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
 
-#include "always.h"
+#include "WWLib/always.h"
 #include "texture.h"
 
 class StringClass;

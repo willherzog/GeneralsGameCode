@@ -32,19 +32,12 @@
  *                                                                                             *
  *                    $Revision:: 2                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
- *   FloaterDialogClass::FloaterDialogClass -- Constructor                                     *
- *   FloaterDialogClass::~FloaterDialogClass -- Destructor                                     *
- *   FloaterDialogClass::Is_Created -- test whether the floater has already been created       *
- *   FloaterDialogClass::Create -- create the window                                           *
- *   FloaterDialogClass::Dialog_Proc -- Dialog Proc for the floater                            *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #include "floaterdialog.h"
 #include "dllmain.h"
 #include "resource.h"
-#include <max.h>
+#include "max_sdk.h"
 
 
 /**********************************************************************************************
@@ -75,18 +68,7 @@ BOOL CALLBACK _floater_dialog_proc(HWND hwnd,UINT message,WPARAM wParam,LPARAM l
 }
 
 
-/***********************************************************************************************
- * FloaterDialogClass::FloaterDialogClass -- Constructor                                       *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *=============================================================================================*/
-FloaterDialogClass::FloaterDialogClass(void) :
+FloaterDialogClass::FloaterDialogClass() :
 	Hwnd(nullptr),
 	ChildDialogTemplateID(-1),
 	ChildDialogProc(nullptr)
@@ -94,18 +76,7 @@ FloaterDialogClass::FloaterDialogClass(void) :
 }
 
 
-/***********************************************************************************************
- * FloaterDialogClass::~FloaterDialogClass -- Destructor                                       *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *=============================================================================================*/
-FloaterDialogClass::~FloaterDialogClass(void)
+FloaterDialogClass::~FloaterDialogClass()
 {
 	if (Hwnd != nullptr) {
 		::DestroyWindow(Hwnd);
@@ -113,38 +84,13 @@ FloaterDialogClass::~FloaterDialogClass(void)
 }
 
 
-/***********************************************************************************************
- * FloaterDialogClass::Is_Created -- test whether the floater has already been created         *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   10/11/2000 gth : Created.                                                                 *
- *=============================================================================================*/
-bool FloaterDialogClass::Is_Created(void)
+bool FloaterDialogClass::Is_Created()
 {
 	return (Hwnd != nullptr);
 }
 
 
-/***********************************************************************************************
- * FloaterDialogClass::Create -- create the window                                             *
- *                                                                                             *
- *    This function will return automatically if the floater has been created already.         *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   10/11/2000 gth : Created.                                                                 *
- *=============================================================================================*/
+// This function will return automatically if the floater has been created already.
 void FloaterDialogClass::Create(Interface * ip, int child_dlg_id, DLGPROC child_dlg_proc)
 {
 	/*
@@ -176,21 +122,8 @@ void FloaterDialogClass::Create(Interface * ip, int child_dlg_id, DLGPROC child_
 
 
 
-/***********************************************************************************************
- * FloaterDialogClass::Dialog_Proc -- Dialog Proc for the floater                              *
- *                                                                                             *
- * The only thing we need to do here is to create the child dialog and resize ourselves to     *
- * contain it.                                                                                 *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   10/11/2000 gth : Created.                                                                 *
- *=============================================================================================*/
+// The only thing we need to do here is to create the child dialog and resize ourselves to contain
+// it.
 bool FloaterDialogClass::Dialog_Proc(HWND hWnd,UINT message,WPARAM wParam,LPARAM)
 {
 	switch (message )	{

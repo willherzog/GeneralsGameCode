@@ -22,9 +22,9 @@
 //
 
 #include "resource.h"
-#include "vector3.h"
+#include "WWMath/vector3.h"
 #include "ColorBar.h"
-#include "part_emt.h"
+#include "WW3D2/part_emt.h"
 
 // Forward declarations
 class EmitterInstanceListClass;
@@ -39,7 +39,7 @@ class EmitterColorPropPageClass : public CPropertyPage
 // Construction
 public:
 	EmitterColorPropPageClass (EmitterInstanceListClass *pemitter_list = nullptr);
-	~EmitterColorPropPageClass ();
+	~EmitterColorPropPageClass () override;
 
 // Dialog Data
 	//{{AFX_DATA(EmitterColorPropPageClass)
@@ -55,19 +55,19 @@ public:
 	// ClassWizard generate virtual function overrides
 	//{{AFX_VIRTUAL(EmitterColorPropPageClass)
 	public:
-	virtual BOOL OnApply();
-	virtual void OnCancel();
+	virtual BOOL OnApply() override;
+	virtual void OnCancel() override;
 	protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-	virtual BOOL OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult);
-	virtual BOOL OnCommand(WPARAM wParam, LPARAM lParam);
+	virtual void DoDataExchange(CDataExchange* pDX) override;    // DDX/DDV support
+	virtual BOOL OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult) override;
+	virtual BOOL OnCommand(WPARAM wParam, LPARAM lParam) override;
 	//}}AFX_VIRTUAL
 
 // Implementation
 protected:
 	// Generated message map functions
 	//{{AFX_MSG(EmitterColorPropPageClass)
-	virtual BOOL OnInitDialog();
+	virtual BOOL OnInitDialog() override;
 	afx_msg void OnDestroy();
 	afx_msg void OnDeltaposRedRandomSpin(NMHDR* pNMHDR, LRESULT* pResult);
 	//}}AFX_MSG

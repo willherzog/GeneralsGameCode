@@ -30,15 +30,13 @@
  *                                                                                             *
  *                    $Revision:: 5                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 
 #include "w3d_util.h"
-#include "vector3.h"
-#include "vector4.h"
-#include "quat.h"
+#include "WWMath/vector3.h"
+#include "WWMath/vector4.h"
+#include "WWMath/quat.h"
 #include "shader.h"
 
 

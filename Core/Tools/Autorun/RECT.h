@@ -30,11 +30,6 @@
  *                                                                                             *
  *                     Revision : 20                                                           *
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
- *   Union -- Combines two rectangles into one larger one.                                     *
- *   Intersect -- Find the intersection between two rectangles.                                *
- *   Intersect -- Simple intersect between two rectangles.                                     *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
@@ -52,7 +47,7 @@ template<class T>
 class TRect
 {
 	public:
-		TRect(void) {}		// Default constructor does nothing by design.
+		TRect() {}		// Default constructor does nothing by design.
 		TRect(T x, T y, T w, T h) : X(x), Y(y), Width(w), Height(h) {}
 		TRect(TPoint2D<T> const & point, T w, T h) : X(point.X), Y(point.Y), Width(w), Height(h) {}
 
@@ -82,28 +77,28 @@ class TRect
 		/*
 		**	Determine is rectangle is valid.
 		*/
-		bool Is_Valid(void) const {return(Width > 0 && Height > 0);}
+		bool Is_Valid() const {return(Width > 0 && Height > 0);}
 		__declspec(property(get=Is_Valid)) bool IsValid;
 
 		/*
 		**	Returns size of rectangle if each discrete location within it is presumed
 		**	to be of size 1.
 		*/
-		int Size(void) const {return(int(Width) * int(Height));}
+		int Size() const {return(int(Width) * int(Height));}
 
 		/*
 		**	Fetch points of rectangle (used as a convenience for the programmer).
 		*/
-		TPoint2D<T> Top_Left(void) const {return(TPoint2D<T>(X, Y));}
+		TPoint2D<T> Top_Left() const {return(TPoint2D<T>(X, Y));}
 		__declspec(property(get=Top_Left)) TPoint2D<T> TopLeft;
 
-		TPoint2D<T> Top_Right(void) const {return(TPoint2D<T>(T(X + Width - 1), Y));}
+		TPoint2D<T> Top_Right() const {return(TPoint2D<T>(T(X + Width - 1), Y));}
 		__declspec(property(get=Top_Right)) TPoint2D<T> TopRight;
 
-		TPoint2D<T> Bottom_Left(void) const {return(TPoint2D<T>(X, T(Y + Height - 1)));}
+		TPoint2D<T> Bottom_Left() const {return(TPoint2D<T>(X, T(Y + Height - 1)));}
 		__declspec(property(get=Bottom_Left)) TPoint2D<T> BottomLeft;
 
-		TPoint2D<T> Bottom_Right(void) const {return(TPoint2D<T>(T(X + Width - 1), T(Y + Height - 1)));}
+		TPoint2D<T> Bottom_Right() const {return(TPoint2D<T>(T(X + Width - 1), T(Y + Height - 1)));}
 		__declspec(property(get=Bottom_Right)) TPoint2D<T> BottomRight;
 
 
@@ -136,22 +131,6 @@ TPoint2D<T> const Bias_To(TPoint2D<T> const & point, TRect<T> const & rect)
 }
 
 
-/***********************************************************************************************
- * Union -- Combines two rectangles into one larger one.                                       *
- *                                                                                             *
- *    This routine will combine the two specified rectangles such that a larger one is         *
- *    returned that encompasses both rectangles.                                               *
- *                                                                                             *
- * INPUT:   rect1 -- One rectangle to combine.                                                 *
- *          rect2 -- The other rectangle to combine.                                           *
- *                                                                                             *
- * OUTPUT:  Returns with the smallest rectangle that encompasses both specified rectangles.    *
- *                                                                                             *
- * WARNINGS:   none                                                                            *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   06/04/1997 JLB : Created.                                                                 *
- *=============================================================================================*/
 template<class T>
 TRect<T> const Union(TRect<T> const & rect1, TRect<T> const & rect2)
 {
@@ -181,32 +160,12 @@ TRect<T> const Union(TRect<T> const & rect1, TRect<T> const & rect2)
 }
 
 
-/***********************************************************************************************
- * Intersect -- Find the intersection between two rectangles.                                  *
- *                                                                                             *
- *    This routine will take two rectangles and return the intersecting rectangle. It also     *
- *    tracks how much on rectangle was clipped off of the top and left edges and returns       *
- *    these values. It can be handy to use these returned clipping values for blit operations  *
- *    between rectangles.                                                                      *
- *                                                                                             *
- * INPUT:   bounding_rect  -- The rectangle of the bounding box (clipping rectangle).          *
- *                                                                                             *
- *          draw_rect      -- The rectangle that will be clipped into the bounding rectangle.  *
- *                                                                                             *
- *          x,y            -- Place to store the clipping offset performed on the draw_rect.   *
- *                            If this offset is applied to a subsiquent blit operation from    *
- *                            the draw_rect source, it will appear to be properly clipped      *
- *                            against the clipping rectangle rather than offset to the         *
- *                            clipping rectangle.                                              *
- *                                                                                             *
- * OUTPUT:  Returns with the rectangle that is the intersection of the two rectangles.         *
- *                                                                                             *
- * WARNINGS:   The returned rectangle may be clipped into nothingness. Check for Is_Valid      *
- *             to catch this case.                                                             *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   06/04/1997 JLB : Created.                                                                 *
- *=============================================================================================*/
+// Find the intersection between two rectangles. It also tracks how much one rectangle was clipped
+// off of the top and left edges and returns these values in x,y. If this offset is applied to a
+// subsequent blit operation from the draw_rect source, it will appear to be properly clipped
+// against the clipping rectangle rather than offset to the clipping rectangle.
+// WARNING: The returned rectangle may be clipped into nothingness. Check for Is_Valid to catch this
+// case.
 template<class T>
 TRect<T> const Intersect(TRect<T> const & bounding_rect, TRect<T> const & draw_rect, T * x, T * y)
 {
@@ -268,25 +227,8 @@ TRect<T> const Intersect(TRect<T> const & bounding_rect, TRect<T> const & draw_r
 }
 
 
-/***********************************************************************************************
- * Intersect -- Simple intersect between two rectangles.                                       *
- *                                                                                             *
- *    This will return with the rectangle that represents the intersection of the two          *
- *    rectangles specified.                                                                    *
- *                                                                                             *
- * INPUT:   rect1    -- The first rectangle.                                                   *
- *                                                                                             *
- *          rect2    -- The second rectangle.                                                  *
- *                                                                                             *
- * OUTPUT:  Returns with the intersecting rectangle between the two rectangles specified.      *
- *                                                                                             *
- * WARNINGS:   If there is no valid intersection between the two rectangles, then a rectangle  *
- *             of illegal value is returned. Check for this case by using the Is_Valid()       *
- *             function.                                                                       *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   06/04/1997 JLB : Created.                                                                 *
- *=============================================================================================*/
+// WARNING: If there is no valid intersection between the two rectangles, then a rectangle of
+// illegal value is returned. Check for this case by using the Is_Valid() function.
 template<class T>
 TRect<T> const Intersect(TRect<T> const & rect1, TRect<T> const & rect2)
 {

@@ -31,19 +31,17 @@
  *                                                                                             *
  *                    $Revision:: 29                                                          $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
 
-#include "always.h"
+#include "WWLib/always.h"
 
-#include <max.h>
+#include "max_sdk.h"
 #include <stdio.h>
 
 #ifndef W3D_FILE_H
-#include "w3d_file.h"
+#include "WW3D2/w3d_file.h"
 #endif
 
 #ifndef PROGRESS_H
@@ -51,7 +49,7 @@
 #endif
 
 #ifndef CHUNKIO_H
-#include "chunkio.h"
+#include "WWLib/chunkio.h"
 #endif
 
 #ifndef NODELIST_H
@@ -59,7 +57,7 @@
 #endif
 
 #ifndef VECTOR_H
-#include "Vector.h"
+#include "WWLib/Vector.h"
 #endif
 
 
@@ -109,8 +107,8 @@ public:
 
 	bool				Save(ChunkSaveClass & csave);
 	bool				Load(ChunkLoadClass & cload);
-	int				Num_Nodes(void) const { return CurNode; }
-	const char *	Get_Name(void) const;
+	int				Num_Nodes() const { return CurNode; }
+	const char *	Get_Name() const;
 	const char *	Get_Node_Name(int node) const;
 
 	// get ahold of the max inode
@@ -163,5 +161,5 @@ private:
 
 	Matrix3	get_relative_transform(int nodeidx) const;
 	Matrix3	fixup_matrix(const Matrix3 & src) const;
-	void	 	Free(void);
+	void	 	Free();
 };

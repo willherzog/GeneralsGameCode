@@ -30,8 +30,6 @@
  *                                                                                             *
  *                    $Revision:: 4                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
@@ -65,7 +63,7 @@ class FilteredSoundClass : public SoundPseudo3DClass
 		//////////////////////////////////////////////////////////////////////
 		//	Identification methods
 		//////////////////////////////////////////////////////////////////////
-		virtual SOUND_CLASSID	Get_Class_ID () { return CLASSID_FILTERED; }
+		virtual SOUND_CLASSID	Get_Class_ID () const override { return CLASSID_FILTERED; }
 
 		//////////////////////////////////////////////////////////////////////
 		//	Conversion methods
@@ -76,9 +74,6 @@ class FilteredSoundClass : public SoundPseudo3DClass
 		//	Volume control
 		//////////////////////////////////////////////////////////////////////
 		virtual void				Update_Volume () override;
-
-		// From PersistClass
-		virtual const PersistFactoryClass &	Get_Factory () const override;
 
 	protected:
 

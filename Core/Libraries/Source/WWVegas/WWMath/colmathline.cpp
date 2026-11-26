@@ -30,8 +30,6 @@
  *                                                                                             *
  *                    $Revision:: 10                                                          $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 
@@ -43,7 +41,7 @@
 #include "sphere.h"
 #include "aabox.h"
 #include "obbox.h"
-#include "wwdebug.h"
+#include "WWDebug/wwdebug.h"
 
 
 /*
@@ -293,6 +291,10 @@ bool CollisionMath::Collide(const LineSegClass & line,const AABoxClass & box,Cas
 	// if ray starts inside the box, note that fact and bail.
 	if (test.Inside) {
 		res->StartBad = true;
+		// TheSuperHackers @tweak The contact point will be where the line has started.
+		if (res->ComputeContactPoint) {
+			res->ContactPoint = line.Get_P0();
+		}
 		return true;
 	}
 
@@ -328,6 +330,10 @@ bool CollisionMath::Collide(const LineSegClass & line,const OBBoxClass & box,Cas
 	// if ray starts inside the box, don't collide
 	if (test.Inside) {
 		result->StartBad = true;
+		// TheSuperHackers @tweak The contact point will be where the line has started.
+		if (result->ComputeContactPoint) {
+			result->ContactPoint = line.Get_P0();
+		}
 		return true;
 	}
 
@@ -364,18 +370,7 @@ bool CollisionMath::Collide(const LineSegClass & line,const OBBoxClass & box,Cas
 
 
 
-/***********************************************************************************************
- * Test_Aligned_Box -- used as the guts of the Box intersection tests                          *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   4/20/98    GTH : Created.                                                                 *
- *=============================================================================================*/
+// Used as the guts of the Box intersection tests.
 inline bool Test_Aligned_Box(BoxTestStruct * test)
 {
 	int i;

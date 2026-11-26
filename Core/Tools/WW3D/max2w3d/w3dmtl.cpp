@@ -30,16 +30,14 @@
  *                                                                                             *
  *                    $Revision:: 32                                                          $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 
 #include "w3dmtl.h"
-#include <max.h>
+#include "max_sdk.h"
 #include <stdmat.h>
 #include "gamemtl.h"
-#include "realcrc.h"
+#include "WWLib/realcrc.h"
 
 static W3dRGBStruct Color_To_W3d(Color & c)
 {
@@ -77,13 +75,13 @@ W3dMapClass & W3dMapClass::operator = (const W3dMapClass & that)
 	return *this;
 }
 
-W3dMapClass::~W3dMapClass(void)
+W3dMapClass::~W3dMapClass()
 {
 	if (Filename) free(Filename);
 	if (AnimInfo) delete AnimInfo;
 }
 
-void W3dMapClass::Reset(void)
+void W3dMapClass::Reset()
 {
 	if (Filename) free(Filename);
 	if (AnimInfo) delete AnimInfo;
@@ -147,7 +145,7 @@ void W3dMapClass::Set_Anim_Info(int framecount,float framerate)
 */
 
 
-W3dMaterialClass::W3dMaterialClass(void)
+W3dMaterialClass::W3dMaterialClass()
 {
 	PassCount = 0;
 	SortLevel = SORT_LEVEL_NONE;
@@ -162,12 +160,12 @@ W3dMaterialClass::W3dMaterialClass(void)
 	}
 }
 
-W3dMaterialClass::~W3dMaterialClass(void)
+W3dMaterialClass::~W3dMaterialClass()
 {
 	Free();
 }
 
-void W3dMaterialClass::Free(void)
+void W3dMaterialClass::Free()
 {
 	for (int pass = 0; pass < MAX_PASSES; pass++) {
 
@@ -190,7 +188,7 @@ void W3dMaterialClass::Free(void)
 	}
 }
 
-void W3dMaterialClass::Reset(void)
+void W3dMaterialClass::Reset()
 {
 	Free();
 	SortLevel = SORT_LEVEL_NONE;
@@ -276,17 +274,17 @@ void W3dMaterialClass::Set_Map_Channel(int pass,int stage,int channel)
 	MapChannel[pass][stage] = channel;
 }
 
-unsigned int W3dMaterialClass::Get_Surface_Type(void) const
+unsigned int W3dMaterialClass::Get_Surface_Type() const
 {
 	return SurfaceType;
 }
 
-int W3dMaterialClass::Get_Sort_Level(void) const
+int W3dMaterialClass::Get_Sort_Level() const
 {
 	return SortLevel;
 }
 
-int W3dMaterialClass::Get_Pass_Count(void) const
+int W3dMaterialClass::Get_Pass_Count() const
 {
 	return PassCount;
 }
@@ -338,15 +336,9 @@ int W3dMaterialClass::Get_Map_Channel(int pass,int stage) const
 
 void W3dMaterialClass::Init(Mtl * mtl, char *materialColorTexture)
 {
-	bool ps2_mat = false;
 	Reset();
 
-	if (mtl->ClassID() == PS2GameMaterialClassID)
-	{
-		ps2_mat = true;
-	}
-
-	if ((mtl->ClassID() == GameMaterialClassID) || ps2_mat) {
+	if (mtl->ClassID() == GameMaterialClassID) {
 		Init((GameMtl*)mtl, materialColorTexture);	///@todo: Fix this for substituted textures.
 		return;
 	}
@@ -399,7 +391,8 @@ void W3dMaterialClass::Init(Mtl * mtl, char *materialColorTexture)
 	}
 
 	if (materialColorTexture && !mtl->GetSubTexmap(ID_DI) && !mtl->GetSubTexmap(ID_RL))
-	{	//no textures on material, substitute textures to improve rendering speed.
+	{
+		//no textures on material, substitute textures to improve rendering speed.
 		tex.Set_Filename(materialColorTexture);	///@todo: Fix this to procedural name/path
 		W3d_Shader_Set_Texturing(&shader,W3DSHADER_TEXTURING_ENABLE);
 		//This texture will hold solid pixels of material color, don't need any filtering.
@@ -425,14 +418,7 @@ void W3dMaterialClass::Init(Mtl * mtl, char *materialColorTexture)
 	if (PassCount == 2) {
 
 		W3d_Shader_Reset(&shader);
-		if (ps2_mat)
-		{
-			W3d_Shader_Set_Pri_Gradient(&shader,PSS_PRIGRADIENT_MODULATE);
-		}
-		else
-		{
-			W3d_Shader_Set_Pri_Gradient(&shader,W3DSHADER_PRIGRADIENT_MODULATE);
-		}
+		W3d_Shader_Set_Pri_Gradient(&shader,W3DSHADER_PRIGRADIENT_MODULATE);
 		W3d_Shader_Set_Sec_Gradient(&shader,W3DSHADER_SECGRADIENT_DISABLE);
 		W3d_Shader_Set_Depth_Mask(&shader,W3DSHADER_DEPTHMASK_WRITE_DISABLE);
 		W3d_Shader_Set_Dest_Blend_Func(&shader,W3DSHADER_DESTBLENDFUNC_ONE);
@@ -645,7 +631,8 @@ void W3dMaterialClass::Init(GameMtl * gamemtl, char *materialColorTexture)
 
 			} else {
 						if (materialColorTexture)
-						{	//no textures on material, substitute textures to improve rendering speed.
+						{
+							//no textures on material, substitute textures to improve rendering speed.
 							w3dmap.Reset();
 							w3dmap.Set_Filename(materialColorTexture);
 
@@ -663,7 +650,7 @@ void W3dMaterialClass::Init(GameMtl * gamemtl, char *materialColorTexture)
 }
 
 
-bool W3dMaterialClass::Is_Multi_Pass_Transparent(void) const
+bool W3dMaterialClass::Is_Multi_Pass_Transparent() const
 {
 	return ((PassCount >= 2) && (Get_Shader(0).DestBlend != W3DSHADER_DESTBLENDFUNC_ZERO));
 }
@@ -676,7 +663,7 @@ bool W3dMaterialClass::Is_Multi_Pass_Transparent(void) const
 
 
 */
-W3dMaterialDescClass::VertMatClass::VertMatClass(void) :
+W3dMaterialDescClass::VertMatClass::VertMatClass() :
 	PassIndex(-1),
 	Crc(0),
 	Name(nullptr)
@@ -686,7 +673,7 @@ W3dMaterialDescClass::VertMatClass::VertMatClass(void) :
 	}
 }
 
-W3dMaterialDescClass::VertMatClass::~VertMatClass(void)
+W3dMaterialDescClass::VertMatClass::~VertMatClass()
 {
 	if (Name) free(Name);
 
@@ -758,7 +745,7 @@ void W3dMaterialDescClass::VertMatClass::Set_Mapper_Args(const char * args, int 
 
 
 */
-W3dMaterialDescClass::MaterialRemapClass::MaterialRemapClass(void)
+W3dMaterialDescClass::MaterialRemapClass::MaterialRemapClass()
 {
 	PassCount = -1;
 	for (int pass=0; pass<W3dMaterialClass::MAX_PASSES; pass++) {
@@ -792,16 +779,16 @@ bool W3dMaterialDescClass::MaterialRemapClass::operator == (const MaterialRemapC
 
 
 
-W3dMaterialDescClass::W3dMaterialDescClass(void)
+W3dMaterialDescClass::W3dMaterialDescClass()
 {
 	Reset();
 }
 
-W3dMaterialDescClass::~W3dMaterialDescClass(void)
+W3dMaterialDescClass::~W3dMaterialDescClass()
 {
 }
 
-void W3dMaterialDescClass::Reset(void)
+void W3dMaterialDescClass::Reset()
 {
 	PassCount = -1;
 	SortLevel = -1;
@@ -877,32 +864,32 @@ W3dMaterialDescClass::ErrorType W3dMaterialDescClass::Add_Material(const W3dMate
 }
 
 
-int W3dMaterialDescClass::Material_Count(void)
+int W3dMaterialDescClass::Material_Count()
 {
 	return MaterialRemaps.Count();
 }
 
-int W3dMaterialDescClass::Pass_Count(void)
+int W3dMaterialDescClass::Pass_Count()
 {
 	return PassCount;
 }
 
-int W3dMaterialDescClass::Vertex_Material_Count(void)
+int W3dMaterialDescClass::Vertex_Material_Count()
 {
 	return VertexMaterials.Count();
 }
 
-int W3dMaterialDescClass::Shader_Count(void)
+int W3dMaterialDescClass::Shader_Count()
 {
 	return Shaders.Count();
 }
 
-int W3dMaterialDescClass::Texture_Count(void)
+int W3dMaterialDescClass::Texture_Count()
 {
 	return Textures.Count();
 }
 
-int W3dMaterialDescClass::Get_Sort_Level(void)
+int W3dMaterialDescClass::Get_Sort_Level()
 {
 	return SortLevel;
 }
@@ -1024,27 +1011,6 @@ const char * W3dMaterialDescClass::Get_Vertex_Material_Name(int mat_index,int pa
 const char * W3dMaterialDescClass::Get_Vertex_Material_Name(int vmat_index)
 {
 	return VertexMaterials[vmat_index].Name;
-}
-
-bool W3dMaterialDescClass::Stage_Needs_Texture_Coordinates(int pass,int stage)
-{
-	for (int mi=0; mi<MaterialRemaps.Count();mi++) {
-		W3dShaderStruct * shader = Get_Shader(mi,pass);
-
-		if (shader) {
-			if (stage == 0) {
-				if (W3d_Shader_Get_Texturing(shader) == W3DSHADER_TEXTURING_ENABLE) return true;
-			}
-
-			if (stage == 1) {
-				if ((W3d_Shader_Get_Detail_Color_Func(shader) != W3DSHADER_DETAILCOLORFUNC_DISABLE) ||
-					(W3d_Shader_Get_Detail_Alpha_Func(shader) != W3DSHADER_DETAILALPHAFUNC_DISABLE)) {
-					return true;
-				}
-			}
-		}
-	}
-	return false;
 }
 
 bool W3dMaterialDescClass::Pass_Uses_Vertex_Alpha(int pass)

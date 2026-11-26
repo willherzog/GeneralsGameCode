@@ -30,12 +30,10 @@
  *                                                                                             *
  *                    $Revision:: 6                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #include "bchannel.h"
-#include "w3d_file.h"
+#include "WW3D2/w3d_file.h"
 #include "logdlg.h"
 #include "exportlog.h"
 
@@ -62,7 +60,7 @@ BitChannelClass::BitChannelClass
 	End = 0;
 }
 
-BitChannelClass::~BitChannelClass(void)
+BitChannelClass::~BitChannelClass()
 {
 }
 
@@ -222,7 +220,7 @@ bool BitChannelClass::is_default(bool bit)
 	return (bit == DefaultVal);
 }
 
-void BitChannelClass::compute_range(void)
+void BitChannelClass::compute_range()
 {
 	Begin = 0;
 	while ((Begin < MaxFrames) && (is_default(Get_Bit(Begin)))) {

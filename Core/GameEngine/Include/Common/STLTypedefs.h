@@ -75,7 +75,7 @@ enum ParticleSystemID CPP_11(: Int);
 #include <queue>
 #include <set>
 #include <stack>
-#include <string>
+#include <Utility/string_adapter.h>
 #include <vector>
 
 // List of AsciiStrings to allow list of ThingTemplate names from INI and such
@@ -94,11 +94,6 @@ typedef std::vector<ObjectID>::iterator										ObjectIDVectorIterator;
 typedef std::vector<Coord3D> VecCoord3D;
 typedef VecCoord3D::iterator VecCoord3DIt;
 
-// Used for cursor->3D position request caching in the heightmap
-typedef std::pair<ICoord2D, Coord3D>											PosRequest;
-typedef std::vector<PosRequest>														VecPosRequests;
-typedef std::vector<PosRequest>::iterator									VecPosRequestsIt;
-
 // Used to cache off names of objects for faster lookup
 typedef std::pair<AsciiString, Object*>										NamedRequest;
 typedef std::vector<NamedRequest>													VecNamedRequests;
@@ -108,8 +103,8 @@ typedef std::vector<NamedRequest>::iterator								VecNamedRequestsIt;
 typedef std::vector<Bool>																	BoolVector;
 typedef std::vector<Bool>::iterator												BoolVectorIterator;
 
-typedef std::map< NameKeyType, Real, std::less<NameKeyType> > ProductionChangeMap;
-typedef std::map< NameKeyType, VeterancyLevel, std::less<NameKeyType> > ProductionVeterancyMap;
+typedef std::map< NameKeyType, Real, std::less<NameKeyType>/**/> ProductionChangeMap;
+typedef std::map< NameKeyType, VeterancyLevel, std::less<NameKeyType>/**/> ProductionVeterancyMap;
 
 // Some useful, common hash and equal_to functors for use with hash_map
 namespace rts
@@ -220,7 +215,6 @@ namespace rts
 			std::hash<const char *> tmp;
 			return tmp((const char *) ast.str());
 #else
-			// TheSuperHackers @bugfix xezon 16/03/2024 Re-implements hash function that works with non-STLPort.
 			std::hash<std::string_view> hasher;
 			return hasher(std::string_view(ast.str(), ast.getLength()));
 #endif
@@ -287,19 +281,19 @@ namespace rts
 		const_pointer cstr;
 	};
 
-	template <typename String>
 	struct string_key_hash
 	{
-		typedef typename String::const_pointer const_pointer;
+		template <typename String>
 		size_t operator()(const string_key<String>& key) const
 		{
+			typedef typename String::const_pointer const_pointer;
 			return hash<const_pointer>()(key.c_str());
 		}
 	};
 
-	template <typename String>
 	struct string_key_equal
 	{
+		template <typename String>
 		bool operator()(const string_key<String>& a, const string_key<String>& b) const
 		{
 			return strcmp(a.c_str(), b.c_str()) == 0;

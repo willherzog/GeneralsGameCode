@@ -46,6 +46,7 @@
 #include <sys/stat.h>
 #include "Wnd_File.h"
 #include "WinFix.h"
+#include <Lib/PathUtil.h>
 //#include "autorun.h"
 
 
@@ -73,41 +74,21 @@ char DebugFile	[ MAX_PATH ] = { '\0' };
 //-----------------------------------------------------------------------------
 // non-class private functions in this module...
 //-----------------------------------------------------------------------------
-// int Get_Internal_File_Handle( void );
+// int Get_Internal_File_Handle();
 // #if( SUPPORT_STREAMS )
-//	 FILE *Get_Internal_File_Stream( void );
+//	 FILE *Get_Internal_File_Stream();
 // #endif
 
 
 //-----------------------------------------------------------------------------
 // public file class functions...
 //-----------------------------------------------------------------------------
-#if(0)
-#ifndef RTS_DEBUG
-void __cdecl Msg( int, char *, char *, ... ) { };	// line, file, fmt
-void 	Delete_Msg_File ( void )  { };
-#endif
-#endif
-
 
 #ifdef RTS_DEBUG
 
-/****************************************************************************
- * MSG -- Write Message to Debug file with line and filename.				*
- *																			*
- * INPUT:		int line       --	line where message originated.			*
- *				char *filename -- file where message originated.			*
- *				char *fmt      -- variable argument list.					*
- *																			*
- * OUTPUT:		none.														*
- *																			*
- * WARNINGS:	none.														*
- *																			*
- * HISTORY:																	*
- *   08/19/1998   MML : Created.											*
- *==========================================================================*/
+// Write Message to Debug file with line and filename.
 
-void __cdecl Msg( int line, const char *filename, const char *fmt, ... )
+void Msg( int line, const char *filename, const char *fmt, ... )
 {
 	char     szBuffer1[ MAX_PATH * 3 ];
 	char     szBuffer2[ MAX_PATH * 2 ];
@@ -131,11 +112,7 @@ void __cdecl Msg( int line, const char *filename, const char *fmt, ... )
 	//----------------------------------------------------------------------
 	// Make filename.
 	//----------------------------------------------------------------------
-	const char *temp = strrchr( filename, '\\' );
-	if ( temp != nullptr || temp[0] != '\0' ) {
-		temp++;
-		strcpy( szFile, temp );
-	}
+	strcpy( szFile, getFileName( filename ) );
 
 	//----------------------------------------------------------------------
 	// format message with header
@@ -163,31 +140,18 @@ void __cdecl Msg( int line, const char *filename, const char *fmt, ... )
 	//----------------------------------------------------------------------
 	OutputDebugString( szBuffer1 );
 
-} /* Msg */
+}
 
 
-/****************************************************************************
- * MSG -- Write Message to Debug file with line and filename.				*
- *																			*
- * INPUT:		int		line		--	line where message originated.	   	*
- *				wchar_t *filename	-- file where message originated.	   	*
- *				wchar_t *fmt		-- variable argument list. 				*
- *																			*
- * OUTPUT:		none.														*
- *																			*
- * WARNINGS:	none.														*
- *																			*
- * HISTORY:																	*
- *   08/19/1998   MML : Created.											*
- *==========================================================================*/
+// Write Message to Debug file with line and filename.
 
-void __cdecl Msg( int line, const char *filename, const wchar_t *fmt, UINT codepage, ... )
+void Msg( int line, const char *filename, const unichar *fmt, UINT codepage, ... )
 {
-	wchar_t		szBuffer1[ MAX_PATH * 3 ];
-	wchar_t		szBuffer2[ MAX_PATH * 3 ];
+	unichar		szBuffer1[ MAX_PATH * 3 ];
+	unichar		szBuffer2[ MAX_PATH * 3 ];
 	char		szBuffer3[ MAX_PATH * 3 ];
-	wchar_t		szFile[ MAX_PATH ];
-	wchar_t		szArgs[ MAX_PATH ];
+	unichar		szFile[ MAX_PATH ];
+	unichar		szArgs[ MAX_PATH ];
 	va_list		va;
 	int			length;
 	DWORD		nBytes;
@@ -213,12 +177,9 @@ void __cdecl Msg( int line, const char *filename, const wchar_t *fmt, UINT codep
 	//----------------------------------------------------------------------
 	// Make filename.
 	//----------------------------------------------------------------------
-	const char *temp = strrchr( filename, '\\' );
-	if ( temp != nullptr || temp[0] != '\0' ) {
-		temp++;
-		length = strlen( temp );
-		mbstowcs( szFile, temp, length );
-	}
+	const char *temp = getFileName( filename );
+	length = strlen( temp );
+	mbstowcs( szFile, temp, length );
 
 	//----------------------------------------------------------------------
 	// format message with header
@@ -254,27 +215,14 @@ void __cdecl Msg( int line, const char *filename, const wchar_t *fmt, UINT codep
 	//----------------------------------------------------------------------
 	OutputDebugString( szBuffer3 );
 
-} /* Msg */
+}
 
-
-/***************************************************************************
- * DELETE_MSG_FILE -- Delete the Debug file.							   *
- *                                                                         *
- * INPUT:         none.													   *
- *                                                                         *
- * OUTPUT:        none.													   *
- *                                                                         *
- * WARNINGS:      none.                                                    *
- *                                                                         *
- * HISTORY:                                                                *
- *   08/19/1998   MML : Created.                                           *
- *=========================================================================*/
 
 //----------------------------------------------------------------------
 // Delete_Msg_File
 //----------------------------------------------------------------------
 
-void Delete_Msg_File ( void )
+void Delete_Msg_File ()
 {
 	DWORD	nBytes;
 	char	buff	[ 300 ];
@@ -287,8 +235,8 @@ void Delete_Msg_File ( void )
 	//----------------------------------------------------------------------
 //	strcat( strcpy( DebugFile, ".\\" ), DEBUG_FILE );
 	GetWindowsDirectory( DebugFile, MAX_PATH );
-	if ( DebugFile[ strlen( DebugFile )-1 ] != '\\' ) {
-		strcat( DebugFile, "\\" );
+	if ( !ensureTrailingSeparatorInPath( DebugFile, ARRAY_SIZE( DebugFile ) ).ok ) {
+		return;
 	}
 	strcat( DebugFile, DEBUG_FILE );
 
@@ -326,7 +274,7 @@ void Delete_Msg_File ( void )
 // StandardFileClass::StandardFileClass
 //------------------------------------------------------------------------------
 
-StandardFileClass::StandardFileClass( void )
+StandardFileClass::StandardFileClass()
 {
 	//
 	// reset all internal data
@@ -338,7 +286,7 @@ StandardFileClass::StandardFileClass( void )
 // StandardFileClass::~StandardFileClass
 //------------------------------------------------------------------------------
 
-StandardFileClass::~StandardFileClass( void )
+StandardFileClass::~StandardFileClass()
 {
 	//
 	// make sure this file got shut down before we destruct
@@ -516,7 +464,7 @@ bool StandardFileClass::Open( const char *no_path_file_name, int open_mode )
 // bool StandardFileClass::Close
 //------------------------------------------------------------------------------
 
-bool StandardFileClass::Close( void )
+bool StandardFileClass::Close()
 {
 	int status;
 
@@ -819,7 +767,7 @@ bool StandardFileClass::Seek( int distance, int seek_file_position )
 //
 // return file position
 //
-int StandardFileClass::Tell( void )
+int StandardFileClass::Tell()
 {
 	int file_pos;
 
@@ -879,7 +827,7 @@ int StandardFileClass::Tell( void )
 // int StandardFileClass::Query_Size
 //------------------------------------------------------------------------------
 
-int StandardFileClass::Query_Size( void )
+int StandardFileClass::Query_Size()
 {
 	int size;
 
@@ -928,7 +876,7 @@ int StandardFileClass::Query_Size( void )
 // int StandardFileClass::Query_Size
 //------------------------------------------------------------------------------
 
-bool StandardFileClass::Query_Open( void )
+bool StandardFileClass::Query_Open()
 {
 	return( Currently_Open );
 }
@@ -937,7 +885,7 @@ bool StandardFileClass::Query_Open( void )
 // char *StandardFileClass::Query_Name_String
 //------------------------------------------------------------------------------
 
-char *StandardFileClass::Query_Name_String( void )
+char *StandardFileClass::Query_Name_String()
 {
 	return( File_Name );
 }
@@ -949,7 +897,7 @@ char *StandardFileClass::Query_Name_String( void )
 // FILE *StandardFileClass::Query_File_Stream_Pointer
 //------------------------------------------------------------------------------
 
-FILE *StandardFileClass::Query_File_Stream_Pointer( void )
+FILE *StandardFileClass::Query_File_Stream_Pointer()
 {
 	return( File_Stream_Ptr );
 }
@@ -965,7 +913,7 @@ FILE *StandardFileClass::Query_File_Stream_Pointer( void )
 // void StandardFileClass::Reset
 //------------------------------------------------------------------------------
 
-void StandardFileClass::Reset( void )
+void StandardFileClass::Reset()
 {
 	//
 	// reset all internal data
@@ -981,7 +929,7 @@ void StandardFileClass::Reset( void )
 }
 
 
-int StandardFileClass::End_Of_File	( void )
+int StandardFileClass::End_Of_File	()
 {
 	#if( SUPPORT_HANDLES )
    	return( TRUE );
@@ -996,7 +944,7 @@ int StandardFileClass::End_Of_File	( void )
 	#endif
 }
 
-int StandardFileClass::Flush ( void )
+int StandardFileClass::Flush ()
 {
 	#if( SUPPORT_STREAMS )
 	ASSERT( File_Stream_Ptr != nullptr );
@@ -1507,7 +1455,7 @@ bool Find_File( char const *file_name )
 //
 // private...
 //
-int Get_Internal_File_Handle( void )
+int Get_Internal_File_Handle()
 {
 	static bool _initialized = FALSE;
 	int i;

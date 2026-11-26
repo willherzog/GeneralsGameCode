@@ -99,7 +99,7 @@ CashHackSpecialPower::~CashHackSpecialPower()
 // ------------------------------------------------------------------------------------------------
 void CashHackSpecialPower::doSpecialPowerAtLocation( const Coord3D *loc, Real angle, UnsignedInt commandOptions )
 {
-	if (getObject()->isDisabled())
+	if (!canDoSpecialPower())
 		return;
 
 	// only allowed at objects
@@ -128,7 +128,7 @@ Int CashHackSpecialPower::findAmountToSteal() const
 // ------------------------------------------------------------------------------------------------
 void CashHackSpecialPower::doSpecialPowerAtObject( Object *victim, UnsignedInt commandOptions )
 {
-	if (getObject()->isDisabled())
+	if (!canDoSpecialPower())
 		return;
 
 	// sanity
@@ -162,14 +162,14 @@ void CashHackSpecialPower::doSpecialPowerAtObject( Object *victim, UnsignedInt c
 			moneyString.format( TheGameText->fetch( "GUI:AddCash" ), cash );
 			Coord3D pos;
 			pos.zero();
-			pos.add( self->getPosition() );
+			pos.add( *self->getPosition() );
 			pos.z += 20.0f; //add a little z to make it show up above the unit.
 			TheInGameUI->addFloatingText( moneyString, &pos, GameMakeColor( 0, 255, 0, 255 ) );
 
 			//Display cash lost floating over the target
 			moneyString.format( TheGameText->fetch( "GUI:LoseCash" ), cash );
 			pos.zero();
-			pos.add( victim->getPosition() );
+			pos.add( *victim->getPosition() );
 			pos.z += 30.0f; //add a little z to make it show up above the unit.
 			TheInGameUI->addFloatingText( moneyString, &pos, GameMakeColor( 255, 0, 0, 255 ) );
 		}

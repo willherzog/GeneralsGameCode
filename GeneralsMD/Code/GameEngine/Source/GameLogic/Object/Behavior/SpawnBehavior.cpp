@@ -629,7 +629,14 @@ Bool SpawnBehavior::createSpawn()
 		newSpawn = TheThingFactory->newObject( m_spawnTemplate, parent->getTeam() ); // just a little worried about this...
 
 		// Count this unit towards our score.
+#if RTS_GENERALS && defined(_MSC_VER) && _MSC_VER < 1300
+		// TheSuperHackers @info Set m_onUnitProducedZeroInit to true so it can be used in AIPlayer::onUnitProduced.
+		TheGameLogic->m_onUnitProducedZeroInit = true;
 		newSpawn->getControllingPlayer()->onUnitCreated(parent, newSpawn);
+		TheGameLogic->m_onUnitProducedZeroInit = false;
+#else
+		newSpawn->getControllingPlayer()->onUnitCreated(parent, newSpawn);
+#endif
 
 		// Gee, this is new...
 		// Now, we can have a list of template names.
@@ -914,7 +921,7 @@ void SpawnBehavior::computeAggregateStates()
 
 			spawnWeaponBonus = currentSpawn->getWeaponBonusCondition();
 
-			avgSpawnPos.add(currentSpawn->getPosition());
+			avgSpawnPos.add(*currentSpawn->getPosition());
 
 			BodyModuleInterface *body = currentSpawn->getBodyModule();
 			acrHealth    += body->getHealth();
@@ -986,7 +993,7 @@ void SpawnBehavior::computeAggregateStates()
 	// HEALTH BOX POSITION *****************************
 	// pick a centered, average spot to draw the health box
 	avgSpawnPos.scale(1.0f / spawnCount);
-	avgSpawnPos.sub(obj->getPosition());
+	avgSpawnPos.sub(*obj->getPosition());
 	obj->setHealthBoxOffset(avgSpawnPos);
 
 

@@ -24,14 +24,13 @@
 
 #pragma once
 
-#include "always.h"
-#include "rendobj.h"
-#include "w3d_file.h"
-#include "dx8vertexbuffer.h"
-#include "dx8indexbuffer.h"
-#include "shader.h"
-#include "vertmaterial.h"
-#include "Lib/BaseType.h"
+#include "WWLib/always.h"
+#include "WW3D2/rendobj.h"
+#include "WW3D2/w3d_file.h"
+#include "WW3D2/dx8vertexbuffer.h"
+#include "WW3D2/dx8indexbuffer.h"
+#include "WW3D2/shader.h"
+#include "WW3D2/vertmaterial.h"
 
 #define MAX_TRACK_EDGE_COUNT	100	//maximum number of edges or divisions in track mark
 #define MAX_TRACK_OPAQUE_EDGE	25	//linear fade of edges will begin at this edge
@@ -44,9 +43,9 @@ class Drawable;
 /**
 This render object handles drawing tracks left by objects moving on the terrain.
 */
-class TerrainTracksRenderObjClass : public W3DMPO, public RenderObjClass
+class TerrainTracksRenderObjClass : public RenderObjClass
 {
-	W3DMPO_GLUE(TerrainTracksRenderObjClass)
+	W3DMPO_CODE(TerrainTracksRenderObjClass)
 
 	friend class TerrainTracksRenderObjClassSystem;
 

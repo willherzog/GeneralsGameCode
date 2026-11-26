@@ -30,20 +30,18 @@
  *                                                                                             *
  *                    $Revision:: 4                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
 
-#include "always.h"
+#include "WWLib/always.h"
 
-#include <max.h>
+#include "max_sdk.h"
 #include <stdio.h>
 
-#include "w3d_file.h"
+#include "WW3D2/w3d_file.h"
 #include "PROGRESS.h"
-#include "chunkio.h"
+#include "WWLib/chunkio.h"
 #include "meshcon.h"
 
 
@@ -62,7 +60,7 @@ public:
 	HLodSaveClass (MeshConnectionsClass **connections, int lod_count, TimeValue CurTime,
 						char *name, const char *htree_name, Progress_Meter_Class &meter,
 						INodeListClass *origin_list);
-	~HLodSaveClass (void);
+	~HLodSaveClass ();
 
 	bool Save (ChunkSaveClass &csave);
 
@@ -86,7 +84,7 @@ protected:
 			Allocate_Sub_Objects(num_sub_objs);
 		}
 
-		~HLodArrayEntry (void)
+		~HLodArrayEntry ()
 		{
 			if (sub_obj)
 			{

@@ -30,30 +30,28 @@
  *                                                                                             *
  *                    $Revision:: 5                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
 
 #ifndef ALWAYS_H
-#include "always.h"
+#include "WWLib/always.h"
 #endif
 
 #ifndef BITTYPE_H
-#include "BITTYPE.h"
+#include "WWLib/bittype.h"
 #endif
 
 #ifndef CHUNKIO_H
-#include "chunkio.h"
+#include "WWLib/chunkio.h"
 #endif
 
 #ifndef VECTOR_H
-#include "Vector.h"
+#include "WWLib/Vector.h"
 #endif
 
 #ifndef W3D_FILE_H
-#include "w3d_file.h"
+#include "WW3D2/w3d_file.h"
 #endif
 
 class LogDataDialogClass;
@@ -63,12 +61,12 @@ class BitChannelClass
 public:
 
 	BitChannelClass(uint32 id,int maxframes,uint32 chntype,bool def_val);
-	~BitChannelClass(void);
+	~BitChannelClass();
 
 	void		Set_Bit(int framenumber,bool bit);
 	void		Set_Bits(BooleanVectorClass & bits);
 	bool		Get_Bit(int frameidx);
-	bool		Is_Empty(void) { return IsEmpty; }
+	bool		Is_Empty() { return IsEmpty; }
 	bool		Save(ChunkSaveClass & csave, bool compress);
 
 private:
@@ -87,7 +85,7 @@ private:
 	bool is_default(bool bit);
 
 	// This function finds the start and end of the "non-default" data
-	void compute_range(void);
+	void compute_range();
 
   // compress functions
 	void remove_packet(W3dTimeCodedBitChannelStruct * c, uint32 packet_idx);

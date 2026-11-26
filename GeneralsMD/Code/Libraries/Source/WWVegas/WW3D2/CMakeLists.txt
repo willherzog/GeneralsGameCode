@@ -1,8 +1,8 @@
 set(WW3D2_SRC
     #aabtree.cpp
     #aabtree.h
-    aabtreebuilder.cpp
-    aabtreebuilder.h
+#    aabtreebuilder.cpp
+#    aabtreebuilder.h
     #agg_def.cpp
     #agg_def.h
     #animatedsoundmgr.cpp
@@ -17,10 +17,8 @@ set(WW3D2_SRC
     #bitmaphandler.h
     #bmp2d.cpp
     #bmp2d.h
-    boxrobj.cpp
-    boxrobj.h
-    #bwrender.cpp
-    #bwrender.h
+#    boxrobj.cpp
+#    boxrobj.h
     camera.cpp
     camera.h
     #classid.h
@@ -45,23 +43,21 @@ set(WW3D2_SRC
     #dllist.h
 #    dx8caps.cpp
 #    dx8caps.h
-    dx8fvf.cpp
-    dx8fvf.h
-    dx8indexbuffer.cpp
-    dx8indexbuffer.h
+#    dx8fvf.cpp
+#    dx8fvf.h
+#    dx8indexbuffer.cpp
+#    dx8indexbuffer.h
     #dx8list.h
     #dx8polygonrenderer.cpp
     #dx8polygonrenderer.h
-    dx8renderer.cpp
-    dx8renderer.h
+#    dx8renderer.cpp
+#    dx8renderer.h
 #    dx8rendererdebugger.cpp
 #    dx8rendererdebugger.h
     #dx8texman.cpp
     #dx8texman.h
-    dx8vertexbuffer.cpp
-    dx8vertexbuffer.h
-    #dx8webbrowser.cpp
-    #dx8webbrowser.h
+#    dx8vertexbuffer.cpp
+#    dx8vertexbuffer.h
 #    dx8wrapper.cpp
 #    dx8wrapper.h
     #dynamesh.cpp
@@ -82,10 +78,10 @@ set(WW3D2_SRC
     hlod.h
     #hmdldef.cpp
     #hmdldef.h
-    hmorphanim.cpp
-    hmorphanim.h
-    hrawanim.cpp
-    hrawanim.h
+#    hmorphanim.cpp
+#    hmorphanim.h
+#    hrawanim.cpp
+#    hrawanim.h
     #htree.cpp
     #htree.h
     htreemgr.cpp
@@ -96,49 +92,49 @@ set(WW3D2_SRC
     #inttest.h
     #layer.cpp
     #layer.h
-    light.cpp
-    light.h
+#    light.cpp
+#    light.h
     lightenvironment.cpp
     lightenvironment.h
     #line3d.cpp
     #line3d.h
     linegrp.cpp
     linegrp.h
-    mapper.cpp
-    mapper.h
+#    mapper.cpp
+#    mapper.h
     #matinfo.cpp
     #matinfo.h
     #matpass.cpp
     #matpass.h
-    matrixmapper.cpp
-    matrixmapper.h
-    mesh.cpp
-    mesh.h
+#    matrixmapper.cpp
+#    matrixmapper.h
+#    mesh.cpp
+#    mesh.h
     meshbuild.cpp
     meshbuild.h
     #meshdam.cpp
     #meshdam.h
-    meshgeometry.cpp
-    meshgeometry.h
+#    meshgeometry.cpp
+#    meshgeometry.h
     meshmatdesc.cpp
     meshmatdesc.h
-    meshmdl.cpp
-    meshmdl.h
-    meshmdlio.cpp
+#    meshmdl.cpp
+#    meshmdl.h
+#    meshmdlio.cpp
     #metalmap.cpp
     #metalmap.h
     #missingtexture.cpp
     #missingtexture.h
-    motchan.cpp
-    motchan.h
+#    motchan.cpp
+#    motchan.h
     nullrobj.cpp
     nullrobj.h
     part_buf.cpp
     part_buf.h
-    part_emt.cpp
-    part_emt.h
-    part_ldr.cpp
-    part_ldr.h
+#    part_emt.cpp
+#    part_emt.h
+#    part_ldr.cpp
+#    part_ldr.h
     #pivot.cpp
     #pivot.h
     #pointgr.cpp
@@ -174,15 +170,15 @@ set(WW3D2_SRC
     #segline.h
     #seglinerenderer.cpp
     #seglinerenderer.h
-    shader.cpp
-    shader.h
+#    shader.cpp
+#    shader.h
     #shattersystem.cpp
     #shattersystem.h
 #    shdlib.h
     #snappts.cpp
     #snapPts.h
-    sortingrenderer.cpp
-    sortingrenderer.h
+#    sortingrenderer.cpp
+#    sortingrenderer.h
     #soundlibrarybridge.h
     #soundrobj.cpp
     #soundrobj.h
@@ -212,24 +208,23 @@ set(WW3D2_SRC
     #textureloader.h
     #texturethumbnail.cpp
     #texturethumbnail.h
-    vertmaterial.cpp
-    vertmaterial.h
+#    vertmaterial.cpp
+#    vertmaterial.h
     #visrasterizer.cpp
     #visrasterizer.h
     #w3d_dep.cpp
     #w3d_dep.h
-    w3d_file.h
+#    w3d_file.h
     #w3d_obsolete.h
     #w3d_util.cpp
     #w3d_util.h
     #w3derr.h
     #w3dexclusionlist.cpp
     #w3dexclusionlist.h
-    ww3d.cpp
-    ww3d.h
+#    ww3d.cpp
+#    ww3d.h
     #ww3dformat.cpp
     #ww3dformat.h
-    #ww3dids.h
     #ww3dtrig.h
 )
 
@@ -238,18 +233,22 @@ set_target_properties(z_ww3d2 PROPERTIES OUTPUT_NAME ww3d2)
 
 target_sources(z_ww3d2 PRIVATE ${WW3D2_SRC})
 
+target_include_directories(z_ww3d2 PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+)
+
 target_compile_definitions(z_ww3d2 PRIVATE
     $<$<BOOL:${IS_VS6_BUILD}>:WINVER=0x0500>
 )
 
 target_precompile_headers(z_ww3d2 PRIVATE
-    [["Utility/CppMacros.h"]] # Must be first, to be removed when abandoning VC6
+    [["Precompiled/BasePrecomp.h"]] # Must be first
     [["dx8wrapper.h"]]
-    [["always.h"]]
-    [["STLUtils.h"]]
-    [["win.h"]]
-    [["WWCommon.h"]]
-    [["wwstring.h"]]
+    [["WWLib/always.h"]]
+    [["Utility/STLUtils.h"]]
+    [["WWLib/win.h"]]
+    [["WWLib/WWCommon.h"]]
+    [["WWLib/wwstring.h"]]
     <windows.h>
 )
 

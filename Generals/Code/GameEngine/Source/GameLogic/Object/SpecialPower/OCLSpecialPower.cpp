@@ -143,7 +143,7 @@ OCLSpecialPower::~OCLSpecialPower()
 //-------------------------------------------------------------------------------------------------
 void OCLSpecialPower::doSpecialPowerAtLocation( const Coord3D *loc, Real angle, UnsignedInt commandOptions )
 {
-	if (getObject()->isDisabled())
+	if (!canDoSpecialPower())
 		return;
 
 	// sanity
@@ -181,7 +181,7 @@ void OCLSpecialPower::doSpecialPowerAtLocation( const Coord3D *loc, Real angle, 
 			ObjectCreationList::create( ocl, getObject(), &creationCoord, loc );
 			break;
 		case USE_OWNER_OBJECT:
-			creationCoord.set( loc );
+			creationCoord.set( *loc );
 			ObjectCreationList::create( ocl, getObject(), &creationCoord, loc, false );
 			break;
 		case CREATE_ABOVE_LOCATION:
@@ -209,11 +209,11 @@ void OCLSpecialPower::doSpecialPowerAtObject( Object *obj, UnsignedInt commandOp
 // ------------------------------------------------------------------------------------------------
 void OCLSpecialPower::doSpecialPower( UnsignedInt commandOptions )
 {
-	if (getObject()->isDisabled())
+	if (!canDoSpecialPower())
 		return;
 
 	Coord3D creationCoord;
-	creationCoord.set( getObject()->getPosition() );
+	creationCoord.set( *getObject()->getPosition() );
 
 	// call the base class action cause we are *EXTENDING* functionality
 	SpecialPowerModule::doSpecialPowerAtLocation( &creationCoord, INVALID_ANGLE, commandOptions );

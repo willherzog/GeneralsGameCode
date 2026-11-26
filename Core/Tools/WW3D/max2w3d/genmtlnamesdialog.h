@@ -32,8 +32,6 @@
  *                                                                                             *
  *                    $Revision:: 1                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
@@ -66,7 +64,7 @@ public:
 
 	struct OptionsStruct
 	{
-		OptionsStruct(void) : OnlyAffectSelected(true), NameIndex(0)
+		OptionsStruct() : OnlyAffectSelected(true), NameIndex(0)
 		{
 			memset(RootName,0,sizeof(RootName));
 		}
@@ -81,7 +79,7 @@ public:
 
 	bool Get_Options(OptionsStruct * options);
 	bool Dialog_Proc(HWND hWnd,UINT message,WPARAM wParam,LPARAM);
-	bool Ok_To_Exit(void);
+	bool Ok_To_Exit();
 
 private:
 

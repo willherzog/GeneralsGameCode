@@ -118,7 +118,7 @@ public:
 	virtual Bool allow(Object *objOther) override;
 
 #if defined(RTS_DEBUG)
-	virtual const char* debugGetName() { return "PartitionFilterStealthedOrStealthGarrisoned"; }
+	virtual const char* debugGetName() override { return "PartitionFilterStealthedOrStealthGarrisoned"; }
 #endif
 };
 
@@ -187,7 +187,13 @@ UpdateSleepTime StealthDetectorUpdate::update()
 	PartitionFilterRelationship						filterTeam(self, PartitionFilterRelationship::ALLOW_ENEMIES | PartitionFilterRelationship::ALLOW_NEUTRAL );
 	PartitionFilterAcceptByKindOf					filterKindof(data->m_extraDetectKindof, data->m_extraDetectKindofNot);
 	PartitionFilterSameMapStatus					filterMapStatus(getObject());
-	PartitionFilter*											filters[] = { &filterStealthOrStealthGarrisoned, &filterTeam, &filterKindof, &filterMapStatus, nullptr };
+	PartitionFilter*											filters[] = {
+		&filterStealthOrStealthGarrisoned,
+		&filterTeam,
+		&filterKindof,
+		&filterMapStatus,
+		nullptr
+	};
 
 	Real visionRange = self->getVisionRange();
 	if( data->m_detectionRange > 0.0f )
@@ -312,18 +318,15 @@ UpdateSleepTime StealthDetectorUpdate::update()
 			if (data->m_IRGridParticleSysTmpl)
 			{
 				const ParticleSystemTemplate *gridTemplate = data->m_IRGridParticleSysTmpl;
-				if (gridTemplate)
+				ParticleSystem *sys = TheParticleSystemManager->createParticleSystem( gridTemplate );//GRID
+				if (sys)
 				{
-					ParticleSystem *sys = TheParticleSystemManager->createParticleSystem( gridTemplate );//GRID
-					if (sys)
-					{
-						Coord3D gridPosition = *them->getPosition();
-						gridPosition.z = self->getPosition()->z + 17;
-						gridPosition.x -= ((Int)gridPosition.x)%12;
-						gridPosition.y -= ((Int)gridPosition.y)%12;
+					Coord3D gridPosition = *them->getPosition();
+					gridPosition.z = self->getPosition()->z + 17;
+					gridPosition.x -= ((Int)gridPosition.x)%12;
+					gridPosition.y -= ((Int)gridPosition.y)%12;
 
-						sys->setPosition( &gridPosition );
-					}
+					sys->setPosition( &gridPosition );
 				}
 			}
 
@@ -373,34 +376,28 @@ UpdateSleepTime StealthDetectorUpdate::update()
 		  else
 			  pingTemplate = data->m_IRParticleSysTmpl;
 
-		  if (pingTemplate)
+		  ParticleSystem *sys = TheParticleSystemManager->createParticleSystem( pingTemplate );
+		  if (sys)
 		  {
-			  ParticleSystem *sys = TheParticleSystemManager->createParticleSystem( pingTemplate );
-			  if (sys)
-			  {
-				  if (myDraw)
-					  sys->attachToDrawable( myDraw );
-				  else
-					  sys->attachToObject( self );
+			  if (myDraw)
+				  sys->attachToDrawable( myDraw );
+			  else
+				  sys->attachToObject( self );
 
-				  sys->setPosition( &bonePosition );
-			  }
+			  sys->setPosition( &bonePosition );
 		  }
 
 		  const ParticleSystemTemplate *beaconTemplate = data->m_IRBeaconParticleSysTmpl;
-		  if (beaconTemplate)
+		  sys = TheParticleSystemManager->createParticleSystem( beaconTemplate );//BEACON
+		  if (sys)
 		  {
-			  ParticleSystem *sys = TheParticleSystemManager->createParticleSystem( beaconTemplate );//BEACON
-			  if (sys)
-			  {
-				  if (myDraw)
-					  sys->attachToDrawable( myDraw );
-				  else
-					  sys->attachToObject( self );
+			  if (myDraw)
+				  sys->attachToDrawable( myDraw );
+			  else
+				  sys->attachToObject( self );
 
-				  sys->setPosition( &bonePosition );
+			  sys->setPosition( &bonePosition );
 
-			  }
 		  }
 
 		  AudioEventRTS IRPingSound;

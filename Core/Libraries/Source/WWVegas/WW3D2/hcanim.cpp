@@ -31,21 +31,6 @@
  *                                                                                             *
  *                    $Revision:: 3                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
- *   NodeMotionStruct::NodeMotionStruct -- constructor                                         *
- *   NodeMotionStruct::~NodeMotionStruct -- destructor                                         *
- *   HCompressedAnimClass::HCompressedAnimClass -- constructor                                 *
- *   HCompressedAnimClass::~HCompressedAnimClass -- Destructor                                 *
- *   HCompressedAnimClass::Free -- De-allocates all memory in use                              *
- *   HCompressedAnimClass::Load -- Loads hierarchy animation from a file                       *
- *   HCompressedAnimClass::read_channel -- Reads in a single channel of motion                 *
- *   HCompressedAnimClass::add_channel -- Adds a motion channel to the animation               *
- *   HCompressedAnimClass::Get_Translation -- returns the translation vector for the given fram*
- *   HCompressedAnimClass::Get_Orientation -- returns a quaternion for the orientation of the p*
- *   HCompressedAnimClass::read_bit_channel -- read a bit channel from the file                *
- *   HCompressedAnimClass::add_bit_channel -- install a bit channel into the animation         *
- *   HCompressedAnimClass::Get_Visibility -- return visibility state for given pivot/frame     *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 
@@ -53,10 +38,10 @@
 #include "assetmgr.h"
 #include "htree.h"
 #include "motchan.h"
-#include "chunkio.h"
+#include "WWLib/chunkio.h"
 #include "w3d_file.h"
-#include "wwdebug.h"
-#include <nstrdup.h>
+#include "WWDebug/wwdebug.h"
+#include <WWLib/nstrdup.h>
 
 
 struct NodeCompressedMotionStruct
@@ -96,17 +81,6 @@ struct NodeCompressedMotionStruct
 	TimeCodedBitChannelClass *			Vis;
 };
 
-/***********************************************************************************************
- * NodeCompressedMotionStruct::NodeCompressedMotionStruct -- constructor                       *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *=============================================================================================*/
 NodeCompressedMotionStruct::NodeCompressedMotionStruct() :
 	Vis(nullptr)
 {
@@ -117,19 +91,6 @@ NodeCompressedMotionStruct::NodeCompressedMotionStruct() :
 }
 
 
-/***********************************************************************************************
- * NodeCompressedMotionStruct::~NodeCompressedMotionStruct -- destructor                       *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   10/23/98   GTH : Created.                                                                 *
- *   02/02/00   JGA : Compressed                                                               *
- *=============================================================================================*/
 NodeCompressedMotionStruct::~NodeCompressedMotionStruct()
 {
 	// Needs to be changed to call the correct destructors
@@ -157,18 +118,6 @@ NodeCompressedMotionStruct::~NodeCompressedMotionStruct()
 }
 
 
-/***********************************************************************************************
- * HCompressedAnimClass::HCompressedAnimClass -- constructor                                   *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   08/11/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
 HCompressedAnimClass::HCompressedAnimClass() :
 	NumFrames(0),
 	NumNodes(0),
@@ -181,36 +130,12 @@ HCompressedAnimClass::HCompressedAnimClass() :
 }
 
 
-/***********************************************************************************************
- * HCompressedAnimClass::~HCompressedAnimClass -- Destructor                                   *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   08/11/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
 HCompressedAnimClass::~HCompressedAnimClass()
 {
 	Free();
 }
 
 
-/***********************************************************************************************
- * HCompressedAnimClass::Free -- De-allocates all memory in use                                *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   08/11/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
 void HCompressedAnimClass::Free()
 {
 	delete[] NodeMotion;
@@ -218,18 +143,6 @@ void HCompressedAnimClass::Free()
 }
 
 
-/***********************************************************************************************
- * HCompressedAnimClass::Load -- Loads hierarchy animation from a file                         *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   08/11/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
 int HCompressedAnimClass::Load_W3D(ChunkLoadClass & cload)
 {
 	int i = 0;
@@ -293,10 +206,6 @@ int HCompressedAnimClass::Load_W3D(ChunkLoadClass & cload)
 	/*
 	** Now, read in all of the other chunks (motion channels).
 	*/
-	TimeCodedMotionChannelClass * tc_chan;
-	AdaptiveDeltaMotionChannelClass * ad_chan;
-	TimeCodedBitChannelClass * newbitchan;
-
 	while (cload.Open_Chunk()) {
 
 		switch (cload.Cur_Chunk_ID()) {
@@ -306,7 +215,8 @@ int HCompressedAnimClass::Load_W3D(ChunkLoadClass & cload)
 				switch ( Flavor ) {
 
 					case ANIM_FLAVOR_TIMECODED:
-
+					{
+						TimeCodedMotionChannelClass* tc_chan = nullptr;
 						if (!read_channel(cload,&tc_chan)) {
 							goto Error;
 						}
@@ -322,8 +232,11 @@ int HCompressedAnimClass::Load_W3D(ChunkLoadClass & cload)
 						}
 
 						break;
+					}
 
 					case ANIM_FLAVOR_ADAPTIVE_DELTA:
+					{
+						AdaptiveDeltaMotionChannelClass* ad_chan = nullptr;
 						if (!read_channel(cload,&ad_chan)) {
 							goto Error;
 						}
@@ -338,10 +251,13 @@ int HCompressedAnimClass::Load_W3D(ChunkLoadClass & cload)
 							WWDEBUG_SAY(("ERROR! animation %s indexes a bone not present in the model. Please re-export!",Name));
 						}
 						break;
+					}
 				}
 				break;
 
 			case W3D_CHUNK_COMPRESSED_BIT_CHANNEL:
+			{
+				TimeCodedBitChannelClass* newbitchan = nullptr;
 				if (!read_bit_channel(cload,&newbitchan)) {
 					goto Error;
 				}
@@ -357,6 +273,7 @@ int HCompressedAnimClass::Load_W3D(ChunkLoadClass & cload)
 				}
 
 				break;
+			}
 
 			default:
 				break;
@@ -373,49 +290,37 @@ Error:
 
 }
 
-/***********************************************************************************************
- * HCompressedAnimClass::read_channel -- Reads in a single channel of motion                   *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   08/11/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
 bool HCompressedAnimClass::read_channel(ChunkLoadClass & cload,TimeCodedMotionChannelClass * * newchan)
 {
-	*newchan = W3DNEW TimeCodedMotionChannelClass;
-	bool result = (*newchan)->Load_W3D(cload);
-
-	return result;
-
+	TimeCodedMotionChannelClass* channel = W3DNEW TimeCodedMotionChannelClass;
+	if (channel->Load_W3D(cload))
+	{
+		*newchan = channel;
+		return true;
+	}
+	else
+	{
+		delete channel;
+		return false;
+	}
 }
 
 bool HCompressedAnimClass::read_channel(ChunkLoadClass & cload,AdaptiveDeltaMotionChannelClass * * newchan)
 {
-	*newchan = W3DNEW AdaptiveDeltaMotionChannelClass;
-	bool result = (*newchan)->Load_W3D(cload);
-
-	return result;
-
+	AdaptiveDeltaMotionChannelClass* channel = W3DNEW AdaptiveDeltaMotionChannelClass;
+	if (channel->Load_W3D(cload))
+	{
+		*newchan = channel;
+		return true;
+	}
+	else
+	{
+		delete channel;
+		return false;
+	}
 }
 
 
-/***********************************************************************************************
- * HCompressedAnimClass::add_channel -- Adds a motion channel to the animation                 *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   08/11/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
 void HCompressedAnimClass::add_channel(TimeCodedMotionChannelClass * newchan)
 {
 	int idx = newchan->Get_Pivot();
@@ -469,40 +374,22 @@ void HCompressedAnimClass::add_channel(AdaptiveDeltaMotionChannelClass * newchan
 
 
 
-/***********************************************************************************************
- * HCompressedAnimClass::read_bit_channel -- read a bit channel from the file                  *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   1/19/98    GTH : Created.                                                                 *
- *=============================================================================================*/
 bool HCompressedAnimClass::read_bit_channel(ChunkLoadClass & cload,TimeCodedBitChannelClass * * newchan)
 {
-	*newchan = W3DNEW TimeCodedBitChannelClass;
-	bool result = (*newchan)->Load_W3D(cload);
-
-	return result;
-
+	TimeCodedBitChannelClass* channel = W3DNEW TimeCodedBitChannelClass;
+	if (channel->Load_W3D(cload))
+	{
+		*newchan = channel;
+		return true;
+	}
+	else
+	{
+		delete channel;
+		return false;
+	}
 }
 
 
-/***********************************************************************************************
- * HCompressedAnimClass::add_bit_channel -- install a bit channel into the animation           *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   1/19/98    GTH : Created.                                                                 *
- *=============================================================================================*/
 void HCompressedAnimClass::add_bit_channel(TimeCodedBitChannelClass * newchan)
 {
 	int idx = newchan->Get_Pivot();
@@ -515,18 +402,6 @@ void HCompressedAnimClass::add_bit_channel(TimeCodedBitChannelClass * newchan)
 	}
 }
 
-/***********************************************************************************************
- * HCompressedAnimClass::Get_Translation -- returns the translation vector for the given frame *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   08/11/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
 void HCompressedAnimClass::Get_Translation( Vector3& trans, int pividx, float frame ) const
 {
 	struct NodeCompressedMotionStruct * motion = &NodeMotion[pividx];
@@ -550,18 +425,6 @@ void HCompressedAnimClass::Get_Translation( Vector3& trans, int pividx, float fr
 	}
 }
 
-/***********************************************************************************************
- * HCompressedAnimClass::Get_Orientation -- returns a quaternion for the orientation of the    *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   08/11/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
 void HCompressedAnimClass::Get_Orientation(Quaternion& q, int pividx,float frame) const
 {
 	switch(Flavor) {
@@ -579,18 +442,6 @@ void HCompressedAnimClass::Get_Orientation(Quaternion& q, int pividx,float frame
 	}
 }
 
-/***********************************************************************************************
- * HCompressedAnimClass::Get_Transform -- returns the transform matrix for the given frame	  *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   08/11/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
 void HCompressedAnimClass::Get_Transform( Matrix3D& mtx, int pividx, float frame ) const
 {
 	struct NodeCompressedMotionStruct * motion = &NodeMotion[pividx];
@@ -625,18 +476,6 @@ void HCompressedAnimClass::Get_Transform( Matrix3D& mtx, int pividx, float frame
 	}
 }
 
-/***********************************************************************************************
- * HCompressedAnimClass::Get_Visibility -- return visibility state for given pivot/frame       *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   1/19/98    GTH : Created.                                                                 *
- *=============================================================================================*/
 bool HCompressedAnimClass::Get_Visibility(int pividx,float frame)
 {
 
@@ -651,18 +490,6 @@ bool HCompressedAnimClass::Get_Visibility(int pividx,float frame)
 
 
 
-/***********************************************************************************************
- * HAnimClass::Is_Node_Motion_Present -- return true if there is motion defined for this frame *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   3/23/99    EHC : Created.                                                                 *
- *=============================================================================================*/
 bool HCompressedAnimClass::Is_Node_Motion_Present(int pividx)
 {
 	WWASSERT((pividx >= 0) && (pividx < NumNodes));

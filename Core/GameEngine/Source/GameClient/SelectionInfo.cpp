@@ -345,7 +345,7 @@ Bool addDrawableToList( Drawable *draw, void *userData )
 	if (!pds->drawableListToFill)
 		return FALSE;
 
-#if !RTS_GENERALS || !PRESERVE_RETAIL_BEHAVIOR
+#if !RTS_GENERALS || !PRESERVE_OCCUPANT_DETECTION_VIA_DRAG_SELECTION
 	// TheSuperHackers @info
 	// In retail, drag-selecting allows the player to select stealthed objects and objects through the
 	// fog. Some players exploit this bug to determine where an opponent's units are and consider this
@@ -364,7 +364,8 @@ Bool addDrawableToList( Drawable *draw, void *userData )
   {
     const Object *obj = draw->getObject();
     if ( obj && obj->getContainedBy() )//hmm, interesting... he is not selectable but he is contained
-    {// What we are after here is to propagate the selection the selection ti the container
+    {
+      // What we are after here is to propagate the selection the selection ti the container
       // if the container is non-enclosing... see also SelectionXlat, in the left_click case
 
       ContainModuleInterface *contain = obj->getContainedBy()->getContain();
@@ -376,7 +377,7 @@ Bool addDrawableToList( Drawable *draw, void *userData )
       return FALSE;
   }
 
-#if !RTS_GENERALS && PRESERVE_RETAIL_BEHAVIOR
+#if !RTS_GENERALS && PRESERVE_OCCUPANT_DETECTION_VIA_DRAG_SELECTION
 	// TheSuperHackers @info
 	// In retail, hidden objects such as passengers are included here when drag-selected, which causes
 	// enemy selection logic to exit early (only 1 enemy unit can be selected at a time). Some players

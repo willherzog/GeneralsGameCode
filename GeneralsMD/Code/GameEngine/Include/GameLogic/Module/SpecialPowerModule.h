@@ -66,6 +66,7 @@ public:
 	virtual void markSpecialPowerTriggered( const Coord3D *location ) = 0;
 	virtual void startPowerRecharge() = 0;
 	virtual const AudioEventRTS& getInitiateSound() const = 0;
+	virtual Bool startsReady() const = 0;
 	virtual Bool isScriptOnly() const = 0;
 
 	//If the special power launches a construction site, we need to know the final product for placement purposes.
@@ -86,6 +87,7 @@ public:
 	AudioEventRTS			m_initiateSound;
 	Bool							m_updateModuleStartsAttack;	///< update module determines when the special power actually starts! If true, update module is required.
 	Bool							m_startsPaused; ///< Paused on creation, someone else will have to unpause (like upgrade module, or script)
+	Bool							m_startsReady; ///< If true, the special power will be ready immediately, otherwise it will have a reload time on creation.
 	Bool							m_scriptedSpecialPowerOnly;
 };
 
@@ -109,14 +111,11 @@ public:
 
 	virtual Bool isModuleForPower( const SpecialPowerTemplate *specialPowerTemplate ) const override;	///< is this module for the specified special power
 	virtual Bool isReady() const override; 						///< is this special power available now
-//  This is the althernate way to one-at-a-time BlackLotus' specials; we'll keep it commented her until Dustin decides, or until 12/10/02
-//	Bool isBusy() const { return FALSE; }
 
 	virtual Real getPercentReady() const override;		///< get the percent ready (1.0 = ready now, 0.5 = half charged up etc.)
 
 	virtual UnsignedInt getReadyFrame() const override;		///< get the frame at which we are ready
 	virtual AsciiString getPowerName() const override;
-	void syncReadyFrameToStatusQuo();
 
 	virtual const SpecialPowerTemplate* getSpecialPowerTemplate() const override;
 	virtual ScienceType getRequiredScience() const override;
@@ -157,6 +156,7 @@ public:
 	virtual void startPowerRecharge() override;
 	virtual const AudioEventRTS& getInitiateSound() const override;
 
+	virtual Bool startsReady() const override;
 	virtual Bool isScriptOnly() const override;
 
 	//If the special power launches a construction site, we need to know the final product for placement purposes.
@@ -169,6 +169,7 @@ protected:
 	void createViewObject( const Coord3D *location );
 	void resolveSpecialPower();
 	void aboutToDoSpecialPower( const Coord3D *location );
+	Bool canDoSpecialPower() const; ///< Different to isReady()
 
 	UnsignedInt m_availableOnFrame;			///< on this frame, this special power is available
 	Int m_pausedCount;									///< Reference count of sources pausing me

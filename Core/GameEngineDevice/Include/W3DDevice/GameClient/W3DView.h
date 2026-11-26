@@ -37,6 +37,7 @@
 // SYSTEM INCLUDES ////////////////////////////////////////////////////////////////////////////////
 
 // USER INCLUDES //////////////////////////////////////////////////////////////////////////////////
+#include "Common/MapObject.h"
 #include "Common/STLTypedefs.h"
 #include "GameClient/ParabolicEase.h"
 #include "GameClient/View.h"
@@ -47,6 +48,8 @@ class Drawable;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 enum {MAX_WAYPOINTS=25};
+
+constexpr const Real TERRAIN_SAMPLE_SIZE = MAP_XY_FACTOR * 4;
 
 // ------------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------------------
@@ -164,9 +167,11 @@ public:
 	virtual void scrollBy( const Coord2D *delta ) override;  ///< Shift the view by the given delta
 
 	virtual void forceRedraw() override;
+	virtual void onHeightMapChanged() override { m_lastScreenToTerrainValid = false; }
+	virtual void onBridgeChanged() override { m_lastScreenToTerrainValid = false; }
 
-	virtual Bool isDoingScriptedCamera();
-	virtual void stopDoingScriptedCamera();
+	virtual Bool isDoingScriptedCamera() override;
+	virtual void stopDoingScriptedCamera() override;
 
 	virtual void setAngle( Real radians ) override;									///< Rotate the view around the vertical axis to the given angle (yaw)
 	virtual void setPitch( Real radians ) override;									///< Rotate the view around the horizontal axis to the given angle (pitch)
@@ -185,9 +190,9 @@ public:
  	virtual void rotateCamera(Real rotations, Int frames, Real easeIn, Real easeOut) override;					///< Rotate camera about current viewpoint.
 	virtual void rotateCameraTowardObject(ObjectID id, Int milliseconds, Int holdMilliseconds, Real easeIn, Real easeOut) override;	///< Rotate camera to face an object, and hold on it
 	virtual void rotateCameraTowardPosition(const Coord3D *pLoc, Int milliseconds, Real easeIn, Real easeOut, Bool reverseRotation) override;	///< Rotate camera to face a location.
-	virtual void cameraModFreezeTime(){ m_freezeTimeForCameraMovement = true;}					///< Freezes time during the next camera movement.
+	virtual void cameraModFreezeTime() override { m_freezeTimeForCameraMovement = true;}					///< Freezes time during the next camera movement.
 	virtual void cameraModFreezeAngle() override;												///< Freezes time during the next camera movement.
-	virtual Bool isTimeFrozen(){ return m_freezeTimeForCameraMovement;}					///< Freezes time during the next camera movement.
+	virtual Bool isTimeFrozen() override { return m_freezeTimeForCameraMovement;}					///< Freezes time during the next camera movement.
 	virtual void cameraModFinalZoom(Real finalZoom, Real easeIn, Real easeOut) override;	///< Final zoom for current camera movement.
 	virtual void cameraModRollingAverage(Int framesToAverage) override;			///< Number of frames to average movement for current camera movement.
 	virtual void cameraModFinalTimeMultiplier(Int finalMultiplier) override; ///< Final time multiplier for current camera movement.
@@ -215,8 +220,8 @@ public:
 	virtual void setFieldOfView( Real angle ) override;							///< Set the horizontal field of view angle
 
   virtual WorldToScreenReturn worldToScreenTriReturn( const Coord3D *w, ICoord2D *s ) override;	///< Transform world coordinate "w" into screen coordinate "s"
-	virtual void screenToTerrain( const ICoord2D *screen, Coord3D *world ) override;  ///< transform screen coord to a point on the 3D terrain
-	virtual void screenToWorldAtZ( const ICoord2D *s, Coord3D *w, Real z ) override;  ///< transform screen point to world point at the specified world Z value
+	virtual Bool screenToTerrain( const ICoord2D *screen, Coord3D *world ) override;
+	virtual PlaneClass::IntersectionResType screenToWorldAtZ( const ICoord2D *screen, Coord3D *world, Real z ) override;
 
 	CameraClass *get3DCamera() const { return m_3DCamera; }
 
@@ -274,8 +279,10 @@ private:
 	Bool		m_freezeTimeForCameraMovement;
 	Int			m_timeMultiplier;												///< Time speedup multiplier.
 
-	Bool		m_cameraHasMovedSinceRequest;					///< If true, throw out all saved locations
-	VecPosRequests	m_locationRequests;		///< These are cached. New requests are added here
+	// TheSuperHackers @performance Cache only the latest screen-to-terrain result.
+	Bool		m_lastScreenToTerrainValid;
+	ICoord2D	m_lastScreenToTerrainScreen;
+	Coord3D		m_lastScreenToTerrainWorld;
 
 	Coord3D m_previousLookAtPosition;
 	Coord2D m_scrollAmount;													///< scroll speed
@@ -292,13 +299,14 @@ private:
 	Bool m_recalcCameraConstraintsAfterScrolling; ///< Recalculates the camera area constraints after the user has moved the camera
 	Bool m_recalcCamera; ///< Recalculates the camera transform in the next render update
 
+	Real getHeightAroundPos(Real x, Real y, Real terrainSampleSize = TERRAIN_SAMPLE_SIZE) const;
 	Real getCameraOffsetZ() const;
 	Real getDesiredHeight(Real x, Real y) const;
 	Real getDesiredZoom(Real x, Real y) const;
 	Real getMaxHeight(Real x, Real y) const;
 	Real getMaxZoom(Real x, Real y) const;
 	void updateCameraTransform(); ///< update the transform matrix of m_3DCamera, based on m_pos & m_angle
-	void updateCameraClipPlanes();
+	void updateCameraClipPlanes(const Matrix3D &transform);
 	void setCameraTransform(const Matrix3D &transform);
 	void buildCameraPosition(Vector3 &sourcePos, Vector3 &targetPos);
 	void buildCameraTransform(Matrix3D *transform, const Vector3 &sourcePos, const Vector3 &targetPos); ///< calculate (but do not set) the transform matrix of m_3DCamera, based on m_pos & m_angle
@@ -310,7 +318,7 @@ private:
 	void clipCameraIntoAreaConstraints();
 	Bool isWithinCameraAreaConstraints() const;
 	Bool isWithinCameraHeightConstraints() const;
-	virtual void setUserControlled(Bool value);
+	virtual void setUserControlled(Bool value) override;
 	Bool hasScriptedState(ScriptedState state) const;
 	void addScriptedState(ScriptedState state);
 	void removeScriptedState(ScriptedState state);
@@ -322,6 +330,7 @@ private:
 	void pitchCameraOneFrame();							///< Do one frame of a pitch camera movement.
 	void getAxisAlignedViewRegion(Region3D &axisAlignedRegion);	///< Find 3D Region enclosing all possible drawables.
 	void calcDeltaScroll(Coord2D &screenDelta);
+	bool getDesiredTerrainDrawSize(ICoord2D &dimensions) const;
 	void updateTerrain();
 
 	// (gth) C&C3 animation controlled camera feature

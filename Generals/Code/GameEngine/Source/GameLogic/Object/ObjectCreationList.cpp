@@ -281,7 +281,7 @@ public:
 			Real dy = primary->y - secondary->y;
 
 			//Calc length
-			Real length = sqrt( dx*dx + dy*dy );
+			Real length = WWMath::Sqrt( dx*dx + dy*dy );
 
 			//Normalize length
 			dx /= length;
@@ -324,9 +324,9 @@ public:
 
 			Coord3D startPos = *primary;
 			Coord3D moveToPos = *secondary;
-			startPos.add( &offset );
+			startPos.add( offset );
 			//Also give our moveToPos the same offset to maintain perfect formation.
-			moveToPos.add( &offset );
+			moveToPos.add( offset );
 
 			Coord3D targetPos = *secondary;
 
@@ -348,7 +348,7 @@ public:
 			}
 
 
-			Real orient = atan2( moveToPos.y - startPos.y, moveToPos.x - startPos.x);
+			Real orient = WWMath::Atan2( moveToPos.y - startPos.y, moveToPos.x - startPos.x);
 			if( m_data.m_distToTarget > 0 )
 			{
 				const Real SLOP = 1.5f;
@@ -684,7 +684,9 @@ enum DebrisDisposition CPP_11(: Int)
 	RANDOM_FORCE						= 0x00000020,
 	FLOATING								= 0x00000040,
 	INHERIT_VELOCITY				= 0x00000080,
-	WHIRLING								= 0x00000100
+	WHIRLING								= 0x00000100,
+
+	DEBRIS_DISPOSITION_END // keep after the last named flag
 };
 
 static const char* const DebrisDispositionNames[] =
@@ -700,6 +702,7 @@ static const char* const DebrisDispositionNames[] =
 	"WHIRLING",
 	nullptr
 };
+static_assert(equalsEnumBitFlagsCount(ARRAY_SIZE(DebrisDispositionNames) - 1, DEBRIS_DISPOSITION_END), "Incorrect array size");
 
 std::vector<AsciiString>	debrisModelNamesGlobalHack;
 
@@ -959,9 +962,9 @@ protected:
 		if (!m_particleSysName.isEmpty())
 		{
 			const ParticleSystemTemplate *tmp = TheParticleSystemManager->findTemplate(m_particleSysName);
-			if (tmp)
+			ParticleSystem *sys = TheParticleSystemManager->createParticleSystem(tmp);
+			if (sys)
 			{
-				ParticleSystem *sys = TheParticleSystemManager->createParticleSystem(tmp);
 				sys->attachToObject(obj);
 			}
 		}
@@ -995,7 +998,10 @@ protected:
 			DEBUG_LOG(("Object %s inherits veterancy level %d from %s",
 				obj->getTemplate()->getName().str(), sourceObj->getVeterancyLevel(), sourceObj->getTemplate()->getName().str()));
 			VeterancyLevel v = sourceObj->getVeterancyLevel();
-			obj->getExperienceTracker()->setVeterancyLevel(v);
+
+			// TheSuperHackers @bugfix Caball009 22/04/2026 Disable audiovisual cues for a veterancy level change because this object was just created.
+			// Otherwise the cues would be at an incorrect position, because the object's matrix is not set yet.
+			obj->getExperienceTracker()->setVeterancyLevel(v, FALSE);
 
 			//In order to make things easier for the designers, we are going to transfer the unit name
 			//to the ejected thing... so the designer can control the pilot with the scripts.
@@ -1067,7 +1073,7 @@ protected:
 
 				objUp->applyForce(&force);
 				if (m_orientInForceDirection)
-					orientation = atan2(force.y, force.x);
+					orientation = WWMath::Atan2(force.y, force.x);
 
 			}
 		}
@@ -1155,7 +1161,7 @@ protected:
 				objUp->applyForce(&force);
 				if (m_orientInForceDirection)
 				{
-					orientation = atan2(force.y, force.x);
+					orientation = WWMath::Atan2(force.y, force.x);
 				}
 				DUMPREAL(orientation);
 				objUp->setAngles(orientation, 0, 0);
@@ -1255,7 +1261,8 @@ protected:
 			if (m_nameAreObjects)
 				tmpl = TheThingFactory->findTemplate(m_names[pick]);
 			else
-			{	//this is using the generic debris type so it's probably safe to
+			{
+				//this is using the generic debris type so it's probably safe to
 				//remove if requested by the GameLOD manager.
 				if (TheGameLODManager->isDebrisSkipped())
 					continue;
@@ -1337,7 +1344,7 @@ protected:
 			}
 		}
 
-#if !RETAIL_COMPATIBLE_CRC && !PRESERVE_RETAIL_BEHAVIOR
+#if !(RETAIL_COMPATIBLE_CRC || PRESERVE_NO_XP_FROM_OCL_KILLS)
 		ObjectID sinkID = sourceObj->getExperienceTracker()->getExperienceSink();
 		firstObject->getExperienceTracker()->setExperienceSink(sinkID != INVALID_ID ? sinkID : sourceObj->getID());
 #endif
@@ -1356,7 +1363,10 @@ protected:
 			if (TheGlobalData->m_preloadAssets)
 				debrisModelNamesGlobalHack.push_back(token);
 			debrisNugget->m_names.push_back(AsciiString(token));
+
+#if RETAIL_COMPATIBLE_CRC
 			token = ini->getNextTokenOrNull();
+#endif
 		}
 	}
 

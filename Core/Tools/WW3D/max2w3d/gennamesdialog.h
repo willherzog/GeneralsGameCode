@@ -32,13 +32,11 @@
  *                                                                                             *
  *                    $Revision:: 2                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 
-#include <max.h>
-#include "w3d_file.h"
+#include "max_sdk.h"
+#include "WW3D2/w3d_file.h"
 
 
 /**********************************************************************************************
@@ -55,7 +53,7 @@ public:
 
 	struct OptionsStruct
 	{
-		OptionsStruct(void) : OnlyAffectSelected(false), NameIndex(0), AssignCollisionBits(false)
+		OptionsStruct() : OnlyAffectSelected(false), NameIndex(0), AssignCollisionBits(false)
 		{
 			memset(RootName,0,sizeof(RootName));
 			memset(PrefixName,0,sizeof(PrefixName));
@@ -85,9 +83,9 @@ public:
 
 	bool Get_Options(OptionsStruct * options);
 	bool Dialog_Proc(HWND hWnd,UINT message,WPARAM wParam,LPARAM);
-	bool Ok_To_Exit(void);
-	void Toggle_Collision_Bits_Assignment(void);
-	void Toggle_Name_Assignment(void);
+	bool Ok_To_Exit();
+	void Toggle_Collision_Bits_Assignment();
+	void Toggle_Name_Assignment();
 
 private:
 

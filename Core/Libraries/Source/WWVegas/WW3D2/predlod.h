@@ -30,8 +30,6 @@
  *                                                                         *
  *                    $Revision:: 3                                       $*
  *                                                                         *
- *-------------------------------------------------------------------------*
- * Functions:                                                              *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
@@ -45,7 +43,7 @@
 
 #include "rendobj.h"
 #include "float.h"
-#include "Vector.h"
+#include "WWLib/Vector.h"
 
 class LODHeapNode;
 

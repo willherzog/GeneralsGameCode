@@ -32,20 +32,18 @@
  *                                                                                             *
  *                    $Revision:: 14                                                          $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
 
-#include "always.h"
-#include "vector2.h"
-#include "vector3.h"
-#include "Vector3i.h"
-#include "vector4.h"
-#include "sharebuf.h"
-#include "shader.h"
-#include "vertmaterial.h"
+#include "WWLib/always.h"
+#include "WWMath/vector2.h"
+#include "WWMath/vector3.h"
+#include "WWMath/Vector3i.h"
+#include "WWMath/vector4.h"
+#include "WWLib/sharebuf.h"
+#include "WW3D2/shader.h"
+#include "WW3D2/vertmaterial.h"
 
 class MatBufferClass;
 class TexBufferClass;
@@ -57,9 +55,9 @@ class MeshModelClass;
 ** MeshMatDescClass - This class encapsulates all of the material description data for a mesh.
 ** WARNING: The vertex count and polygon count *MUST* be kept in sync with the mesh
 */
-class MeshMatDescClass : public W3DMPO
+class MeshMatDescClass
 {
-	W3DMPO_GLUE(MeshMatDescClass)
+	W3DMPO_CODE(MeshMatDescClass)
 public:
 
 	enum
@@ -72,7 +70,7 @@ public:
 
 	MeshMatDescClass();
 	MeshMatDescClass(const MeshMatDescClass & that);
-	virtual ~MeshMatDescClass() override;
+	~MeshMatDescClass();
 	void							Reset(int polycount,int vertcount,int passcount);
 	MeshMatDescClass &		operator = (const MeshMatDescClass & that);
 
@@ -230,7 +228,7 @@ protected:
 */
 class MatBufferClass : public ShareBufferClass < VertexMaterialClass * >
 {
-	W3DMPO_GLUE(MatBufferClass)
+	W3DMPO_CODE(MatBufferClass)
 public:
 	MatBufferClass(int count, const char* msg) : ShareBufferClass<VertexMaterialClass *>(count, msg) { Clear(); }
 	MatBufferClass(const MatBufferClass & that);
@@ -252,7 +250,7 @@ private:
 */
 class TexBufferClass : public ShareBufferClass < TextureClass * >
 {
-	W3DMPO_GLUE(TexBufferClass)
+	W3DMPO_CODE(TexBufferClass)
 public:
 	TexBufferClass(int count, const char* msg) : ShareBufferClass<TextureClass *>(count, msg) { Clear(); }
 	TexBufferClass(const TexBufferClass & that);
@@ -274,7 +272,7 @@ private:
 */
 class UVBufferClass : public ShareBufferClass < Vector2 >
 {
-	W3DMPO_GLUE(UVBufferClass)
+	W3DMPO_CODE(UVBufferClass)
 public:
 	UVBufferClass(int count, const char* msg) : ShareBufferClass<Vector2>(count, msg), CRC(0xFFFFFFFF) { }
 	UVBufferClass(const UVBufferClass & that);

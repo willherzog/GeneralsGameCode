@@ -297,7 +297,7 @@ UpdateSleepTime AssaultTransportAIUpdate::update()
 					else
 					{
 						//Increment the number of fighters and their position.
-						fighterCentroidPos.add( member->getPosition() );
+						fighterCentroidPos.add( *member->getPosition() );
 						fightingMembers++;
 
 						if( !ai->isMoving() )
@@ -343,14 +343,14 @@ UpdateSleepTime AssaultTransportAIUpdate::update()
 			//Calculate a vector from the target passed the fighters to be at a safe place
 			//to be as a transport.
 			Coord3D vector;
-			vector.set( &fighterCentroidPos );
-			vector.sub( &designatedTargetPos );
+			vector.set( fighterCentroidPos );
+			vector.sub( designatedTargetPos );
 			vector.normalize();
 			vector.scale( 150.0f );
 
 			Coord3D transportGoalPos;
-			transportGoalPos.set( &designatedTargetPos );
-			transportGoalPos.add( &vector );
+			transportGoalPos.set( designatedTargetPos );
+			transportGoalPos.add( vector );
 
 			Real distanceSqrd = ThePartitionManager->getDistanceSquared( transport, &transportGoalPos, FROM_CENTER_2D );
 			if( distanceSqrd > 40.0f * 40.0f )
@@ -490,12 +490,18 @@ void AssaultTransportAIUpdate::crc( Xfer *xfer )
 //-------------------------------------------------------------------------------------------------
 /** Xfer method
 	* Version Info:
-	* 1: Initial version */
+	* 1: Initial version
+	* 2: TheSuperHackers @bugfix bobtista 14/08/2026 Save m_newMember and m_newOccupantsAreNewMembers.
+	*/
 //-------------------------------------------------------------------------------------------------
 void AssaultTransportAIUpdate::xfer( Xfer *xfer )
 {
   // version
+#if RETAIL_COMPATIBLE_XFER_SAVE
   XferVersion currentVersion = 1;
+#else
+  XferVersion currentVersion = 2;
+#endif
   XferVersion version = currentVersion;
   xfer->xferVersion( &version, currentVersion );
 
@@ -508,6 +514,10 @@ void AssaultTransportAIUpdate::xfer( Xfer *xfer )
 	{
 		xfer->xferObjectID( &(m_memberIDs[ i ]) );
 		xfer->xferBool( &(m_memberHealing[ i ]) );
+		if( version >= 2 )
+		{
+			xfer->xferBool( &(m_newMember[ i ]) );
+		}
 	}
 
 	xfer->xferCoord3D( &m_attackMoveGoalPos );
@@ -520,6 +530,11 @@ void AssaultTransportAIUpdate::xfer( Xfer *xfer )
 	xfer->xferUnsignedInt( &m_framesRemaining );
 	xfer->xferBool( &m_isAttackMove );
 	xfer->xferBool( &m_isAttackObject );
+
+	if( version >= 2 )
+	{
+		xfer->xferBool( &m_newOccupantsAreNewMembers );
+	}
 
 }
 

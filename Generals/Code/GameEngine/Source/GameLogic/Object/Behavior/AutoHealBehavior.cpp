@@ -273,19 +273,21 @@ void AutoHealBehavior::pulseHealObject( Object *obj )
 	const AutoHealBehaviorModuleData *data = getAutoHealBehaviorModuleData();
 
 
+#if RETAIL_COMPATIBLE_CRC
 	if ( data->m_radius == 0.0f )
+#else
+	// TheSuperHackers @bugfix arcticdolphin 25/10/2026 Allow instant repairs while an aura is active.
+	if ( data->m_radius == 0.0f || data->m_singleBurst )
+#endif
 		obj->attemptHealing(data->m_healingAmount, getObject());
 	else
 		obj->attemptHealingFromSoleBenefactor( data->m_healingAmount, getObject(), data->m_healingDelay );
 
 
-	if( data->m_unitHealPulseParticleSystemTmpl )
+	ParticleSystem *system = TheParticleSystemManager->createParticleSystem( data->m_unitHealPulseParticleSystemTmpl );
+	if( system )
 	{
-		ParticleSystem *system = TheParticleSystemManager->createParticleSystem( data->m_unitHealPulseParticleSystemTmpl );
-		if( system )
-		{
-			system->setPosition( obj->getPosition() );
-		}
+		system->setPosition( obj->getPosition() );
 	}
 
 	m_soonestHealFrame = TheGameLogic->getFrame() + data->m_healingDelay;// In case onDamage tries to wake us up early

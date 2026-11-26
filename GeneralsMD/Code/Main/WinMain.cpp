@@ -31,7 +31,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 // SYSTEM INCLUDES ////////////////////////////////////////////////////////////
-#define WIN32_LEAN_AND_MEAN  // only bare bones windows stuff wanted
 #include <windows.h>
 #include <stdlib.h>
 #include <crtdbg.h>
@@ -41,7 +40,6 @@
 
 // USER INCLUDES //////////////////////////////////////////////////////////////
 #include "WinMain.h"
-#include "Lib/BaseType.h"
 #include "Common/CommandLine.h"
 #include "Common/CriticalSection.h"
 #include "Common/GlobalData.h"
@@ -51,6 +49,7 @@
 #include "Common/GameMemory.h"
 #include "Common/StackDump.h"
 #include "Common/MessageStream.h"
+#include "Common/PlayerList.h"
 #include "Common/Registry.h"
 #include "Common/Team.h"
 #include "GameClient/ClientInstance.h"
@@ -66,9 +65,8 @@
 #include "GeneratedVersion.h"
 #include "resource.h"
 
-#include <rts/profile.h>
 #ifdef RTS_ENABLE_CRASHDUMP
-#include "Common/MiniDumper.h"
+#include "MiniDumper/MiniDumper.h"
 #endif
 
 
@@ -352,7 +350,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message,
 			//-------------------------------------------------------------------------
 			case WM_SYSCOMMAND:
 				// Prevent moving/sizing and power loss in fullscreen mode
-				switch( wParam )
+				switch( wParam & 0xFFF0 )
 				{
 					case SC_KEYMENU:
 						// TheSuperHackers @bugfix Mauller 10/05/2025 Always handle this command to prevent halting the game when left Alt is pressed.
@@ -369,28 +367,35 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message,
 
 			case WM_QUERYENDSESSION:
 			{
-				TheMessageStream->appendMessage(GameMessage::MSG_META_DEMO_INSTANT_QUIT);
+				if (TheGameEngine && !TheGameEngine->getQuitting())
+				{
+					if (TheMessageStream && TheMessageStream->isReadyForMessages())
+					{
+						TheMessageStream->appendMessage(GameMessage::MSG_META_DEMO_INSTANT_QUIT);
+					}
+					else
+					{
+						TheGameEngine->setQuitting(TRUE);
+					}
+				}
 				return 0;	//don't allow Windows to shutdown while game is running.
 			}
 
 			// ------------------------------------------------------------------------
 			case WM_CLOSE:
-				if (!TheGameEngine->getQuitting())
+				// TheSuperHackers @feature Intercept Alt+F4/Close to show the quit menu in-game. 
+				// Repeating the command when the menu is visible triggers a Self-Destruct followed by a sequenced quit.
+				// If not in a match (e.g. main menu), the command instantly closes the application.
+				if (TheGameEngine && !TheGameEngine->getQuitting())
 				{
-					//user is exiting without using the menus
-
-					//This method didn't work in cinematics because we don't process messages.
-					//But it's the cleanest way to exit that's similar to using menus.
-					TheMessageStream->appendMessage(GameMessage::MSG_META_DEMO_INSTANT_QUIT);
-
-					//This method used to disable quitting.  We just put up the options screen instead.
-					//TheMessageStream->appendMessage(GameMessage::MSG_META_OPTIONS);
-
-					//This method works everywhere but isn't as clean at shutting down.
-					//TheGameEngine->checkAbnormalQuitting();	//old way to log disconnections for ALT-F4
-					//TheGameEngine->reset();
-					//TheGameEngine->setQuitting(TRUE);
-					//_exit(EXIT_SUCCESS);
+					if (TheMessageStream && TheMessageStream->isReadyForMessages())
+					{
+						TheMessageStream->appendMessage(GameMessage::MSG_META_DEMO_INSTANT_QUIT);
+					}
+					else
+					{
+						TheGameEngine->setQuitting(TRUE);
+					}
 				}
 				return 0;
 
@@ -764,7 +769,7 @@ static Bool initializeAppWindows( HINSTANCE hInstance, Int nCmdShow, Bool runWin
 }
 
 // Necessary to allow memory managers and such to have useful critical sections
-static CriticalSection critSec1, critSec2, critSec3, critSec4, critSec5;
+static CriticalSection critSec1, critSec2, critSec3, critSec4;
 
 // UnHandledExceptionFilter ===================================================
 /** Handler for unhandled win32 exceptions. */
@@ -793,7 +798,7 @@ Int APIENTRY WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 {
 	Int exitcode = 1;
 
-#ifdef RTS_PROFILE
+#ifdef RTS_PROFILE_LEGACY
   Profile::StartRange("init");
 #endif
 
@@ -812,19 +817,11 @@ Int APIENTRY WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		TheUnicodeStringCriticalSection = &critSec2;
 		TheDmaCriticalSection = &critSec3;
 		TheMemoryPoolCriticalSection = &critSec4;
-		TheDebugLogCriticalSection = &critSec5;
 
 		// initialize the memory manager early
 		initMemoryManager();
 
-		/// @todo remove this force set of working directory later
-		Char buffer[ _MAX_PATH ];
-		GetModuleFileName( nullptr, buffer, sizeof( buffer ) );
-		if (Char *pEnd = strrchr(buffer, '\\'))
-		{
-			*pEnd = 0;
-		}
-		::SetCurrentDirectory(buffer);
+		CommandLine::parseCommandLineForStartup();
 
 
 		#ifdef RTS_DEBUG
@@ -843,7 +840,7 @@ Int APIENTRY WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
 
 // Force "splash image" to be loaded from a file, not a resource so same exe can be used in different localizations.
-#if defined(RTS_DEBUG) || defined RTS_PROFILE
+#if defined(RTS_DEBUG) || defined RTS_PROFILE_LEGACY
 
 			// check both localized directory and root dir
 		char filePath[_MAX_PATH];
@@ -865,10 +862,9 @@ Int APIENTRY WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		gLoadScreenBitmap = (HBITMAP)LoadImage(hInstance, "Install_Final.bmp", IMAGE_BITMAP, 0, 0, LR_SHARED|LR_LOADFROMFILE);
 #endif
 
-		CommandLine::parseCommandLineForStartup();
 #ifdef RTS_ENABLE_CRASHDUMP
 		// Initialize minidump facilities - requires TheGlobalData so performed after parseCommandLineForStartup
-		MiniDumper::initMiniDumper(TheGlobalData->getPath_UserData());
+		MiniDumper::initMiniDumper(TheGlobalData->getPath_UserData().str(), 'Z');
 #endif
 
 		// register windows class and create application window

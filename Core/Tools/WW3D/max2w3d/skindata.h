@@ -31,13 +31,11 @@
  *                                                                                             *
  *                    $Revision:: 6                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
 
-#include "max.h"
+#include "max_sdk.h"
 #include "namedsel.h"
 
 /*
@@ -52,7 +50,7 @@ struct InfluenceStruct
 	int		BoneIdx[2];
 	float		BoneWeight[2];
 
-	InfluenceStruct(void) { BoneIdx[0] = -1; BoneIdx[1] = -1; BoneWeight[0] = 1.0f; BoneWeight[1] = 0.0f; }
+	InfluenceStruct() { BoneIdx[0] = -1; BoneIdx[1] = -1; BoneWeight[0] = 1.0f; BoneWeight[1] = 0.0f; }
 
 	void Set_Influence(int boneidx) {
 		// TODO: make this actually let you set two bones with
@@ -72,7 +70,7 @@ class SkinDataClass : public LocalModData
 
 public:
 
-	SkinDataClass(void) { Held = FALSE; Valid = FALSE; }
+	SkinDataClass() { Held = FALSE; Valid = FALSE; }
 
 	SkinDataClass(Mesh *mesh)
 	{
@@ -101,7 +99,7 @@ public:
 		}
 	}
 
-	virtual LocalModData * Clone(void)
+	virtual LocalModData * Clone()
 	{
 		SkinDataClass * newdata = new SkinDataClass();
 		newdata->VertSel = VertSel;

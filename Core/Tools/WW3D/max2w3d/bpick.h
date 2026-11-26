@@ -31,13 +31,11 @@
  *                                                                                             *
  *                    $Revision:: 6                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
 
-#include "max.h"
+#include "max_sdk.h"
 //#include "dllmain.h"
 //#include "resource.h"
 
@@ -63,7 +61,7 @@ class BonePickerClass : public PickNodeCallback, public PickModeCallback, public
 {
 public:
 
-	BonePickerClass(void) : User(nullptr), BoneList(nullptr), SinglePick(FALSE) {}
+	BonePickerClass() : User(nullptr), BoneList(nullptr), SinglePick(FALSE) {}
 
 	/*
 	** Tell this class who is using it and optionally the list
@@ -92,12 +90,12 @@ public:
 	/*
 	** From HitByNameDlgCallback
 	*/
-	virtual TCHAR * dialogTitle(void);
-	virtual TCHAR * buttonText(void);
-	virtual BOOL singleSelect(void) { return SinglePick; }
-	virtual BOOL useFilter(void) { return TRUE; }
-	virtual BOOL useProc(void) { return TRUE; }
-	virtual BOOL doCustomHilite(void) { return FALSE; }
+	virtual TCHAR * dialogTitle();
+	virtual TCHAR * buttonText();
+	virtual BOOL singleSelect() { return SinglePick; }
+	virtual BOOL useFilter() { return TRUE; }
+	virtual BOOL useProc() { return TRUE; }
+	virtual BOOL doCustomHilite() { return FALSE; }
 	virtual BOOL filter(INode * inode);
 	virtual void proc(INodeTab & nodeTab);
 

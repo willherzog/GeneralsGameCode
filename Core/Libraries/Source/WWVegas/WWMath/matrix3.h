@@ -34,33 +34,13 @@
  *                  Last Update : June 6, 2002 [KM]                                            *
  *                                                                                             *
  * 06/26/02 KM Matrix name change to avoid MAX conflicts                                       *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
- *   Matrix3x3::Matrix3x3 -- Constructor, optionally initialize to Identitiy matrix                *
- *   Matrix3x3::Matrix3x3 -- Copy Constructor                                                      *
- *   Matrix3x3::Matrix3x3 -- Convert a Matrix3D (fake 4x4) to a Matrix3x3                            *
- *   Matrix3x3::Matrix3x3 -- Constructor                                                           *
- *   Matrix3x3::Transpose -- Returns transpose of the matrix                                     *
- *   Matrix3x3::Inverse -- returns the inverse of the matrix                                     *
- *   Matrix3x3::Determinant -- returns the determinant of the matrix                             *
- *   Matrix3x3::operator = -- assignment operator                                                *
- *   Matrix3x3::operator += -- "plus equals" operator                                            *
- *   Matrix3x3::operator-= -- "minus equals" operator                                            *
- *   Matrix3x3::operator *= -- "times equals" operator                                           *
- *   Matrix3x3::operator /= -- "divide equals" operator                                          *
- *   Create_X_Rotation_Matrix3 -- creates a matrix3 which is a rotation about X                *
- *   Create_Y_Rotation_Matrix3 -- Creates a Matrix3x3 which is a rotation about Y                *
- *   Create_Z_Rotation_Matrix3 -- Creates a matrix3 which is a rotation about Z                *
- *   Matrix3x3::Rotate_X -- Post-mutiplies an x rotation onto the current matrix                 *
- *   Matrix3x3::Rotate_Y -- Post-multiplies the matrix with a rotation about Y                   *
- *   Matrix3x3::Rotate_Z -- Post-multiplies the matrix with a rotation about Z                   *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
 
-#include "always.h"
+#include "WWLib/always.h"
 #include "vector3.h"
-#include "wwdebug.h"
+#include "WWDebug/wwdebug.h"
 #ifdef _UNIX
 #include "osdep.h"
 #endif
@@ -253,18 +233,6 @@ protected:
 };
 
 
-/***********************************************************************************************
- * Matrix3x3::Matrix3x3 -- Constructor, optionally initialize to Identitiy matrix                  *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   06/02/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
 WWINLINE Matrix3x3::Matrix3x3(bool identity)
 {
 	if (identity) {
@@ -274,35 +242,11 @@ WWINLINE Matrix3x3::Matrix3x3(bool identity)
 	}
 }
 
-/***********************************************************************************************
- * Matrix3x3::Matrix3x3 -- Copy Constructor                                                        *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   06/02/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
 WWINLINE Matrix3x3::Matrix3x3(const Matrix3x3 & m)
 {
 	Row[0] = m.Row[0]; Row[1] = m.Row[1]; Row[2] = m.Row[2];
 }
 
-/***********************************************************************************************
- * Matrix3x3::Matrix3x3 -- Constructor                                                             *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   06/02/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
 WWINLINE Matrix3x3::Matrix3x3(const Vector3 & r0, const Vector3 & r1, const Vector3 & r2)
 {
 	Row[0] = r0;
@@ -361,12 +305,12 @@ WWINLINE Matrix3x3::Matrix3x3(const Vector3 & axis,float s_angle,float c_angle)
 
 WWINLINE void Matrix3x3::Set(const Vector3 & axis,float angle)
 {
-	Set(axis,sinf(angle),cosf(angle));
+	Set(axis,WWMath::Sinf(angle),WWMath::Cosf(angle));
 }
 
 WWINLINE void Matrix3x3::Set(const Vector3 & axis,float s,float c)
 {
-	WWASSERT(WWMath::Fabs(axis.Length2() - 1.0f) < 0.001f);
+	WWASSERT(WWMath::Fabsf_Legacy(axis.Length2() - 1.0f) < 0.001f);
 
 	Row[0].Set(
 		(float)(axis[0]*axis[0] + c*(1.0f - axis[0]*axis[0])),
@@ -392,18 +336,6 @@ WWINLINE Matrix3x3::Matrix3x3(const Quaternion & q)
 	this->Set(q);
 }
 
-/***********************************************************************************************
- * Matrix3x3::Transpose -- Returns transpose of the matrix                                       *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   06/02/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
 WWINLINE Matrix3x3 Matrix3x3::Transpose() const
 {
     return Matrix3x3(
@@ -413,18 +345,6 @@ WWINLINE Matrix3x3 Matrix3x3::Transpose() const
 	);
 }
 
-/***********************************************************************************************
- * Matrix3x3::Inverse -- returns the inverse of the matrix                                       *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   06/02/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
 WWINLINE Matrix3x3 Matrix3x3::Inverse() const    // Gauss-Jordan elimination with partial pivoting
 {
 	Matrix3x3 a(*this);				// As a evolves from original mat into identity
@@ -437,7 +357,7 @@ WWINLINE Matrix3x3 Matrix3x3::Inverse() const    // Gauss-Jordan elimination wit
 		// Find largest pivot in column j among rows j..3
 		i1 = j;
 		for (i=j+1; i<3; i++) {
-			if (WWMath::Fabs(a[i][j]) > WWMath::Fabs(a[i1][j])) {
+			if (WWMath::Fabsf_Legacy(a[i][j]) > WWMath::Fabsf_Legacy(a[i1][j])) {
 				i1 = i;
 			}
 		}
@@ -465,18 +385,6 @@ WWINLINE Matrix3x3 Matrix3x3::Inverse() const    // Gauss-Jordan elimination wit
 }
 
 
-/***********************************************************************************************
- * Matrix3x3::Determinant -- returns the determinant of the matrix                               *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   1/7/20     DRM : Created.                                                                 *
- *=============================================================================================*/
 WWINLINE float Matrix3x3::Determinant() const
 {
 	return   Row[0][0] * (Row[1][1] * Row[2][2] - Row[1][2] * Row[2][1])
@@ -484,144 +392,51 @@ WWINLINE float Matrix3x3::Determinant() const
 			 - Row[0][2] * (Row[1][0] * Row[2][1] - Row[1][1] * Row[2][0]);
 }
 
-/***********************************************************************************************
- * Matrix3x3::operator = -- assignment operator                                                  *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   06/02/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
 WWINLINE Matrix3x3 & Matrix3x3::operator = (const Matrix3x3 & m)
 {
 	Row[0] = m.Row[0]; Row[1] = m.Row[1]; Row[2] = m.Row[2];
 	return *this;
 }
 
-/***********************************************************************************************
- * Matrix3x3::operator += -- "plus equals" operator                                              *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   06/02/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
 WWINLINE Matrix3x3& Matrix3x3::operator += (const Matrix3x3 & m)
 {
 	Row[0] += m.Row[0]; Row[1] += m.Row[1]; Row[2] += m.Row[2];
 	return *this;
 }
 
-/***********************************************************************************************
- * Matrix3x3::operator-= -- "minus equals" operator                                              *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   06/02/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
 WWINLINE Matrix3x3& Matrix3x3::operator -= (const Matrix3x3 & m)
 {
 	Row[0] -= m.Row[0]; Row[1] -= m.Row[1]; Row[2] -= m.Row[2];
 	return *this;
 }
 
-/***********************************************************************************************
- * Matrix3x3::operator *= -- "times equals" operator                                             *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   06/02/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
 WWINLINE Matrix3x3& Matrix3x3::operator *= (float d)
 {
 	Row[0] *= d; Row[1] *= d; Row[2] *= d;
 	return *this;
 }
 
-/***********************************************************************************************
- * Matrix3x3::operator /= -- "divide equals" operator                                            *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   06/02/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
 WWINLINE Matrix3x3& Matrix3x3::operator /= (float d)
 {
 	Row[0] /= d; Row[1] /= d; Row[2] /= d;
 	return *this;
 }
 
-/***********************************************************************************************
- * Matrix3x3::Get_X_Rotation -- approximates the rotation about the X axis                       *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   08/11/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
+// Approximates the rotation about the X axis.
 WWINLINE float Matrix3x3::Get_X_Rotation() const
 {
 	Vector3 v = (*this) * Vector3(0.0,1.0,0.0);
 	return WWMath::Atan2(v[2], v[1]);
 }
 
-/***********************************************************************************************
- * Matrix3x3::Get_Y_Rotation -- approximates the rotation about the Y axis                       *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   08/11/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
+// Approximates the rotation about the Y axis.
 WWINLINE float Matrix3x3::Get_Y_Rotation() const
 {
 	Vector3 v = (*this) * Vector3(0.0,0.0,1.0);
 	return WWMath::Atan2(v[0],v[2]);
 }
 
-/***********************************************************************************************
- * Matrix3x3::Get_Z_Rotation -- approximates the rotation about the Z axis                       *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   08/11/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
+// Approximates the rotation about the Z axis.
 WWINLINE float Matrix3x3::Get_Z_Rotation() const
 {
 	Vector3 v = (*this) * Vector3(1.0,0.0,0.0);
@@ -761,21 +576,10 @@ WWINLINE int operator != (const Matrix3x3 & a, const Matrix3x3 & b)
 }
 
 
-/***********************************************************************************************
- * Matrix3x3::Rotate_X -- Post-mutiplies an x rotation onto the current matrix                   *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   08/26/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
+// Post-multiplies an x rotation onto the current matrix.
 WWINLINE void Matrix3x3::Rotate_X(float theta)
 {
-	Rotate_X(sinf(theta),cosf(theta));
+	Rotate_X(WWMath::Sinf(theta),WWMath::Cosf(theta));
 }
 
 WWINLINE void Matrix3x3::Rotate_X(float s,float c)
@@ -795,21 +599,10 @@ WWINLINE void Matrix3x3::Rotate_X(float s,float c)
 	Row[2][2] = (float)(-s*tmp1 + c*tmp2);
 }
 
-/***********************************************************************************************
- * Matrix3x3::Rotate_Y -- Post-multiplies the matrix with a rotation about Y                     *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   08/26/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
+// Post-multiplies the matrix with a rotation about Y.
 WWINLINE void Matrix3x3::Rotate_Y(float theta)
 {
-	Rotate_Y(sinf(theta),cosf(theta));
+	Rotate_Y(WWMath::Sinf(theta),WWMath::Cosf(theta));
 }
 
 WWINLINE void Matrix3x3::Rotate_Y(float s,float c)
@@ -830,21 +623,10 @@ WWINLINE void Matrix3x3::Rotate_Y(float s,float c)
 }
 
 
-/***********************************************************************************************
- * Matrix3x3::Rotate_Z -- Post-multiplies the matrix with a rotation about Z                     *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   08/26/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
+// Post-multiplies the matrix with a rotation about Z.
 WWINLINE void Matrix3x3::Rotate_Z(float theta)
 {
-	Rotate_Z(sinf(theta),cosf(theta));
+	Rotate_Z(WWMath::Sinf(theta),WWMath::Cosf(theta));
 }
 
 WWINLINE void Matrix3x3::Rotate_Z(float s,float c)
@@ -865,18 +647,6 @@ WWINLINE void Matrix3x3::Rotate_Z(float s,float c)
 }
 
 
-/***********************************************************************************************
- * Create_X_Rotation_Matrix3 -- creates a matrix3 which is a rotation about X                  *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   08/26/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
 WWINLINE Matrix3x3 Create_X_Rotation_Matrix3(float s,float c)
 {
 	Matrix3x3 mat;
@@ -898,21 +668,9 @@ WWINLINE Matrix3x3 Create_X_Rotation_Matrix3(float s,float c)
 
 WWINLINE Matrix3x3 Create_X_Rotation_Matrix3(float rad)
 {
-	return Create_X_Rotation_Matrix3(sinf(rad),cosf(rad));
+	return Create_X_Rotation_Matrix3(WWMath::Sinf(rad),WWMath::Cosf(rad));
 }
 
-/***********************************************************************************************
- * Create_Y_Rotation_Matrix3 -- Creates a Matrix3x3 which is a rotation about Y                  *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   08/26/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
 WWINLINE Matrix3x3 Create_Y_Rotation_Matrix3(float s,float c)
 {
 	Matrix3x3 mat;
@@ -934,21 +692,9 @@ WWINLINE Matrix3x3 Create_Y_Rotation_Matrix3(float s,float c)
 
 WWINLINE Matrix3x3 Create_Y_Rotation_Matrix3(float rad)
 {
-	return Create_Y_Rotation_Matrix3(sinf(rad),cosf(rad));
+	return Create_Y_Rotation_Matrix3(WWMath::Sinf(rad),WWMath::Cosf(rad));
 }
 
-/***********************************************************************************************
- * Create_Z_Rotation_Matrix3 -- Creates a matrix3 which is a rotation about Z                  *
- *                                                                                             *
- * INPUT:                                                                                      *
- *                                                                                             *
- * OUTPUT:                                                                                     *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   08/26/1997 GH  : Created.                                                                 *
- *=============================================================================================*/
 WWINLINE Matrix3x3 Create_Z_Rotation_Matrix3(float s,float c)
 {
 	Matrix3x3 mat;
@@ -970,7 +716,7 @@ WWINLINE Matrix3x3 Create_Z_Rotation_Matrix3(float s,float c)
 
 WWINLINE Matrix3x3 Create_Z_Rotation_Matrix3(float rad)
 {
-	return Create_Z_Rotation_Matrix3(sinf(rad),cosf(rad));
+	return Create_Z_Rotation_Matrix3(WWMath::Sinf(rad),WWMath::Cosf(rad));
 }
 
 WWINLINE void Matrix3x3::Rotate_Vector(const Matrix3x3 & A,const Vector3 & in,Vector3 * out)
@@ -1018,7 +764,7 @@ WWINLINE void Matrix3x3::Rotate_AABox_Extent(const Vector3 & extent,Vector3 * se
 		(*set_extent)[i] = 0.0f;
 
 		for (int j=0; j<3; j++) {
-			(*set_extent)[i] += WWMath::Fabs(Row[i][j] * extent[j]);
+			(*set_extent)[i] += WWMath::Fabsf_Legacy(Row[i][j] * extent[j]);
 		}
 	}
 }

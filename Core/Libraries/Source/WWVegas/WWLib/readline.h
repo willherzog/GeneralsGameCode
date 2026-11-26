@@ -30,8 +30,6 @@
  *                                                                                             *
  *                    $Revision:: 3                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
@@ -42,4 +40,4 @@
 
 int Read_Line(FileClass & file, char * buffer, int len, bool & eof);
 int Read_Line(Straw & file, char * buffer, int len, bool & eof);
-int Read_Line(Straw & file, wchar_t * buffer, int len, bool & eof);
+int Read_Line(Straw & file, unichar * buffer, int len, bool & eof);

@@ -26,15 +26,13 @@
  *                                                                                             *
  *                    $Revision:: 6                                                           $*
  *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #pragma once
 
 #include "windows.h"
-#include "Vector.h"
-#include "mutex.h"
+#include "WWLib/Vector.h"
+#include "WWLib/mutex.h"
 
 // Forward declarations
 class RefCountClass;
