@@ -69,20 +69,12 @@ static void drawTypeText( GameWindow *window, DisplayString *str);
 
 static Color getFlashTransitionColor( UnsignedByte alpha )
 {
-#if RTS_GENERALS
 	return GameMakeColor( 255, 203, 45, alpha );
-#elif RTS_ZEROHOUR
-	return GameMakeColor( 255, 255, 255, alpha );
-#endif
 }
 
 static Color getFullFadeTransitionColor( UnsignedByte alpha )
 {
-#if RTS_GENERALS
 	return GameMakeColor( 255, 190, 0, alpha );
-#elif RTS_ZEROHOUR
-	return GameMakeColor( 60, 60, 180, alpha );
-#endif
 }
 //-----------------------------------------------------------------------------
 // PUBLIC FUNCTIONS ///////////////////////////////////////////////////////////
@@ -1894,7 +1886,7 @@ void FullFadeTransition::draw()
 	if(alpha > 255)
 		alpha = 255;
 	TheDisplay->drawFillRect(m_pos.x, m_pos.y, m_size.x, m_size.y , GameMakeColor(0,0,0,alpha));
-	TheDisplay->drawOpenRect(m_pos.x, m_pos.y, m_size.x, m_size.y , 1.0f, GameMakeColor(255,190,0,alpha));
+	TheDisplay->drawOpenRect(m_pos.x, m_pos.y, m_size.x, m_size.y , 1.0f, getFullFadeTransitionColor(alpha));
 }
 
 void FullFadeTransition::skip()
