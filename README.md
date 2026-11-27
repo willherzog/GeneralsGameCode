@@ -1,4 +1,4 @@
-# This is my custom fork of the Generals Game Code Project
+# This is my custom fork of the Generals Game Code project
 
 I've been modding *Command & Conquer: Generals* and its expansion *Zero Hour* on and off for over two decades. I am primarily a Web developer by trade (using higher-level programming languages like PHP and JavaScript) but, although my knowledge of C++ is limited, I do bring a unique modder's perspective to the table and this repository exists for me to try out my own changes to the source code (on top of those made by TheSuperHackers).
 
@@ -16,7 +16,7 @@ So far I've done the following:
 
 What follows is the original project's README content...
 
-# Welcome to the Generals Game Code Project
+# Welcome to the Generals Game Code project
 
 GeneralsGameCode is a community-driven project aimed at fixing and improving the classic RTS game, *Command &
 Conquer: Generals* and its expansion *Zero Hour*. This repository contains the source code for both games, with a
