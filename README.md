@@ -9,6 +9,7 @@ So far I've done the following:
 * Changed the default viewport height scale from 0.8 to 0.9 (this allows my mod to use a commandbar UI that takes up less of the screen, while still looking the same as the original UI)
 * Increased the maximum commands per set to 20 and the maximum garrison slots to 16 (along with moving the hardcoded positions of the Stop and Evacuate commands); the maximum sciences for rank 1 have also been increased from 4 to 5 because the existing UI already clearly allowed for this
 * Altered the `ALWAYS_VISIBLE` kind of to only affect an object's visibility within the fog of war - now, objects with this kind of are no longer visible within the shroud (in my mod I use this kind of on General's Power aircraft to prevent them from awkwardly disappearing and reappearing as they pass through the fog of war on their way to the target)
+  * In the unmodified game, this kind of is only used for the MultiplayerBeacon object and, since multiplayer matches don't have the shroud anyway, I figured it was pretty safe to make this change
 * Fixed the `CLEARED_BY_BUILD` kind of in multiplayer matches so that objects with this kind of can actually, you know, be cleared by building (lol)
   * Without this fix, the workaround for most prop-type objects was to instead use the `SHRUBBERY` kind of
 * Wonky math used for `W3DCommandBarGridDraw` (this is what adds the grid overlay to an object's right-side HUD) has been fixed - it's obviously supposed to be in thirds but never quiiite used to be (mostly due to sloppy rounding errors)
