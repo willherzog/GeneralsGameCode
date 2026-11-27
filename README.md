@@ -1,6 +1,6 @@
 # This is my custom fork of the Generals Game Code Project
 
-I've been modding *Command & Conquer: Generals* and its expansion *Zero Hour* on and off for over two decades. I am primarily a Web developer by trade but, although my knowledge of C++ is limited, I do bring a unique modder's perspective to the table and this repository exists for me to try out my own changes to the source code (on top of those made by TheSuperHackers).
+I've been modding *Command & Conquer: Generals* and its expansion *Zero Hour* on and off for over two decades. I am primarily a Web developer by trade (using higher-level programming languages like PHP and JavaScript) but, although my knowledge of C++ is limited, I do bring a unique modder's perspective to the table and this repository exists for me to try out my own changes to the source code (on top of those made by TheSuperHackers).
 
 So far I've done the following:
 * Re-enabled the original campaign mission intro features which were disabled in *Zero Hour* (my personal mod already included both the original and expansion singleplayer campaigns, but this change means the original campaign mission intros can finally work exactly the same as they did in *Generals*)
