@@ -1,15 +1,19 @@
-[![GitHub Release](https://img.shields.io/github/v/release/TheSuperHackers/GeneralsGameCode?include_prereleases&sort=date&display_name=tag&style=flat&label=Release)](https://github.com/TheSuperHackers/GeneralsGameCode/releases)
-![GitHub milestone details](https://img.shields.io/github/milestones/progress-percent/TheSuperHackers/GeneralsGameCode/3)
-![GitHub milestone details](https://img.shields.io/github/milestones/progress-percent/TheSuperHackers/GeneralsGameCode/1)
-![GitHub milestone details](https://img.shields.io/github/milestones/progress-percent/TheSuperHackers/GeneralsGameCode/4)
-![GitHub milestone details](https://img.shields.io/github/milestones/progress-percent/TheSuperHackers/GeneralsGameCode/5)
-![GitHub milestone details](https://img.shields.io/github/milestones/progress-percent/TheSuperHackers/GeneralsGameCode/6)
+# This is my custom fork of the Generals Game Code Project
 
-[![GitHub issues by-label](https://img.shields.io/github/issues/TheSuperHackers/GeneralsGameCode/bug?style=flat&label=Bug%20Issues&labelColor=%23c4c4c4&color=%23424242)](https://github.com/TheSuperHackers/GeneralsGameCode/issues?q=label%3ABug)
-[![GitHub issues by-label](https://img.shields.io/github/issues/TheSuperHackers/GeneralsGameCode/enhancement?style=flat&label=Enhancement%20Issues&labelColor=%23c4c4c4&color=%23424242)](https://github.com/TheSuperHackers/GeneralsGameCode/issues?q=label%3AEnhancement)
-[![GitHub issues by-label](https://img.shields.io/github/issues/TheSuperHackers/GeneralsGameCode/major?style=flat&label=Major%20Issues&labelColor=%23c4c4c4&color=%23424242)](https://github.com/TheSuperHackers/GeneralsGameCode/issues?q=label%3AMajor)
-[![GitHub issues by-label](https://img.shields.io/github/issues/TheSuperHackers/GeneralsGameCode/critical?style=flat&label=Critical%20Issues&labelColor=%23c4c4c4&color=%23424242)](https://github.com/TheSuperHackers/GeneralsGameCode/issues?q=label%3ACritical)
-[![GitHub issues by-label](https://img.shields.io/github/issues/TheSuperHackers/GeneralsGameCode/blocker?style=flat&label=Blocker%20Issues&labelColor=%23c4c4c4&color=%23424242)](https://github.com/TheSuperHackers/GeneralsGameCode/issues?q=label%3ABlocker)
+I've been modding *Command & Conquer: Generals* and its expansion *Zero Hour* on and off for over two decades. I am primarily a Web developer by trade but, although my knowledge of C++ is limited, I do bring a unique modder's perspective to the table and this repository exists for me to try out my own changes to the source code (on top of those made by TheSuperHackers).
+
+So far I've done the following:
+* Re-enabled the original campaign mission intro features which were disabled in *Zero Hour* (my personal mod already included both the original and expansion singleplayer campaigns, but this change means the original campaign mission intros can finally work exactly the same as they did in *Generals*)
+  * This requires opting in using `CampaignUsesIntroBriefings yes` with applicable Campaign definitions in Campaign.ini
+  * Also, switching the load screen background (i.e. after the intro video finishes playing, for campaigns **without** `CampaignUsesIntroBriefings yes`) to a faction-specific one now depends on setting the value of `PlayerFaction` to one of `FactionAmerica`, `FactionGLA` or `FactionChina` (before it was hardcoded based on the campaign name)
+* Changed the default viewport height scale from 0.8 to 0.9 (this allows my mod to use a commandbar UI that takes up less of the screen, while still looking the same as the original UI)
+* Increased the maximum commands per set to 20 and the maximum garrison slots to 16 (along with moving the hardcoded positions of the Stop and Evacuate commands); the maximum sciences for rank 1 have also been increased from 4 to 5 because the existing UI already clearly allowed for this
+* Altered the `ALWAYS_VISIBLE` kind of to only affect an object's visibility within the fog of war - now, objects with this kind of are no longer visible within the shroud (in my mod I use this kind of on General's Power aircraft to prevent them from awkwardly disappearing and reappearing as they pass through the fog of war on their way to the target)
+* Fixed the `CLEARED_BY_BUILD` kind of in multiplayer matches so that objects with this kind of can actually, you know, be cleared by building (lol)
+  * Without this fix, the workaround for most prop-type objects was to instead use the `SHRUBBERY` kind of
+* Wonky math used for `W3DCommandBarGridDraw` (this is what adds the grid overlay to an object's right-side HUD) has been fixed - it's obviously supposed to be in thirds but never quiiite used to be (mostly due to sloppy rounding errors)
+
+What follows is the original project's README content...
 
 # Welcome to the Generals Game Code Project
 
