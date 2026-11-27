@@ -14,6 +14,7 @@ So far I've done the following:
 * Fixed the `CLEARED_BY_BUILD` kind of in multiplayer matches so that objects with this kind of can actually, you know, be cleared by building (lol)
   * Without this fix, the workaround for most prop-type objects was to instead use the `SHRUBBERY` kind of
 * Wonky math used for `W3DCommandBarGridDraw` (this is what adds the grid overlay to an object's right-side HUD) has been fixed - it's obviously supposed to be in thirds but never quiiite used to be (mostly due to sloppy rounding errors)
+* Eliminate hardcoded *Zero Hour* colors (mainly for window transition borders) - I've always hated all-blue color scheme introduced with the *Zero Hour* expansion, so in my mod I painstakingly changed the entire UI back to the original *Generals* color scheme (including the graphics introduced for *Zero Hour*). Ideally there wouldn't be any hardcoded colors, but changing that is almost certainly beyond my skill level.
 
 What follows is the original project's README content...
 
